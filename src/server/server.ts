@@ -70,6 +70,7 @@ const prepareServer = ({
 }
 
 interface ServeOptions {
+  certificatePath?: string
   debug?: boolean
   distImportMapPath?: string
   importMaps?: ImportMapFile[]
@@ -81,6 +82,7 @@ interface ServeOptions {
 }
 
 const serve = async ({
+  certificatePath,
   debug,
   distImportMapPath,
   formatExportTypeError,
@@ -107,6 +109,10 @@ const serve = async ({
   // if any.
   const importMap = new ImportMap(importMaps)
   const flags = ['--allow-all', '--unstable', `--import-map=${importMap.toDataURL()}`]
+
+  if (certificatePath) {
+    flags.push(`--cert=${certificatePath}`)
+  }
 
   if (debug) {
     flags.push('--log-level=debug')
