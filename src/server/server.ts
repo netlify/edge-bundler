@@ -16,15 +16,17 @@ interface PrepareServerOptions {
   flags: string[]
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
+  originProtocol?: string
   port: number
 }
 
 const prepareServer = ({
   deno,
   distDirectory,
-  flags,
+  flags: denoFlags,
   formatExportTypeError,
   formatImportError,
+  originProtocol,
   port,
 }: PrepareServerOptions) => {
   const processRef: ProcessRef = {}
@@ -56,7 +58,13 @@ const prepareServer = ({
       // no-op
     }
 
-    await deno.runInBackground(['run', ...flags, stage2Path, port.toString()], true, processRef)
+    const bootstrapFlags = ['--port', port.toString()]
+
+    if (originProtocol) {
+      bootstrapFlags.push('--origin-protocol', originProtocol)
+    }
+
+    await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], true, processRef)
 
     const success = await waitForServer(port, processRef.ps)
 
@@ -120,7 +128,15 @@ const serve = async ({
     flags.push('--quiet')
   }
 
-  const server = await prepareServer({ deno, distDirectory, flags, formatExportTypeError, formatImportError, port })
+  const server = await prepareServer({
+    deno,
+    distDirectory,
+    flags,
+    formatExportTypeError,
+    formatImportError,
+    originProtocol: certificatePath ? 'https' : undefined,
+    port,
+  })
 
   if (distImportMapPath) {
     await importMap.writeToFile(distImportMapPath)
