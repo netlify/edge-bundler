@@ -16,7 +16,6 @@ interface PrepareServerOptions {
   flags: string[]
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
-  originProtocol?: string
   port: number
 }
 
@@ -26,7 +25,6 @@ const prepareServer = ({
   flags: denoFlags,
   formatExportTypeError,
   formatImportError,
-  originProtocol,
   port,
 }: PrepareServerOptions) => {
   const processRef: ProcessRef = {}
@@ -59,10 +57,6 @@ const prepareServer = ({
     }
 
     const bootstrapFlags = ['--port', port.toString()]
-
-    if (originProtocol) {
-      bootstrapFlags.push('--origin-protocol', originProtocol)
-    }
 
     await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], true, processRef)
 
@@ -134,7 +128,6 @@ const serve = async ({
     flags,
     formatExportTypeError,
     formatImportError,
-    originProtocol: certificatePath ? 'https' : undefined,
     port,
   })
 
