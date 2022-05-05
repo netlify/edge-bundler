@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer'
 import fs from 'fs'
 import { createRequire } from 'module'
+import { platform } from 'process'
 import { PassThrough } from 'stream'
 
 import test from 'ava'
@@ -21,7 +22,7 @@ test('Downloads the Deno CLI on demand and caches it for subsequent calls', asyn
   const archive = archiver('zip', { zlib: { level: 9 } })
 
   archive.pipe(data)
-  archive.append(Buffer.from(mockBinaryOutput), { name: 'deno' })
+  archive.append(Buffer.from(mockBinaryOutput), { name: platform === 'win32' ? 'deno.exe' : 'deno' })
   archive.finalize()
 
   const target = getPlatformTarget()
