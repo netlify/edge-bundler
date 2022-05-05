@@ -11,6 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
+      max-parallel: 1
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
         node-version: [12.20.0, '*']
