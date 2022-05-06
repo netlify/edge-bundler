@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "0.11.0",
+  "version": "1.1.0",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/index.js",
@@ -48,9 +48,9 @@
   },
   "keywords": [],
   "license": "MIT",
-  "repository": "netlify-labs/edge-bundler",
+  "repository": "netlify/edge-bundler",
   "bugs": {
-    "url": "https://github.com/netlify-labs/edge-bundler/issues"
+    "url": "https://github.com/netlify/edge-bundler/issues"
   },
   "author": "Netlify Inc.",
   "directories": {
@@ -66,10 +66,12 @@
     "@types/semver": "^7.3.9",
     "@types/sinon": "^10.0.8",
     "@types/uuid": "^8.3.4",
+    "archiver": "^5.3.1",
     "ava": "^4.0.1",
     "husky": "^7.0.4",
+    "nock": "^13.2.4",
     "nyc": "^15.0.0",
-    "sinon": "^12.0.1",
+    "sinon": "^13.0.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   },
