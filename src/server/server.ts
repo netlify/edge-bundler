@@ -75,6 +75,8 @@ interface ServeOptions {
   certificatePath?: string
   debug?: boolean
   distImportMapPath?: string
+  edgeInspect?: boolean | string
+  edgeInspectBrk?: boolean | string
   importMaps?: ImportMapFile[]
   onAfterDownload?: LifecycleHook
   onBeforeDownload?: LifecycleHook
@@ -83,10 +85,13 @@ interface ServeOptions {
   port: number
 }
 
+// eslint-disable-next-line complexity, max-statements
 const serve = async ({
   certificatePath,
   debug,
   distImportMapPath,
+  edgeInspect,
+  edgeInspectBrk,
   formatExportTypeError,
   formatImportError,
   importMaps,
@@ -120,6 +125,14 @@ const serve = async ({
     flags.push('--log-level=debug')
   } else {
     flags.push('--quiet')
+  }
+
+  if (edgeInspect) {
+    flags.push(typeof edgeInspect === 'boolean' ? '--inspect' : `--inspect${edgeInspect}`)
+  }
+
+  if (edgeInspectBrk) {
+    flags.push(typeof edgeInspectBrk === 'boolean' ? '--inspect-brk' : `--inspect-brk${edgeInspectBrk}`)
   }
 
   const server = await prepareServer({
