@@ -71,12 +71,21 @@ const prepareServer = ({
   return startIsolate
 }
 
+interface InspectSettings {
+  // Inspect mode enabled
+  enabled: boolean
+
+  // Pause on breakpoints (i.e. "--brk")
+  pause: boolean
+
+  // Host/port override (optional)
+  address?: string
+}
 interface ServeOptions {
   certificatePath?: string
   debug?: boolean
   distImportMapPath?: string
-  edgeInspect?: boolean | string
-  edgeInspectBrk?: boolean | string
+  inspectSettings?: InspectSettings
   importMaps?: ImportMapFile[]
   onAfterDownload?: LifecycleHook
   onBeforeDownload?: LifecycleHook
@@ -90,8 +99,7 @@ const serve = async ({
   certificatePath,
   debug,
   distImportMapPath,
-  edgeInspect,
-  edgeInspectBrk,
+  inspectSettings,
   formatExportTypeError,
   formatImportError,
   importMaps,
@@ -127,12 +135,12 @@ const serve = async ({
     flags.push('--quiet')
   }
 
-  if (edgeInspect) {
-    flags.push(typeof edgeInspect === 'boolean' ? '--inspect' : `--inspect${edgeInspect}`)
-  }
-
-  if (edgeInspectBrk) {
-    flags.push(typeof edgeInspectBrk === 'boolean' ? '--inspect-brk' : `--inspect-brk${edgeInspectBrk}`)
+  if (inspectSettings && inspectSettings.enabled) {
+    if (inspectSettings.pause) {
+      flags.push(inspectSettings.address ? `--inspect-brk${inspectSettings.address}` : '--inspect-brk')
+    } else {
+      flags.push(inspectSettings.address ? `--inspect${inspectSettings.address}` : '--inspect')
+    }
   }
 
   const server = await prepareServer({
