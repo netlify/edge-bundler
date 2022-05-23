@@ -43,7 +43,7 @@ const bundleJS = async ({
   const stage2Path = await generateStage2({ distDirectory, functions, fileName: `${buildID}-pre.js` })
   const extension = '.js'
   const jsBundlePath = join(distDirectory, `${buildID}${extension}`)
-  const flags = ['--allow-read', `--import-map=${importMap.toDataURL()}`]
+  const flags = [`--import-map=${importMap.toDataURL()}`]
 
   if (!debug) {
     flags.push('--quiet')
