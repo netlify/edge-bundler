@@ -1,5 +1,17 @@
 # Changelog
 
+### [1.1.1](https://github.com/netlify/edge-bundler/compare/v1.1.0...v1.1.1) (2022-05-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency del to v6.1.0 ([#35](https://github.com/netlify/edge-bundler/issues/35)) ([0c4ff08](https://github.com/netlify/edge-bundler/commit/0c4ff08cf5ccbe629e579ac00458db9227ef26f5))
+
+
+### Miscellaneous Chores
+
+* release 1.1.1 ([#33](https://github.com/netlify/edge-bundler/issues/33)) ([6c25ee7](https://github.com/netlify/edge-bundler/commit/6c25ee742f4f8993f0dd10418f555ce6cf63afc5))
+
 ## [1.1.0](https://github.com/netlify/edge-bundler/compare/v1.0.0...v1.1.0) (2022-05-05)
 
 
