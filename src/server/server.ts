@@ -137,9 +137,9 @@ const serve = async ({
 
   if (inspectSettings && inspectSettings.enabled) {
     if (inspectSettings.pause) {
-      flags.push(inspectSettings.address ? `--inspect-brk${inspectSettings.address}` : '--inspect-brk')
+      flags.push(inspectSettings.address ? `--inspect-brk=${inspectSettings.address}` : '--inspect-brk')
     } else {
-      flags.push(inspectSettings.address ? `--inspect${inspectSettings.address}` : '--inspect')
+      flags.push(inspectSettings.address ? `--inspect=${inspectSettings.address}` : '--inspect')
     }
   }
 
