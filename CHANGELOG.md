@@ -1,6 +1,11 @@
 # Changelog
 
-### [1.1.1](https://github.com/netlify/edge-bundler/compare/v1.1.0...v1.1.1) (2022-05-23)
+### [1.2.0](https://github.com/netlify/edge-bundler/compare/v1.1.0...v1.2.0) (2022-05-25)
+
+
+### Features
+
+* support for Edge Functions debugging ([#31](https://github.com/netlify/edge-bundler/issues/31)) ([d69c79e](https://github.com/netlify/edge-bundler/commit/d69c79edb75f0bd1cf177c8c2e7fde0d20f923c2))
 
 
 ### Bug Fixes
