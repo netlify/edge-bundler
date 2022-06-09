@@ -12,7 +12,7 @@ import { getBinaryExtension } from './platform.js'
 const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
-type LifecycleHook = () => void | Promise<void>
+type LifecycleHook = (hasError?: boolean) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
@@ -65,13 +65,16 @@ class DenoBridge {
     // a malformed semver range. If this does happen, let's throw an error so
     // that the tests catch it.
     if (downloadedVersion === undefined) {
+      if (this.onAfterDownload) {
+        this.onAfterDownload(true)
+      }
       throw new Error('Could not read downloaded binary')
     }
 
     await this.writeVersionFile(downloadedVersion)
 
     if (this.onAfterDownload) {
-      this.onAfterDownload()
+      this.onAfterDownload(false)
     }
 
     return binaryPath
