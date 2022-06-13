@@ -30,4 +30,3 @@ jobs:
           branch: update-edge-bundler-bootstrap
           delete-branch: true
           labels: 'type: chore'
-          team-reviewers: 'netlify/compute'
