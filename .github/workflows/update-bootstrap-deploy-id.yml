@@ -1,3 +1,5 @@
+name: Update Bootstrap URL
+
 on:
   workflow_dispatch:
     inputs:
