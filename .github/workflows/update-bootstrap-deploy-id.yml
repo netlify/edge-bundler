@@ -24,7 +24,7 @@ jobs:
         with:
           title: 'chore: update edge-bundler-bootstrap'
           body:
-            'Updates edge-bundler-bootstrap to [`${{ $inputs.bootstrap_deploy_id
+            'Updates edge-bundler-bootstrap to [`${{ inputs.bootstrap_deploy_id
             }}`](https://app.netlify.com/sites/edge-bootstrap/deploys/${{ inputs.bootstrap_deploy_id }}).'
           commit-message: 'chore: update edge-bundler-bootstrap'
           branch: update-edge-bundler-bootstrap
