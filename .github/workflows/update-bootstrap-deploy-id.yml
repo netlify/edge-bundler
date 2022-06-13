@@ -16,7 +16,7 @@ jobs:
 
       - name: Replace Deploy ID
         run:
-          find ./ -type f -exec sed -i 's/https:\/\/.*--edge-bootstrap\.netlify\.app/https://{{
+          find ./ -type f -exec sed -i 's@https:\/\/.*--edge-bootstrap\.netlify\.app@https://{{
           $inputs.bootstrap_deploy_id }}--edge-bootstrap.netlify.app/g' {} \;
 
       - name: Create Pull Request
