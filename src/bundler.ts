@@ -4,7 +4,7 @@ import { join } from 'path'
 import commonPathPrefix from 'common-path-prefix'
 import { v4 as uuidv4 } from 'uuid'
 
-import { DenoBridge, LifecycleHook } from './bridge.js'
+import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
 import type { Declaration } from './declaration.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
@@ -20,8 +20,8 @@ interface BundleOptions {
   distImportMapPath?: string
   featureFlags?: FeatureFlags
   importMaps?: ImportMapFile[]
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
 }
 
 const bundle = async (

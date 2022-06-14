@@ -12,13 +12,14 @@ import { getBinaryExtension } from './platform.js'
 const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
-type LifecycleHook = (hasError?: boolean) => void | Promise<void>
+type OnBeforeDownloadHook = () => void | Promise<void>
+type OnAfterDownloadHook = (hasError: boolean) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
   debug?: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal?: boolean
   versionRange?: string
 }
@@ -35,8 +36,8 @@ class DenoBridge {
   cacheDirectory: string
   currentDownload?: ReturnType<DenoBridge['downloadBinary']>
   debug: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal: boolean
   versionRange: string
 
@@ -68,7 +69,9 @@ class DenoBridge {
       if (this.onAfterDownload) {
         this.onAfterDownload(true)
       }
-      throw new Error('Could not read downloaded binary')
+      throw new Error(
+        "There was a problem setting up the Edge Functions environment and it's unfortunately not possible to run Edge Functions from the CLI on this platform. More on supported platforms here: https://deno.land/manual/getting_started/installation.",
+      )
     }
 
     await this.writeVersionFile(downloadedVersion)
@@ -206,5 +209,6 @@ class DenoBridge {
   }
 }
 
+// eslint-disable-next-line max-lines
 export { DenoBridge }
-export type { LifecycleHook, ProcessRef }
+export type { OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef }
