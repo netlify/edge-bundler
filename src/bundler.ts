@@ -25,15 +25,21 @@ interface BundleOptions {
   onBeforeDownload?: LifecycleHook
 }
 
-interface BundleOpsArgs {
+interface CommonBundleOptions {
   buildID: string
   debug?: boolean
   deno: DenoBridge
-  basePath: string
   distDirectory: string
   functions: EdgeFunction[]
-  importMap: ImportMap
   featureFlags: Record<string, string>
+}
+
+interface BundleJSOptions {
+  importMap: ImportMap
+}
+
+interface BundleESZIPOptions {
+  basePath: string
 }
 
 const createBundleOps = ({
@@ -45,7 +51,7 @@ const createBundleOps = ({
   functions,
   importMap,
   featureFlags,
-}: BundleOpsArgs) => {
+}: CommonBundleOptions & BundleJSOptions & BundleESZIPOptions) => {
   const bundleOps = [
     bundleJS({
       buildID,
