@@ -13,7 +13,7 @@ const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
 type OnBeforeDownloadHook = () => void | Promise<void>
-type OnAfterDownloadHook = (hasError: boolean) => void | Promise<void>
+type OnAfterDownloadHook = (error: Error | null) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
@@ -66,18 +66,21 @@ class DenoBridge {
     // a malformed semver range. If this does happen, let's throw an error so
     // that the tests catch it.
     if (downloadedVersion === undefined) {
-      if (this.onAfterDownload) {
-        this.onAfterDownload(true)
-      }
-      throw new Error(
-        "There was a problem setting up the Edge Functions environment and it's unfortunately not possible to run Edge Functions from the CLI on this platform. More on supported platforms here: https://deno.land/manual/getting_started/installation.",
+      const error = new Error(
+        "There was a problem setting up the Edge Functions environment and it's unfortunately not possible to run Edge Functions from this platform. More on supported platforms here: https://deno.land/manual/getting_started/installation.",
       )
+
+      if (this.onAfterDownload) {
+        this.onAfterDownload(error)
+      }
+
+      throw error
     }
 
     await this.writeVersionFile(downloadedVersion)
 
     if (this.onAfterDownload) {
-      this.onAfterDownload(false)
+      this.onAfterDownload(null)
     }
 
     return binaryPath
@@ -207,8 +210,8 @@ class DenoBridge {
       ref.ps = ps
     }
   }
+// eslint-disable-next-line max-lines
 }
 
-// eslint-disable-next-line max-lines
 export { DenoBridge }
 export type { OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef }
