@@ -67,7 +67,7 @@ class DenoBridge {
     // that the tests catch it.
     if (downloadedVersion === undefined) {
       const error = new Error(
-        "There was a problem setting up the Edge Functions environment. To try a manual installation, visit https://ntl.fyi/install-deno.",
+        'There was a problem setting up the Edge Functions environment. To try a manual installation, visit https://ntl.fyi/install-deno.',
       )
 
       if (this.onAfterDownload) {
