@@ -2,6 +2,8 @@
 
 ## [1.2.1](https://github.com/netlify/edge-bundler/compare/v1.2.0...v1.2.1) (2022-06-13)
 
+- updated edge-functions-bootstrap version
+
 
 ### Bug Fixes
 
