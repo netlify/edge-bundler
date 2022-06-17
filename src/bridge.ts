@@ -51,9 +51,7 @@ class DenoBridge {
   }
 
   private async downloadBinary() {
-    if (this.onBeforeDownload) {
-      this.onBeforeDownload()
-    }
+    this.onBeforeDownload?.()
 
     await fs.mkdir(this.cacheDirectory, { recursive: true })
 
