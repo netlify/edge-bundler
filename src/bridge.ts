@@ -13,7 +13,7 @@ const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
 type OnBeforeDownloadHook = () => void | Promise<void>
-type OnAfterDownloadHook = (error: Error | null) => void | Promise<void>
+type OnAfterDownloadHook = (error?: Error) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
@@ -70,18 +70,14 @@ class DenoBridge {
         'There was a problem setting up the Edge Functions environment. To try a manual installation, visit https://ntl.fyi/install-deno.',
       )
 
-      if (this.onAfterDownload) {
-        this.onAfterDownload(error)
-      }
+      this.onAfterDownload?.(error)
 
       throw error
     }
 
     await this.writeVersionFile(downloadedVersion)
 
-    if (this.onAfterDownload) {
-      this.onAfterDownload(null)
-    }
+    this.onAfterDownload?.()
 
     return binaryPath
   }
