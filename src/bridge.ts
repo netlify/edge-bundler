@@ -204,7 +204,6 @@ class DenoBridge {
       ref.ps = ps
     }
   }
-  // eslint-disable-next-line max-lines
 }
 
 export { DenoBridge }
