@@ -25,20 +25,14 @@ interface BundleOptions {
   onBeforeDownload?: LifecycleHook
 }
 
-interface CommonBundleOptions {
+interface BundleFormatOptions {
   buildID: string
   debug?: boolean
   deno: DenoBridge
   distDirectory: string
   functions: EdgeFunction[]
   featureFlags: Record<string, string>
-}
-
-interface BundleJSOptions {
   importMap: ImportMap
-}
-
-interface BundleESZIPOptions {
   basePath: string
 }
 
@@ -51,17 +45,8 @@ const createBundleOps = ({
   functions,
   importMap,
   featureFlags,
-}: CommonBundleOptions & BundleJSOptions & BundleESZIPOptions) => {
-  const bundleOps = [
-    bundleJS({
-      buildID,
-      debug,
-      deno,
-      distDirectory,
-      functions,
-      importMap,
-    }),
-  ]
+}: BundleFormatOptions) => {
+  const bundleOps = []
 
   if (featureFlags.edge_functions_produce_eszip) {
     bundleOps.push(
@@ -72,6 +57,17 @@ const createBundleOps = ({
         deno,
         distDirectory,
         functions,
+      }),
+    )
+  } else {
+    bundleOps.push(
+      bundleJS({
+        buildID,
+        debug,
+        deno,
+        distDirectory,
+        functions,
+        importMap,
       }),
     )
   }
