@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { DenoBridge, LifecycleHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
 import type { Declaration } from './declaration.js'
-import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
@@ -25,35 +24,7 @@ interface BundleOptions {
   onBeforeDownload?: LifecycleHook
 }
 
-interface WriteResultsOptions {
-  bundles: Bundle[]
-  declarations: Declaration[]
-  distDirectory: string
-  functions: EdgeFunction[]
-  distImportMapPath?: string
-  importMap?: ImportMap
-}
-
-const writeResults = async ({
-  bundles,
-  declarations,
-  distDirectory,
-  functions,
-  distImportMapPath,
-  importMap,
-}: WriteResultsOptions) => {
-  await writeManifest({
-    bundles,
-    declarations,
-    distDirectory,
-    functions,
-  })
-
-  if (distImportMapPath && importMap) {
-    await importMap.writeToFile(distImportMapPath)
-  }
-}
-
+// eslint-disable-next-line max-statements
 const bundle = async (
   sourceDirectories: string[],
   distDirectory: string,
@@ -119,14 +90,16 @@ const bundle = async (
   // rename the bundles to their permanent names.
   await createFinalBundles(bundles, distDirectory, buildID)
 
-  await writeResults({
+  await writeManifest({
     bundles,
-    functions,
-    importMap,
     declarations,
     distDirectory,
-    distImportMapPath,
+    functions,
   })
+
+  if (distImportMapPath) {
+    await importMap.writeToFile(distImportMapPath)
+  }
 
   return { functions }
 }
