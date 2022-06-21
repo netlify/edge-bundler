@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { DenoBridge, LifecycleHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
 import type { Declaration } from './declaration.js'
+import { EdgeFunction } from './edge_function.js'
+import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { bundle as bundleJS } from './formats/javascript.js'
@@ -17,17 +19,56 @@ interface BundleOptions {
   cacheDirectory?: string
   debug?: boolean
   distImportMapPath?: string
+  featureFlags?: FeatureFlags
   importMaps?: ImportMapFile[]
   onAfterDownload?: LifecycleHook
   onBeforeDownload?: LifecycleHook
+}
+
+interface WriteResultsOptions {
+  bundles: Bundle[]
+  declarations: Declaration[]
+  distDirectory: string
+  functions: EdgeFunction[]
+  distImportMapPath?: string
+  importMap?: ImportMap
+}
+
+const writeResults = async ({
+  bundles,
+  declarations,
+  distDirectory,
+  functions,
+  distImportMapPath,
+  importMap,
+}: WriteResultsOptions) => {
+  await writeManifest({
+    bundles,
+    declarations,
+    distDirectory,
+    functions,
+  })
+
+  if (distImportMapPath && importMap) {
+    await importMap.writeToFile(distImportMapPath)
+  }
 }
 
 const bundle = async (
   sourceDirectories: string[],
   distDirectory: string,
   declarations: Declaration[] = [],
-  { cacheDirectory, debug, distImportMapPath, importMaps, onAfterDownload, onBeforeDownload }: BundleOptions = {},
+  {
+    cacheDirectory,
+    debug,
+    distImportMapPath,
+    featureFlags: inputFeatureFlags,
+    importMaps,
+    onAfterDownload,
+    onBeforeDownload,
+  }: BundleOptions = {},
 ) => {
+  const featureFlags = getFlags(inputFeatureFlags)
   const deno = new DenoBridge({
     debug,
     cacheDirectory,
@@ -45,24 +86,31 @@ const bundle = async (
   // if any.
   const importMap = new ImportMap(importMaps)
   const functions = await findFunctions(sourceDirectories)
-  const bundleOps = [
-    bundleJS({
-      buildID,
-      debug,
-      deno,
-      distDirectory,
-      functions,
-      importMap,
-    }),
-    bundleESZIP({
-      basePath,
-      buildID,
-      debug,
-      deno,
-      distDirectory,
-      functions,
-    }),
-  ]
+  const bundleOps = []
+
+  if (featureFlags.edge_functions_produce_eszip) {
+    bundleOps.push(
+      bundleESZIP({
+        basePath,
+        buildID,
+        debug,
+        deno,
+        distDirectory,
+        functions,
+      }),
+    )
+  } else {
+    bundleOps.push(
+      bundleJS({
+        buildID,
+        debug,
+        deno,
+        distDirectory,
+        functions,
+        importMap,
+      }),
+    )
+  }
 
   const bundles = await Promise.all(bundleOps)
 
@@ -71,16 +119,14 @@ const bundle = async (
   // rename the bundles to their permanent names.
   await createFinalBundles(bundles, distDirectory, buildID)
 
-  await writeManifest({
+  await writeResults({
     bundles,
+    functions,
+    importMap,
     declarations,
     distDirectory,
-    functions,
+    distImportMapPath,
   })
-
-  if (distImportMapPath) {
-    await importMap.writeToFile(distImportMapPath)
-  }
 
   return { functions }
 }
