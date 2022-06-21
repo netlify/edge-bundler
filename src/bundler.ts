@@ -65,20 +65,15 @@ const bundle = async (
       functions,
       importMap,
     }),
+    bundleESZIP({
+      basePath,
+      buildID,
+      debug,
+      deno,
+      distDirectory,
+      functions,
+    }),
   ]
-
-  if (featureFlags.edge_functions_produce_eszip) {
-    bundleOps.push(
-      bundleESZIP({
-        basePath,
-        buildID,
-        debug,
-        deno,
-        distDirectory,
-        functions,
-      }),
-    )
-  }
 
   const bundles = await Promise.all(bundleOps)
 
