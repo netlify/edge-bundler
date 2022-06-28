@@ -19,7 +19,7 @@ class ImportMap {
 
     // `DEFAULT_IMPORTS` must come last because we want our internal imports to
     // take precedence.
-    this.imports = { ...inputImports, ...DEFAULT_IMPORTS }
+    this.imports = { ...DEFAULT_IMPORTS, ...inputImports }
   }
 
   getContents() {
