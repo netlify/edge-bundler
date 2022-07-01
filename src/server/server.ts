@@ -95,7 +95,6 @@ interface ServeOptions {
   port: number
 }
 
-// eslint-disable-next-line complexity, max-statements
 const serve = async ({
   certificatePath,
   debug,
