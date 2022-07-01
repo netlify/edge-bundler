@@ -30,7 +30,7 @@ const ensureLatestTypes = async (deno: DenoBridge, customTypesURL?: string) => {
   deno.log('Local version of types is outdated, updating:', localVersion)
 
   try {
-    await deno.run(['run', '-r', typesURL])
+    await deno.run(['cache', '-r', typesURL])
   } catch (error) {
     deno.log('Could not download latest types:', error)
 

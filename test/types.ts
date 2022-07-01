@@ -27,7 +27,7 @@ test('`ensureLatestTypes` updates the Deno CLI cache if the local version of typ
 
   t.true(latestVersionMock.isDone())
   t.is(mock.callCount, 1)
-  t.deepEqual(mock.firstCall.firstArg, ['run', '-r', mockURL])
+  t.deepEqual(mock.firstCall.firstArg, ['cache', '-r', mockURL])
   t.is(versionFile, mockVersion)
 
   mock.restore()
