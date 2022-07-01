@@ -7,7 +7,6 @@ import type { DenoBridge } from './bridge.js'
 
 const TYPES_URL = 'https://edge.netlify.com'
 
-// eslint-disable-next-line complexity, max-statements
 const ensureLatestTypes = async (deno: DenoBridge, customTypesURL?: string) => {
   const typesURL = customTypesURL ?? TYPES_URL
 
