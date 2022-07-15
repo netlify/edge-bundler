@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
-import { resolve } from 'path'
-import { fileURLToPath } from 'url'
+import { join, resolve } from 'path'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 import test from 'ava'
 import tmp from 'tmp-promise'
@@ -10,9 +10,10 @@ import { bundle } from '../src/bundler.js'
 
 const url = new URL(import.meta.url)
 const dirname = fileURLToPath(url)
+const fixturesDir = resolve(dirname, '..', 'fixtures')
 
 test('Produces a JavaScript bundle and a manifest file', async (t) => {
-  const sourceDirectory = resolve(dirname, '..', 'fixtures', 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
@@ -24,7 +25,7 @@ test('Produces a JavaScript bundle and a manifest file', async (t) => {
     importMaps: [
       {
         imports: {
-          'alias:bytes': 'https://deno.land/std@0.148.0/fmt/bytes.ts',
+          'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
         },
       },
     ],
@@ -48,7 +49,7 @@ test('Produces a JavaScript bundle and a manifest file', async (t) => {
 })
 
 test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` feature flag is set', async (t) => {
-  const sourceDirectory = resolve(dirname, '..', 'fixtures', 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
@@ -63,7 +64,7 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
     importMaps: [
       {
         imports: {
-          'alias:bytes': 'https://deno.land/std@0.148.0/fmt/bytes.ts',
+          'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
         },
       },
     ],
@@ -86,7 +87,7 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
 })
 
 test('Adds a custom error property to user errors during bundling', async (t) => {
-  const sourceDirectory = resolve(dirname, '..', 'fixtures', 'invalid_functions', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'invalid_functions', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {

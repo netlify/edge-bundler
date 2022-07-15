@@ -1,7 +1,7 @@
-import { prettyBytes } from 'alias:bytes'
+import { greet } from 'alias:helper'
 
 export default async () => {
-  const bytes = prettyBytes(1337)
+  const greeting = greet('Jane Doe')
 
-  return new Response(bytes)
+  return new Response(greeting)
 }
