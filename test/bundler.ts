@@ -20,7 +20,15 @@ test('Produces a JavaScript bundle and a manifest file', async (t) => {
       path: '/func1',
     },
   ]
-  const result = await bundle([sourceDirectory], tmpDir.path, declarations)
+  const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
+    importMaps: [
+      {
+        imports: {
+          'alias:bytes': 'https://deno.land/std@0.148.0/fmt/bytes.ts',
+        },
+      },
+    ],
+  })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
   t.is(result.functions.length, 1)
@@ -52,6 +60,13 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
+    importMaps: [
+      {
+        imports: {
+          'alias:bytes': 'https://deno.land/std@0.148.0/fmt/bytes.ts',
+        },
+      },
+    ],
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
