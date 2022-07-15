@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.5.0](https://github.com/netlify/edge-bundler/compare/v1.4.3...v1.5.0) (2022-07-01)
+
+
+### Features
+
+* refresh types on Deno CLI cache ([#66](https://github.com/netlify/edge-bundler/issues/66)) ([534ea80](https://github.com/netlify/edge-bundler/commit/534ea8022289d3ca4861931659bfa4f6d4a552ca))
+
+## [1.4.3](https://github.com/netlify/edge-bundler/compare/v1.4.2...v1.4.3) (2022-06-30)
+
+
+### Bug Fixes
+
+* improve user/system error boundaries ([#63](https://github.com/netlify/edge-bundler/issues/63)) ([a7ac87a](https://github.com/netlify/edge-bundler/commit/a7ac87a4f29964097dd0489b0d5c636530d71fda))
+
+## [1.4.2](https://github.com/netlify/edge-bundler/compare/v1.4.1...v1.4.2) (2022-06-30)
+
+
+### Bug Fixes
+
+* await lifecycle hooks as they might return promises ([#56](https://github.com/netlify/edge-bundler/issues/56)) ([01b53c6](https://github.com/netlify/edge-bundler/commit/01b53c600d26ae62bd996a3b707a3a0f6c668744))
+
+## [1.4.1](https://github.com/netlify/edge-bundler/compare/v1.4.0...v1.4.1) (2022-06-22)
+
+
+### Bug Fixes
+
+* add error state to onAfterDownload ([#42](https://github.com/netlify/edge-bundler/issues/42)) ([2cb24ac](https://github.com/netlify/edge-bundler/commit/2cb24ac72568f119ac4b1497bd732d76a99905a0))
+
+## [1.4.0](https://github.com/netlify/edge-bundler/compare/v1.3.0...v1.4.0) (2022-06-21)
+
+
+### Features
+
+* return generated manifest object ([#48](https://github.com/netlify/edge-bundler/issues/48)) ([a9eadcf](https://github.com/netlify/edge-bundler/commit/a9eadcf74b3baef606afb0ab43535fe4368d3b58))
+
+## [1.3.0](https://github.com/netlify/edge-bundler/compare/v1.2.1...v1.3.0) (2022-06-21)
+
+
+### Features
+
+* remove feature flag eszip ([#50](https://github.com/netlify/edge-bundler/issues/50)) ([da6377b](https://github.com/netlify/edge-bundler/commit/da6377bd6b2ed57215c64f185526e8b881522b1b))
+
 ## [1.2.1](https://github.com/netlify/edge-bundler/compare/v1.2.0...v1.2.1) (2022-06-13)
 
 - updated edge-functions-bootstrap version (https://github.com/netlify/edge-bundler/pull/43)

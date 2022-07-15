@@ -4,15 +4,17 @@ import { join } from 'path'
 import commonPathPrefix from 'common-path-prefix'
 import { v4 as uuidv4 } from 'uuid'
 
-import { DenoBridge, LifecycleHook } from './bridge.js'
+import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
 import type { Declaration } from './declaration.js'
+import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { bundle as bundleJS } from './formats/javascript.js'
 import { ImportMap, ImportMapFile } from './import_map.js'
 import { writeManifest } from './manifest.js'
+import { ensureLatestTypes } from './types.js'
 
 interface BundleOptions {
   cacheDirectory?: string
@@ -20,8 +22,58 @@ interface BundleOptions {
   distImportMapPath?: string
   featureFlags?: FeatureFlags
   importMaps?: ImportMapFile[]
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
+}
+
+interface BundleFormatOptions {
+  buildID: string
+  debug?: boolean
+  deno: DenoBridge
+  distDirectory: string
+  functions: EdgeFunction[]
+  featureFlags: Record<string, string>
+  importMap: ImportMap
+  basePath: string
+}
+
+const createBundleOps = ({
+  basePath,
+  buildID,
+  debug,
+  deno,
+  distDirectory,
+  functions,
+  importMap,
+  featureFlags,
+}: BundleFormatOptions) => {
+  const bundleOps = []
+
+  if (featureFlags.edge_functions_produce_eszip) {
+    bundleOps.push(
+      bundleESZIP({
+        basePath,
+        buildID,
+        debug,
+        deno,
+        distDirectory,
+        functions,
+      }),
+    )
+  } else {
+    bundleOps.push(
+      bundleJS({
+        buildID,
+        debug,
+        deno,
+        distDirectory,
+        functions,
+        importMap,
+      }),
+    )
+  }
+
+  return bundleOps
 }
 
 const bundle = async (
@@ -47,6 +99,8 @@ const bundle = async (
   })
   const basePath = getBasePath(sourceDirectories)
 
+  await ensureLatestTypes(deno)
+
   // The name of the bundle will be the hash of its contents, which we can't
   // compute until we run the bundle process. For now, we'll use a random ID
   // to create the bundle artifacts and rename them later.
@@ -56,29 +110,17 @@ const bundle = async (
   // if any.
   const importMap = new ImportMap(importMaps)
   const functions = await findFunctions(sourceDirectories)
-  const bundleOps = [
-    bundleJS({
-      buildID,
-      debug,
-      deno,
-      distDirectory,
-      functions,
-      importMap,
-    }),
-  ]
 
-  if (featureFlags.edge_functions_produce_eszip) {
-    bundleOps.push(
-      bundleESZIP({
-        basePath,
-        buildID,
-        debug,
-        deno,
-        distDirectory,
-        functions,
-      }),
-    )
-  }
+  const bundleOps = createBundleOps({
+    basePath,
+    buildID,
+    debug,
+    deno,
+    distDirectory,
+    functions,
+    importMap,
+    featureFlags,
+  })
 
   const bundles = await Promise.all(bundleOps)
 
@@ -87,7 +129,7 @@ const bundle = async (
   // rename the bundles to their permanent names.
   await createFinalBundles(bundles, distDirectory, buildID)
 
-  await writeManifest({
+  const manifest = await writeManifest({
     bundles,
     declarations,
     distDirectory,
@@ -98,7 +140,7 @@ const bundle = async (
     await importMap.writeToFile(distImportMapPath)
   }
 
-  return { functions }
+  return { functions, manifest }
 }
 
 const createFinalBundles = async (bundles: Bundle[], distDirectory: string, buildID: string) => {

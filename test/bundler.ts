@@ -34,11 +34,12 @@ test('Produces a JavaScript bundle and a manifest file', async (t) => {
   t.is(bundles.length, 1)
   t.is(bundles[0].format, 'js')
   t.true(generatedFiles.includes(bundles[0].asset))
+  t.deepEqual(result.manifest, manifest)
 
   await fs.rmdir(tmpDir.path, { recursive: true })
 })
 
-test('Produces an additional ESZIP bundle when the `edge_functions_produce_eszip` feature flag is set', async (t) => {
+test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` feature flag is set', async (t) => {
   const sourceDirectory = resolve(dirname, '..', 'fixtures', 'project_1', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
@@ -55,23 +56,21 @@ test('Produces an additional ESZIP bundle when the `edge_functions_produce_eszip
   const generatedFiles = await fs.readdir(tmpDir.path)
 
   t.is(result.functions.length, 1)
-  t.is(generatedFiles.length, 3)
+  t.is(generatedFiles.length, 2)
 
   // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles } = manifest
 
-  t.is(bundles.length, 2)
-  t.is(bundles[0].format, 'js')
+  t.is(bundles.length, 1)
+  t.is(bundles[0].format, 'eszip2')
   t.true(generatedFiles.includes(bundles[0].asset))
-  t.is(bundles[1].format, 'eszip2')
-  t.true(generatedFiles.includes(bundles[1].asset))
 
   await fs.rmdir(tmpDir.path, { recursive: true })
 })
 
-test('Adds a custom error property to bundling errors', async (t) => {
+test('Adds a custom error property to user errors during bundling', async (t) => {
   const sourceDirectory = resolve(dirname, '..', 'fixtures', 'invalid_functions', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
@@ -99,5 +98,16 @@ test('Adds a custom error property to bundling errors', async (t) => {
     }
   } finally {
     await fs.rmdir(tmpDir.path, { recursive: true })
+  }
+})
+
+test('Does not add a custom error property to system errors during bundling', async (t) => {
+  try {
+    // @ts-expect-error Sending bad input to `bundle` to force a system error.
+    await bundle([123, 321], tmpDir.path, declarations)
+
+    t.fail('Expected bundling to throw')
+  } catch (error: unknown) {
+    t.false(error instanceof BundleError)
   }
 })

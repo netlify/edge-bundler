@@ -12,13 +12,14 @@ import { getBinaryExtension } from './platform.js'
 const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
-type LifecycleHook = () => void | Promise<void>
+type OnBeforeDownloadHook = () => void | Promise<void>
+type OnAfterDownloadHook = (error?: Error) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
   debug?: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal?: boolean
   versionRange?: string
 }
@@ -35,8 +36,8 @@ class DenoBridge {
   cacheDirectory: string
   currentDownload?: ReturnType<DenoBridge['downloadBinary']>
   debug: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal: boolean
   versionRange: string
 
@@ -50,9 +51,7 @@ class DenoBridge {
   }
 
   private async downloadBinary() {
-    if (this.onBeforeDownload) {
-      this.onBeforeDownload()
-    }
+    await this.onBeforeDownload?.()
 
     await fs.mkdir(this.cacheDirectory, { recursive: true })
 
@@ -65,14 +64,18 @@ class DenoBridge {
     // a malformed semver range. If this does happen, let's throw an error so
     // that the tests catch it.
     if (downloadedVersion === undefined) {
-      throw new Error('Could not read downloaded binary')
+      const error = new Error(
+        'There was a problem setting up the Edge Functions environment. To try a manual installation, visit https://ntl.fyi/install-deno.',
+      )
+
+      await this.onAfterDownload?.(error)
+
+      throw error
     }
 
     await this.writeVersionFile(downloadedVersion)
 
-    if (this.onAfterDownload) {
-      this.onAfterDownload()
-    }
+    await this.onAfterDownload?.()
 
     return binaryPath
   }
@@ -135,14 +138,6 @@ class DenoBridge {
     return this.currentDownload
   }
 
-  private log(...data: unknown[]) {
-    if (!this.debug) {
-      return
-    }
-
-    console.log(...data)
-  }
-
   private static runWithBinary(binaryPath: string, args: string[], pipeOutput?: boolean) {
     const runDeno = execa(binaryPath, args)
 
@@ -182,6 +177,14 @@ class DenoBridge {
     return { global: false, path: downloadedPath }
   }
 
+  log(...data: unknown[]) {
+    if (!this.debug) {
+      return
+    }
+
+    console.log(...data)
+  }
+
   // Runs the Deno CLI in the background and returns a reference to the child
   // process, awaiting its execution.
   async run(args: string[], { pipeOutput }: RunOptions = {}) {
@@ -204,4 +207,4 @@ class DenoBridge {
 }
 
 export { DenoBridge }
-export type { LifecycleHook, ProcessRef }
+export type { OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef }
