@@ -80,7 +80,7 @@
   },
   "dependencies": {
     "common-path-prefix": "^3.0.0",
-    "del": "^6.0.0",
+    "del": "^7.0.0",
     "env-paths": "^3.0.0",
     "execa": "^6.0.0",
     "glob-to-regexp": "^0.4.1",
