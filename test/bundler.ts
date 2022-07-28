@@ -6,7 +6,7 @@ import test from 'ava'
 import tmp from 'tmp-promise'
 
 import { BundleError } from '../src/bundle_error.js'
-import { bundle } from '../src/bundler.js'
+import { bundle, BundleOptions } from '../src/bundler.js'
 
 const url = new URL(import.meta.url)
 const dirname = fileURLToPath(url)
@@ -140,12 +140,9 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
       path: '/func1',
     },
   ]
-  const result = await bundle([sourceDirectory], outDir.path, declarations, {
+  const options: BundleOptions = {
     basePath: fixturesDir,
     cacheDirectory: cacheDir.path,
-    featureFlags: {
-      edge_functions_cache_deno_dir: true,
-    },
     importMaps: [
       {
         imports: {
@@ -153,16 +150,33 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
         },
       },
     ],
+  }
+
+  // Run #1, feature flag off: The directory should not be populated.
+  const result1 = await bundle([sourceDirectory], outDir.path, declarations, options)
+  const outFiles1 = await fs.readdir(outDir.path)
+
+  t.is(result1.functions.length, 1)
+  t.is(outFiles1.length, 2)
+
+  await t.throwsAsync(() => fs.readdir(join(cacheDir.path, 'deno_dir')))
+
+  // Run #2, feature flag on: The directory should be populated.
+  const result2 = await bundle([sourceDirectory], outDir.path, declarations, {
+    ...options,
+    featureFlags: {
+      edge_functions_cache_deno_dir: true,
+    },
   })
-  const generatedFiles = await fs.readdir(outDir.path)
+  const outFiles2 = await fs.readdir(outDir.path)
 
-  t.is(result.functions.length, 1)
-  t.is(generatedFiles.length, 2)
+  t.is(result2.functions.length, 1)
+  t.is(outFiles2.length, 2)
 
-  const denoDir = await fs.readdir(join(cacheDir.path, 'deno_dir'))
+  const denoDir2 = await fs.readdir(join(cacheDir.path, 'deno_dir'))
 
-  t.true(denoDir.includes('deps'))
-  t.true(denoDir.includes('gen'))
+  t.true(denoDir2.includes('deps'))
+  t.true(denoDir2.includes('gen'))
 
   await fs.rmdir(outDir.path, { recursive: true })
 })
