@@ -107,6 +107,7 @@ test('Adds a custom error property to user errors during bundling', async (t) =>
       t.deepEqual(error.customErrorInfo, {
         location: {
           format: 'javascript',
+          functionType: 'edge',
           runtime: 'deno',
         },
         type: 'functionsBundling',

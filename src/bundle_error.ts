@@ -5,6 +5,7 @@ interface BundleErrorOptions {
 const getCustomErrorInfo = (options: BundleErrorOptions) => ({
   location: {
     format: options.format,
+    functionType: 'edge',
     runtime: 'deno',
   },
   type: 'functionsBundling',
