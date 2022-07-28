@@ -129,3 +129,40 @@ test('Does not add a custom error property to system errors during bundling', as
     t.false(error instanceof BundleError)
   }
 })
+
+test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_cache_deno_dir` feature flag is set', async (t) => {
+  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const outDir = await tmp.dir()
+  const cacheDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const result = await bundle([sourceDirectory], outDir.path, declarations, {
+    basePath: fixturesDir,
+    cacheDirectory: cacheDir.path,
+    featureFlags: {
+      edge_functions_cache_deno_dir: true,
+    },
+    importMaps: [
+      {
+        imports: {
+          'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
+        },
+      },
+    ],
+  })
+  const generatedFiles = await fs.readdir(outDir.path)
+
+  t.is(result.functions.length, 1)
+  t.is(generatedFiles.length, 2)
+
+  const denoDir = await fs.readdir(join(cacheDir.path, 'deno_dir'))
+
+  t.true(denoDir.includes('deps'))
+  t.true(denoDir.includes('gen'))
+
+  await fs.rmdir(outDir.path, { recursive: true })
+})
