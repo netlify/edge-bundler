@@ -31,6 +31,8 @@ interface ProcessRef {
 
 interface RunOptions {
   pipeOutput?: boolean
+  env?: NodeJS.ProcessEnv
+  extendEnv?: boolean
 }
 
 class DenoBridge {
@@ -186,8 +188,8 @@ class DenoBridge {
     return { global: false, path: downloadedPath }
   }
 
-  getEnvironmentVariables() {
-    const env: Record<string, string> = {}
+  getEnvironmentVariables(inputEnv: NodeJS.ProcessEnv = {}) {
+    const env: NodeJS.ProcessEnv = { ...inputEnv }
 
     if (this.denoDir !== undefined) {
       env.DENO_DIR = this.denoDir
@@ -206,20 +208,20 @@ class DenoBridge {
 
   // Runs the Deno CLI in the background and returns a reference to the child
   // process, awaiting its execution.
-  async run(args: string[], { pipeOutput }: RunOptions = {}) {
+  async run(args: string[], { pipeOutput, env: inputEnv, extendEnv }: RunOptions = {}) {
     const { path: binaryPath } = await this.getBinaryPath()
-    const env = this.getEnvironmentVariables()
-    const options = { env }
+    const env = this.getEnvironmentVariables(inputEnv)
+    const options: Options = { env, extendEnv }
 
     return DenoBridge.runWithBinary(binaryPath, args, options, pipeOutput)
   }
 
   // Runs the Deno CLI in the background, assigning a reference of the child
   // process to a `ps` property in the `ref` argument, if one is supplied.
-  async runInBackground(args: string[], pipeOutput?: boolean, ref?: ProcessRef) {
+  async runInBackground(args: string[], ref?: ProcessRef, { pipeOutput, env: inputEnv, extendEnv }: RunOptions = {}) {
     const { path: binaryPath } = await this.getBinaryPath()
-    const env = this.getEnvironmentVariables()
-    const options = { env }
+    const env = this.getEnvironmentVariables(inputEnv)
+    const options: Options = { env, extendEnv }
     const ps = DenoBridge.runWithBinary(binaryPath, args, options, pipeOutput)
 
     if (ref !== undefined) {
