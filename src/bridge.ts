@@ -208,7 +208,7 @@ class DenoBridge {
 
   // Runs the Deno CLI in the background and returns a reference to the child
   // process, awaiting its execution.
-  async run(args: string[], { pipeOutput, env: inputEnv, extendEnv }: RunOptions = {}) {
+  async run(args: string[], { pipeOutput, env: inputEnv, extendEnv = true }: RunOptions = {}) {
     const { path: binaryPath } = await this.getBinaryPath()
     const env = this.getEnvironmentVariables(inputEnv)
     const options: Options = { env, extendEnv }
@@ -218,7 +218,11 @@ class DenoBridge {
 
   // Runs the Deno CLI in the background, assigning a reference of the child
   // process to a `ps` property in the `ref` argument, if one is supplied.
-  async runInBackground(args: string[], ref?: ProcessRef, { pipeOutput, env: inputEnv, extendEnv }: RunOptions = {}) {
+  async runInBackground(
+    args: string[],
+    ref?: ProcessRef,
+    { pipeOutput, env: inputEnv, extendEnv = true }: RunOptions = {},
+  ) {
     const { path: binaryPath } = await this.getBinaryPath()
     const env = this.getEnvironmentVariables(inputEnv)
     const options: Options = { env, extendEnv }
