@@ -1,6 +1,8 @@
 import { join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
+import retry from 'async-retry'
+
 import { DenoBridge } from '../bridge.js'
 import type { Bundle } from '../bundle.js'
 import { wrapBundleError } from '../bundle_error.js'
@@ -16,6 +18,16 @@ interface BundleESZIPOptions {
   distDirectory: string
   functions: EdgeFunction[]
   importMap: ImportMap
+}
+
+const runDenoCommandWithRetries = async(deno: DenoBridge, flags: string[], payload: unknown, bundler: string): Promise<void> => {
+  try {
+    await retry(async (bail) => {
+      await deno.run(['run', ...flags, bundler, JSON.stringify(payload)], { pipeOutput: true }).catch(bail)
+    }, { retries: 3 })
+  } catch (error: unknown) {
+    throw wrapBundleError(error, { format: 'eszip' })
+  }
 }
 
 const bundleESZIP = async ({
@@ -42,11 +54,7 @@ const bundleESZIP = async ({
     flags.push('--quiet')
   }
 
-  try {
-    await deno.run(['run', ...flags, bundler, JSON.stringify(payload)], { pipeOutput: true })
-  } catch (error: unknown) {
-    throw wrapBundleError(error, { format: 'eszip' })
-  }
+  await runDenoCommandWithRetries(deno, flags, payload, bundler)
 
   const hash = await getFileHash(destPath)
 

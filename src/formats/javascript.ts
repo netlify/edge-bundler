@@ -3,6 +3,7 @@ import { join } from 'path'
 import { env } from 'process'
 import { pathToFileURL } from 'url'
 
+import retry from 'async-retry'
 import del from 'del'
 
 import { DenoBridge } from '../bridge.js'
@@ -24,6 +25,21 @@ interface BundleJSOptions {
   importMap: ImportMap
 }
 
+const runDenoCommandWithRetries = async (
+  deno: DenoBridge,
+  flags: string[],
+  stage2Path: string,
+  jsBundlePath: string,
+) => {
+  try {
+    await retry(async (bail) => {
+      await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true }).catch(bail)
+    }, { retries: 3 })
+  } catch (error: unknown) {
+    throw wrapBundleError(error, { format: 'javascript' })
+  }
+}
+
 const bundleJS = async ({
   buildID,
   debug,
@@ -41,11 +57,7 @@ const bundleJS = async ({
     flags.push('--quiet')
   }
 
-  try {
-    await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true })
-  } catch (error: unknown) {
-    throw wrapBundleError(error, { format: 'javascript' })
-  }
+  await runDenoCommandWithRetries(deno, flags, stage2Path, jsBundlePath)
 
   await fs.unlink(stage2Path)
 
