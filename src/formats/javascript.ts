@@ -32,9 +32,12 @@ const runDenoCommandWithRetries = async (
   jsBundlePath: string,
 ) => {
   try {
-    await retry(async (bail) => {
-      await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true }).catch(bail)
-    }, { retries: 3 })
+    await retry(
+      async (bail) => {
+        await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true }).catch(bail)
+      },
+      { retries: 3 },
+    )
   } catch (error: unknown) {
     throw wrapBundleError(error, { format: 'javascript' })
   }

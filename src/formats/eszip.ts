@@ -20,11 +20,19 @@ interface BundleESZIPOptions {
   importMap: ImportMap
 }
 
-const runDenoCommandWithRetries = async(deno: DenoBridge, flags: string[], payload: unknown, bundler: string): Promise<void> => {
+const runDenoCommandWithRetries = async (
+  deno: DenoBridge,
+  flags: string[],
+  payload: unknown,
+  bundler: string,
+): Promise<void> => {
   try {
-    await retry(async (bail) => {
-      await deno.run(['run', ...flags, bundler, JSON.stringify(payload)], { pipeOutput: true }).catch(bail)
-    }, { retries: 3 })
+    await retry(
+      async (bail) => {
+        await deno.run(['run', ...flags, bundler, JSON.stringify(payload)], { pipeOutput: true }).catch(bail)
+      },
+      { retries: 3 },
+    )
   } catch (error: unknown) {
     throw wrapBundleError(error, { format: 'eszip' })
   }
