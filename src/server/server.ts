@@ -4,6 +4,7 @@ import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef } fro
 import type { EdgeFunction } from '../edge_function.js'
 import { generateStage2 } from '../formats/javascript.js'
 import { ImportMap, ImportMapFile } from '../import_map.js'
+import { getLogger, LogFunction } from '../logger.js'
 import { ensureLatestTypes } from '../types.js'
 
 import { killProcess, waitForServer } from './util.js'
@@ -17,6 +18,7 @@ interface PrepareServerOptions {
   flags: string[]
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
+  logFunction?: LogFunction
   port: number
 }
 
@@ -88,6 +90,7 @@ interface ServeOptions {
   distImportMapPath?: string
   inspectSettings?: InspectSettings
   importMaps?: ImportMapFile[]
+  logFunction?: LogFunction
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   formatExportTypeError?: FormatFunction
@@ -103,12 +106,15 @@ const serve = async ({
   formatExportTypeError,
   formatImportError,
   importMaps,
+  logFunction,
   onAfterDownload,
   onBeforeDownload,
   port,
 }: ServeOptions) => {
+  const logger = getLogger(logFunction)
   const deno = new DenoBridge({
     debug,
+    logger,
     onAfterDownload,
     onBeforeDownload,
   })
@@ -121,7 +127,7 @@ const serve = async ({
   await deno.getBinaryPath()
 
   // Downloading latest types if needed.
-  await ensureLatestTypes(deno)
+  await ensureLatestTypes(deno, logger)
 
   // Creating an ImportMap instance with any import maps supplied by the user,
   // if any.
