@@ -124,6 +124,7 @@ test('Does inherit environment variables if `extendEnv` is not set', async (t) =
 
   // The environment sets some variables so let us see what they are and remove them from the result
   const referenceOutput = await deno.run(['test'], { env: {}, extendEnv: true })
+  console.log(referenceOutput?.stdout)
   env.TADA = 'TUDU'
   const result = await deno.run(['test'], { env: { LULU: 'LALA' } })
   let output = result?.stdout ?? ''
