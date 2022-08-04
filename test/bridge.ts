@@ -44,7 +44,7 @@ const getMockDenoBridge = function (tmpDir: DirectoryResult, mockBinaryOutput: s
   })
 }
 
-test('Does not inherit environment variables if `extendEnv` is false', async (t) => {
+test.serial('Does not inherit environment variables if `extendEnv` is false', async (t) => {
   const tmpDir = await tmp.dir()
   const deno = getMockDenoBridge(
     tmpDir,
@@ -76,7 +76,7 @@ test('Does not inherit environment variables if `extendEnv` is false', async (t)
   await fs.promises.rmdir(tmpDir.path, { recursive: true })
 })
 
-test('Does inherit environment variables if `extendEnv` is true', async (t) => {
+test.serial('Does inherit environment variables if `extendEnv` is true', async (t) => {
   const tmpDir = await tmp.dir()
   const deno = getMockDenoBridge(
     tmpDir,
@@ -108,7 +108,7 @@ test('Does inherit environment variables if `extendEnv` is true', async (t) => {
   await fs.promises.rmdir(tmpDir.path, { recursive: true })
 })
 
-test('Does inherit environment variables if `extendEnv` is not set', async (t) => {
+test.serial('Does inherit environment variables if `extendEnv` is not set', async (t) => {
   const tmpDir = await tmp.dir()
   const deno = getMockDenoBridge(
     tmpDir,
