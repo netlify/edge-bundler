@@ -50,7 +50,7 @@ test('Does not inherit environment variables if `extendEnv` is false', async (t)
     tmpDir,
     `#!/usr/bin/env sh
 
-  if [ "$1" == "test"  ]
+  if [ "$1" = "test"  ]
   then
     env
   else
@@ -82,7 +82,7 @@ test('Does inherit environment variables if `extendEnv` is true', async (t) => {
     tmpDir,
     `#!/usr/bin/env sh
 
-  if [ "$1" == "test"  ]
+  if [ "$1" = "test"  ]
   then
     env
   else
@@ -114,7 +114,7 @@ test('Does inherit environment variables if `extendEnv` is not set', async (t) =
     tmpDir,
     `#!/usr/bin/env sh
 
-  if [ "$1" == "test"  ]
+  if [ "$1" = "test"  ]
   then
     env
   else
@@ -124,7 +124,6 @@ test('Does inherit environment variables if `extendEnv` is not set', async (t) =
 
   // The environment sets some variables so let us see what they are and remove them from the result
   const referenceOutput = await deno.run(['test'], { env: {}, extendEnv: true })
-  console.log(referenceOutput?.stdout)
   env.TADA = 'TUDU'
   const result = await deno.run(['test'], { env: { LULU: 'LALA' } })
   let output = result?.stdout ?? ''
