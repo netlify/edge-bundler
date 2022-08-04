@@ -24,9 +24,9 @@ interface BundleOptions {
   distImportMapPath?: string
   featureFlags?: FeatureFlags
   importMaps?: ImportMapFile[]
-  logFunction?: LogFunction
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
+  systemLogger?: LogFunction
 }
 
 interface BundleFormatOptions {
@@ -91,12 +91,12 @@ const bundle = async (
     distImportMapPath,
     featureFlags: inputFeatureFlags,
     importMaps,
-    logFunction,
     onAfterDownload,
     onBeforeDownload,
+    systemLogger,
   }: BundleOptions = {},
 ) => {
-  const logger = getLogger(logFunction)
+  const logger = getLogger(systemLogger, debug)
   const featureFlags = getFlags(inputFeatureFlags)
   const options: DenoOptions = {
     debug,

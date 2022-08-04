@@ -62,7 +62,7 @@ class DenoBridge {
 
     await this.ensureCacheDirectory()
 
-    this.logger.debug(`Downloading Deno CLI to ${this.cacheDirectory}...`)
+    this.logger.system(`Downloading Deno CLI to ${this.cacheDirectory}`)
 
     const binaryPath = await download(this.cacheDirectory, this.versionRange)
     const downloadedVersion = await this.getBinaryVersion(binaryPath)
@@ -98,7 +98,7 @@ class DenoBridge {
 
       return version[1]
     } catch (error) {
-      this.logger.error('Error checking Deno binary version', error)
+      this.logger.system('Error checking Deno binary version', error)
     }
   }
 
@@ -172,7 +172,7 @@ class DenoBridge {
     const globalPath = await this.getGlobalBinary()
 
     if (globalPath !== undefined) {
-      this.logger.debug('Using global installation of Deno CLI')
+      this.logger.system('Using global installation of Deno CLI')
 
       return { global: true, path: globalPath }
     }
@@ -180,7 +180,7 @@ class DenoBridge {
     const cachedPath = await this.getCachedBinary()
 
     if (cachedPath !== undefined) {
-      this.logger.debug('Using cached Deno CLI from', cachedPath)
+      this.logger.system('Using cached Deno CLI from', cachedPath)
 
       return { global: false, path: cachedPath }
     }

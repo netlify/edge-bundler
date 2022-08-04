@@ -16,23 +16,23 @@ const ensureLatestTypes = async (deno: DenoBridge, logger: Logger, customTypesUR
   try {
     remoteVersion = await getRemoteVersion(typesURL)
   } catch (error) {
-    logger.debug('Could not check latest version of types:', error)
+    logger.system('Could not check latest version of types:', error)
 
     return
   }
 
   if (localVersion === remoteVersion) {
-    logger.debug('Local version of types is up-to-date:', localVersion)
+    logger.system('Local version of types is up-to-date:', localVersion)
 
     return
   }
 
-  logger.debug('Local version of types is outdated, updating:', localVersion)
+  logger.system('Local version of types is outdated, updating:', localVersion)
 
   try {
     await deno.run(['cache', '-r', typesURL])
   } catch (error) {
-    logger.debug('Could not download latest types:', error)
+    logger.system('Could not download latest types:', error)
 
     return
   }

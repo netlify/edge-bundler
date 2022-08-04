@@ -1,16 +1,25 @@
 type LogFunction = (...args: unknown[]) => void
 
-interface Logger {
-  debug: LogFunction
-  error: LogFunction
-  log: LogFunction
+const noopLogger: LogFunction = () => {
+  // no-op
 }
 
-const getLogger = (parentLogger: LogFunction = console.log): Logger => ({
-  debug: (...args: unknown[]) => parentLogger({ level: 'debug' }, ...args),
-  error: (...args: unknown[]) => parentLogger({ level: 'error' }, ...args),
-  log: (...args: unknown[]) => parentLogger({ level: 'info' }, ...args),
-})
+interface Logger {
+  system: LogFunction
+  user: LogFunction
+}
+
+const getLogger = (systemLogger?: LogFunction, debug = false): Logger => {
+  // If there is a system logger configured, we'll use that. If there isn't,
+  // we'll pipe system logs to stdout if `debug` is enabled and swallow them
+  // otherwise.
+  const system = systemLogger ?? (debug ? console.log : noopLogger)
+
+  return {
+    system,
+    user: console.log,
+  }
+}
 
 export { getLogger }
 export type { LogFunction, Logger }

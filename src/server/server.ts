@@ -18,7 +18,6 @@ interface PrepareServerOptions {
   flags: string[]
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
-  logFunction?: LogFunction
   port: number
 }
 
@@ -90,12 +89,12 @@ interface ServeOptions {
   distImportMapPath?: string
   inspectSettings?: InspectSettings
   importMaps?: ImportMapFile[]
-  logFunction?: LogFunction
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
   port: number
+  systemLogger?: LogFunction
 }
 
 const serve = async ({
@@ -106,12 +105,12 @@ const serve = async ({
   formatExportTypeError,
   formatImportError,
   importMaps,
-  logFunction,
   onAfterDownload,
   onBeforeDownload,
   port,
+  systemLogger,
 }: ServeOptions) => {
-  const logger = getLogger(logFunction)
+  const logger = getLogger(systemLogger, debug)
   const deno = new DenoBridge({
     debug,
     logger,
