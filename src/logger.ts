@@ -9,11 +9,6 @@ interface Logger {
   user: LogFunction
 }
 
-const getDefaultLogger = (): Logger => ({
-  system: noopLogger,
-  user: console.log,
-})
-
 const getLogger = (systemLogger?: LogFunction, debug = false): Logger => {
   // If there is a system logger configured, we'll use that. If there isn't,
   // we'll pipe system logs to stdout if `debug` is enabled and swallow them
@@ -26,5 +21,5 @@ const getLogger = (systemLogger?: LogFunction, debug = false): Logger => {
   }
 }
 
-export { getDefaultLogger, getLogger }
+export { getLogger }
 export type { LogFunction, Logger }

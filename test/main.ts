@@ -10,7 +10,6 @@ import { spy } from 'sinon'
 import tmp from 'tmp-promise'
 
 import { DenoBridge } from '../src/bridge.js'
-import { getLogger } from '../src/logger.js'
 import { getPlatformTarget } from '../src/platform.js'
 
 const require = createRequire(import.meta.url)

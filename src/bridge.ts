@@ -7,7 +7,7 @@ import semver from 'semver'
 
 import { download } from './downloader.js'
 import { getPathInHome } from './home_path.js'
-import { getDefaultLogger, Logger } from './logger.js'
+import { getLogger, Logger } from './logger.js'
 import { getBinaryExtension } from './platform.js'
 
 const DENO_VERSION_FILE = 'version.txt'
@@ -50,7 +50,7 @@ class DenoBridge {
     this.cacheDirectory = options.cacheDirectory ?? getPathInHome('deno-cli')
     this.debug = options.debug ?? false
     this.denoDir = options.denoDir
-    this.logger = options.logger ?? getDefaultLogger()
+    this.logger = options.logger ?? getLogger(undefined, options.debug)
     this.onAfterDownload = options.onAfterDownload
     this.onBeforeDownload = options.onBeforeDownload
     this.useGlobal = options.useGlobal ?? true
