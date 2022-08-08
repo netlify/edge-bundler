@@ -60,6 +60,9 @@ const prepareServer = ({
 
     const bootstrapFlags = ['--port', port.toString()]
 
+    // We set `extendEnv: false` to avoid polluting the edge function context
+    // with variables from the user's system, since those will not be available
+    // in the production environment.
     await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], processRef, {
       pipeOutput: true,
       env,
