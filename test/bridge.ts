@@ -58,7 +58,7 @@ test.serial('Does not inherit environment variables if `extendEnv` is false', as
   fi`,
   )
 
-  // The environment sets some varaibles so let us see what they are and remove them from the result
+  // The environment sets some variables so let us see what they are and remove them from the result
   const referenceOutput = await deno.run(['test'], { env: {}, extendEnv: false })
   env.TADA = 'TUDU'
   const result = await deno.run(['test'], { env: { LULU: 'LALA' }, extendEnv: false })
