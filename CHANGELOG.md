@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.9.0](https://github.com/netlify/edge-bundler/compare/v1.8.0...v1.9.0) (2022-08-04)
+
+
+### Features
+
+* add support for system logger ([#85](https://github.com/netlify/edge-bundler/issues/85)) ([9188bd7](https://github.com/netlify/edge-bundler/commit/9188bd70887d0abb868cca03f18cdd538d8ba7a2))
+
+## [1.8.0](https://github.com/netlify/edge-bundler/compare/v1.7.0...v1.8.0) (2022-07-29)
+
+
+### Features
+
+* add support for `denoDir` parameter ([#80](https://github.com/netlify/edge-bundler/issues/80)) ([b5dd4a7](https://github.com/netlify/edge-bundler/commit/b5dd4a71ccddefff5cf7c7d69ee71128f5d9e6ee))
+
+## [1.7.0](https://github.com/netlify/edge-bundler/compare/v1.6.0...v1.7.0) (2022-07-22)
+
+
+### Features
+
+* accept `basePath` parameter ([#76](https://github.com/netlify/edge-bundler/issues/76)) ([a1c95cc](https://github.com/netlify/edge-bundler/commit/a1c95cc1e8013f9f37a11db40ed937e58897264f))
+
+## [1.6.0](https://github.com/netlify/edge-bundler/compare/v1.5.0...v1.6.0) (2022-07-15)
+
+
+### Features
+
+* add support for import maps when bundling ESZIP ([#72](https://github.com/netlify/edge-bundler/issues/72)) ([47c618c](https://github.com/netlify/edge-bundler/commit/47c618cba7514224c777cfe4408f120721612adc))
+
 ## [1.5.0](https://github.com/netlify/edge-bundler/compare/v1.4.3...v1.5.0) (2022-07-01)
 
 
