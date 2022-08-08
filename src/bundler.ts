@@ -4,7 +4,7 @@ import { join } from 'path'
 import commonPathPrefix from 'common-path-prefix'
 import { v4 as uuidv4 } from 'uuid'
 
-import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook } from './bridge.js'
+import { DenoBridge, DenoOptions, OnAfterDownloadHook, OnBeforeDownloadHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
 import type { Declaration } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
@@ -13,9 +13,12 @@ import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { bundle as bundleJS } from './formats/javascript.js'
 import { ImportMap, ImportMapFile } from './import_map.js'
+import { getLogger, LogFunction } from './logger.js'
 import { writeManifest } from './manifest.js'
+import { ensureLatestTypes } from './types.js'
 
 interface BundleOptions {
+  basePath?: string
   cacheDirectory?: string
   debug?: boolean
   distImportMapPath?: string
@@ -23,6 +26,7 @@ interface BundleOptions {
   importMaps?: ImportMapFile[]
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
+  systemLogger?: LogFunction
 }
 
 interface BundleFormatOptions {
@@ -57,6 +61,7 @@ const createBundleOps = ({
         deno,
         distDirectory,
         functions,
+        importMap,
       }),
     )
   } else {
@@ -80,6 +85,7 @@ const bundle = async (
   distDirectory: string,
   declarations: Declaration[] = [],
   {
+    basePath: inputBasePath,
     cacheDirectory,
     debug,
     distImportMapPath,
@@ -87,16 +93,27 @@ const bundle = async (
     importMaps,
     onAfterDownload,
     onBeforeDownload,
+    systemLogger,
   }: BundleOptions = {},
 ) => {
+  const logger = getLogger(systemLogger, debug)
   const featureFlags = getFlags(inputFeatureFlags)
-  const deno = new DenoBridge({
+  const options: DenoOptions = {
     debug,
     cacheDirectory,
+    logger,
     onAfterDownload,
     onBeforeDownload,
-  })
-  const basePath = getBasePath(sourceDirectories)
+  }
+
+  if (cacheDirectory !== undefined && featureFlags.edge_functions_cache_deno_dir) {
+    options.denoDir = join(cacheDirectory, 'deno_dir')
+  }
+
+  const deno = new DenoBridge(options)
+  const basePath = getBasePath(sourceDirectories, inputBasePath)
+
+  await ensureLatestTypes(deno, logger)
 
   // The name of the bundle will be the hash of its contents, which we can't
   // compute until we run the bundle process. For now, we'll use a random ID
@@ -151,7 +168,12 @@ const createFinalBundles = async (bundles: Bundle[], distDirectory: string, buil
   await Promise.all(renamingOps)
 }
 
-const getBasePath = (sourceDirectories: string[]) => {
+const getBasePath = (sourceDirectories: string[], inputBasePath?: string) => {
+  // If there's a specific base path supplied, that takes precedence.
+  if (inputBasePath !== undefined) {
+    return inputBasePath
+  }
+
   // `common-path-prefix` returns an empty string when called with a single
   // path, so we check for that case and return the path itself instead.
   if (sourceDirectories.length === 1) {
@@ -162,3 +184,4 @@ const getBasePath = (sourceDirectories: string[]) => {
 }
 
 export { bundle }
+export type { BundleOptions }

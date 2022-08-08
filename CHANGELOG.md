@@ -1,5 +1,54 @@
 # Changelog
 
+## [1.9.0](https://github.com/netlify/edge-bundler/compare/v1.8.0...v1.9.0) (2022-08-04)
+
+
+### Features
+
+* add support for system logger ([#85](https://github.com/netlify/edge-bundler/issues/85)) ([9188bd7](https://github.com/netlify/edge-bundler/commit/9188bd70887d0abb868cca03f18cdd538d8ba7a2))
+
+## [1.8.0](https://github.com/netlify/edge-bundler/compare/v1.7.0...v1.8.0) (2022-07-29)
+
+
+### Features
+
+* add support for `denoDir` parameter ([#80](https://github.com/netlify/edge-bundler/issues/80)) ([b5dd4a7](https://github.com/netlify/edge-bundler/commit/b5dd4a71ccddefff5cf7c7d69ee71128f5d9e6ee))
+
+## [1.7.0](https://github.com/netlify/edge-bundler/compare/v1.6.0...v1.7.0) (2022-07-22)
+
+
+### Features
+
+* accept `basePath` parameter ([#76](https://github.com/netlify/edge-bundler/issues/76)) ([a1c95cc](https://github.com/netlify/edge-bundler/commit/a1c95cc1e8013f9f37a11db40ed937e58897264f))
+
+## [1.6.0](https://github.com/netlify/edge-bundler/compare/v1.5.0...v1.6.0) (2022-07-15)
+
+
+### Features
+
+* add support for import maps when bundling ESZIP ([#72](https://github.com/netlify/edge-bundler/issues/72)) ([47c618c](https://github.com/netlify/edge-bundler/commit/47c618cba7514224c777cfe4408f120721612adc))
+
+## [1.5.0](https://github.com/netlify/edge-bundler/compare/v1.4.3...v1.5.0) (2022-07-01)
+
+
+### Features
+
+* refresh types on Deno CLI cache ([#66](https://github.com/netlify/edge-bundler/issues/66)) ([534ea80](https://github.com/netlify/edge-bundler/commit/534ea8022289d3ca4861931659bfa4f6d4a552ca))
+
+## [1.4.3](https://github.com/netlify/edge-bundler/compare/v1.4.2...v1.4.3) (2022-06-30)
+
+
+### Bug Fixes
+
+* improve user/system error boundaries ([#63](https://github.com/netlify/edge-bundler/issues/63)) ([a7ac87a](https://github.com/netlify/edge-bundler/commit/a7ac87a4f29964097dd0489b0d5c636530d71fda))
+
+## [1.4.2](https://github.com/netlify/edge-bundler/compare/v1.4.1...v1.4.2) (2022-06-30)
+
+
+### Bug Fixes
+
+* await lifecycle hooks as they might return promises ([#56](https://github.com/netlify/edge-bundler/issues/56)) ([01b53c6](https://github.com/netlify/edge-bundler/commit/01b53c600d26ae62bd996a3b707a3a0f6c668744))
+
 ## [1.4.1](https://github.com/netlify/edge-bundler/compare/v1.4.0...v1.4.1) (2022-06-22)
 
 
