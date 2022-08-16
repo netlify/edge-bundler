@@ -80,6 +80,8 @@ class DenoBridge {
 
       await this.onAfterDownload?.(error)
 
+      this.logger.system('Undefined downloadedVersion error', error)
+
       throw error
     }
 
@@ -96,6 +98,7 @@ class DenoBridge {
       const version = stdout.match(/^deno ([\d.]+)/)
 
       if (!version) {
+        this.logger.system(`getBinaryVersion no version found. binaryPath ${binaryPath}`)
         return
       }
 
@@ -112,11 +115,13 @@ class DenoBridge {
 
     try {
       cachedVersion = await fs.readFile(versionFilePath, 'utf8')
-    } catch {
+    } catch (error) {
+      this.logger.system('Error getting cached binary', error)
       return
     }
 
     if (!semver.satisfies(cachedVersion, this.versionRange)) {
+      this.logger.system(`semver not satisfied. cachedVersion: ${cachedVersion}, versionRange: ${this.versionRange}`)
       return
     }
 
@@ -134,6 +139,9 @@ class DenoBridge {
     const globalVersion = await this.getBinaryVersion(globalBinaryName)
 
     if (globalVersion === undefined || !semver.satisfies(globalVersion, this.versionRange)) {
+      this.logger.system(
+        `No globalVersion or semver not satisfied. globalVersion: ${globalVersion}, versionRange: ${this.versionRange}`,
+      )
       return
     }
 
