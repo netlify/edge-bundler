@@ -41,7 +41,7 @@ const downloadVersion = async (versionRange: string, logger: Logger) =>
       const res = await fetch(url)
 
       if (res.body === null) {
-        logger.system('Could not download Deno')
+        logger.system(`Could not download Deno. Download path ${url}`)
         throw new Error('Could not download Deno')
       }
       return res.body
