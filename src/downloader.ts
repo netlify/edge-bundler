@@ -3,6 +3,7 @@ import path from 'path'
 
 import fetch from 'node-fetch'
 import StreamZip from 'node-stream-zip'
+import pRetry from 'p-retry'
 import semver from 'semver'
 
 import { getBinaryExtension, getPlatformTarget } from './platform.js'
@@ -31,17 +32,22 @@ const download = async (targetDirectory: string, versionRange: string) => {
   return binaryPath
 }
 
-const downloadVersion = async (versionRange: string) => {
-  const version = await getLatestVersionForRange(versionRange)
-  const url = getReleaseURL(version)
-  const res = await fetch(url)
+const RETRY_TIMES = 3
 
-  if (res.body === null) {
-    throw new Error('Could not download Deno')
-  }
+const downloadVersion = async (versionRange: string) =>
+  await pRetry(
+    async () => {
+      const version = await getLatestVersionForRange(versionRange)
+      const url = getReleaseURL(version)
+      const res = await fetch(url)
 
-  return res.body
-}
+      if (res.body === null) {
+        throw new Error('Could not download Deno')
+      }
+      return res.body
+    },
+    { retries: RETRY_TIMES },
+  )
 
 const extractBinaryFromZip = async (zipPath: string, binaryPath: string, binaryName: string) => {
   const { async: StreamZipAsync } = StreamZip
