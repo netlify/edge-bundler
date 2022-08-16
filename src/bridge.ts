@@ -3,6 +3,7 @@ import path from 'path'
 import process from 'process'
 
 import { execa, ExecaChildProcess, Options } from 'execa'
+import pRetry from 'p-retry'
 import pathKey from 'path-key'
 import semver from 'semver'
 
@@ -67,7 +68,7 @@ class DenoBridge {
 
     this.logger.system(`Downloading Deno CLI to ${this.cacheDirectory}`)
 
-    const binaryPath = await download(this.cacheDirectory, this.versionRange)
+    const binaryPath = await download(this.cacheDirectory, this.versionRange, this.logger)
     const downloadedVersion = await this.getBinaryVersion(binaryPath)
 
     // We should never get here, because it means that `DENO_VERSION_RANGE` is
@@ -91,18 +92,29 @@ class DenoBridge {
   }
 
   private async getBinaryVersion(binaryPath: string) {
-    try {
-      const { stdout } = await execa(binaryPath, ['--version'])
-      const version = stdout.match(/^deno ([\d.]+)/)
+    return await pRetry(
+      async () => {
+        try {
+          const { stdout } = await execa(binaryPath, ['--version'])
+          const version = stdout.match(/^deno ([\d.]+)/)
 
-      if (!version) {
-        return
-      }
+          if (!version) {
+            return
+          }
 
-      return version[1]
-    } catch (error) {
-      this.logger.system('Error checking Deno binary version', error)
-    }
+          return version[1]
+        } catch (error) {
+          this.logger.system('Error checking Deno binary version', error)
+          throw new Error('Error checking Deno binary version')
+        }
+      },
+      {
+        retries: 3,
+        onFailedAttempt: (error) => {
+          this.logger.system('Deno binary version retry attempt error', error)
+        },
+      },
+    )
   }
 
   private async getCachedBinary() {
