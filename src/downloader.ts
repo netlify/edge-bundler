@@ -11,7 +11,7 @@ import { getBinaryExtension, getPlatformTarget } from './platform.js'
 
 const download = async (targetDirectory: string, versionRange: string, logger: Logger) => {
   const zipPath = path.join(targetDirectory, 'deno-cli-latest.zip')
-  const data = await downloadVersion(versionRange, logger)
+  const data = await downloadVersionWithRetry(versionRange, logger)
   const binaryName = `deno${getBinaryExtension()}`
   const binaryPath = path.join(targetDirectory, binaryName)
   const file = fs.createWriteStream(zipPath)
@@ -33,19 +33,21 @@ const download = async (targetDirectory: string, versionRange: string, logger: L
   return binaryPath
 }
 
-const downloadVersion = async (versionRange: string, logger: Logger) =>
-  await pRetry(
-    async () => {
-      const version = await getLatestVersionForRange(versionRange)
-      const url = getReleaseURL(version)
-      const res = await fetch(url)
+const downloadVersion = async (versionRange: string) => {
+  const version = await getLatestVersionForRange(versionRange)
+  const url = getReleaseURL(version)
+  const res = await fetch(url)
 
-      if (res.body === null) {
-        logger.system(`Could not download Deno. Download path ${url}`)
-        throw new Error('Could not download Deno')
-      }
-      return res.body
-    },
+  if (res.body === null) {
+    throw new Error('Could not download Deno')
+  }
+
+  return res.body
+}
+
+const downloadVersionWithRetry = async (versionRange: string, logger: Logger) =>
+  await pRetry(
+    async () => await downloadVersion(versionRange),
     {
       retries: 3,
       onFailedAttempt: (error) => {
