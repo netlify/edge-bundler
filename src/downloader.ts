@@ -46,15 +46,12 @@ const downloadVersion = async (versionRange: string) => {
 }
 
 const downloadVersionWithRetry = async (versionRange: string, logger: Logger) =>
-  await pRetry(
-    async () => await downloadVersion(versionRange),
-    {
-      retries: 3,
-      onFailedAttempt: (error) => {
-        logger.system('Deno CLI download retry attempt error', error)
-      },
+  await pRetry(async () => await downloadVersion(versionRange), {
+    retries: 3,
+    onFailedAttempt: (error) => {
+      logger.system('Deno CLI download retry attempt error', error)
     },
-  )
+  })
 
 const extractBinaryFromZip = async (zipPath: string, binaryPath: string, binaryName: string) => {
   const { async: StreamZipAsync } = StreamZip
