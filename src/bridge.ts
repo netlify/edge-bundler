@@ -80,7 +80,7 @@ class DenoBridge {
 
       await this.onAfterDownload?.(error)
 
-      this.logger.system('Undefined downloadedVersion error', error)
+      this.logger.system('Could not run downloaded Deno CLI', error)
 
       throw error
     }
