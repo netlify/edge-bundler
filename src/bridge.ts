@@ -103,9 +103,7 @@ class DenoBridge {
       }
 
       return version[1]
-    } catch (error) {
-      this.logger.system('Error checking Deno binary version', error)
-    }
+    } catch {}
   }
 
   private async getCachedBinary() {
