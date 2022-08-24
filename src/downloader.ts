@@ -24,11 +24,19 @@ const download = async (targetDirectory: string, versionRange: string) => {
   const binaryPath = path.join(targetDirectory, binaryName)
   const file = fs.createWriteStream(zipPath)
 
-  await new Promise((resolve, reject) => {
-    data.pipe(file)
-    data.on('error', reject)
-    file.on('finish', resolve)
-  })
+  try {
+    await new Promise((resolve, reject) => {
+      data.pipe(file)
+      data.on('error', reject)
+      file.on('finish', resolve)
+    })
+  } catch (error) {
+    try {
+      // Delete any possible already saved data
+      await fs.promises.unlink(zipPath)
+    } catch {}
+    throw error
+  }
 
   await extractBinaryFromZip(zipPath, binaryPath, binaryName)
 
