@@ -2,7 +2,8 @@ import { promises as fs } from 'fs'
 import { platform } from 'process'
 import { PassThrough } from 'stream'
 
-import test from 'ava'
+// eslint-disable-next-line ava/use-test
+import testFn, { TestFn } from 'ava'
 import { execa } from 'execa'
 import nock from 'nock'
 import tmp from 'tmp-promise'
@@ -22,6 +23,20 @@ const streamError = () => {
 
   return stream
 }
+
+interface Context {
+  tmpDir: string
+}
+const test = testFn as TestFn<Context>
+
+test.beforeEach(async (t) => {
+  const tmpDir = await tmp.dir()
+  t.context = { tmpDir: tmpDir.path }
+})
+
+test.afterEach(async (t) => {
+  await fs.rmdir(t.context.tmpDir, { recursive: true })
+})
 
 test.serial('tries downloading binary up to 4 times', async (t) => {
   t.timeout(15_000)
@@ -55,16 +70,13 @@ test.serial('tries downloading binary up to 4 times', async (t) => {
       'Content-Type': 'application/zip',
     })
 
-  const tmpDir = await tmp.dir()
-  const deno = await download(tmpDir.path, `^${version}`, testLogger)
+  const deno = await download(t.context.tmpDir, `^${version}`, testLogger)
 
   t.true(latestVersionMock.isDone())
   t.truthy(deno)
 
   const res = await execa(deno)
   t.is(res.stdout, 'hello')
-
-  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })
 
 test.serial('fails downloading binary after 4th time', async (t) => {
@@ -95,15 +107,11 @@ test.serial('fails downloading binary after 4th time', async (t) => {
     .get(zipPath)
     .reply(500)
 
-  const tmpDir = await tmp.dir()
-
-  await t.throwsAsync(() => download(tmpDir.path, `^${version}`, testLogger), {
+  await t.throwsAsync(() => download(t.context.tmpDir, `^${version}`, testLogger), {
     message: /Download failed with status code 500/,
   })
 
   t.true(latestVersionMock.isDone())
-
-  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })
 
 test.serial('fails downloading if response stream throws error', async (t) => {
@@ -135,13 +143,9 @@ test.serial('fails downloading if response stream throws error', async (t) => {
     .get(zipPath)
     .reply(200, streamError)
 
-  const tmpDir = await tmp.dir()
-
-  await t.throwsAsync(() => download(tmpDir.path, `^${version}`, testLogger), {
+  await t.throwsAsync(() => download(t.context.tmpDir, `^${version}`, testLogger), {
     message: /stream error/,
   })
 
   t.true(latestVersionMock.isDone())
-
-  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })

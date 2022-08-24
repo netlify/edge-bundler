@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { createWriteStream, promises as fs } from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 
@@ -23,7 +23,7 @@ const download = async (targetDirectory: string, versionRange: string) => {
   const data = await downloadVersion(versionRange)
   const binaryName = `deno${getBinaryExtension()}`
   const binaryPath = path.join(targetDirectory, binaryName)
-  const file = fs.createWriteStream(zipPath)
+  const file = createWriteStream(zipPath)
 
   try {
     await new Promise((resolve, reject) => {
@@ -36,9 +36,14 @@ const download = async (targetDirectory: string, versionRange: string) => {
 
     return binaryPath
   } finally {
-    // Try deleting the zip file in an case, error or not
+    // Try closing and deleting the zip file in an case, error or not
     await promisify(file.close.bind(file))()
-    await fs.promises.rm(zipPath, { force: true })
+
+    try {
+      await fs.unlink(zipPath)
+    } catch {
+      // no-op
+    }
   }
 }
 
@@ -60,7 +65,7 @@ const extractBinaryFromZip = async (zipPath: string, binaryPath: string, binaryN
 
   await zip.extract(binaryName, binaryPath)
   await zip.close()
-  await fs.promises.chmod(binaryPath, '755')
+  await fs.chmod(binaryPath, '755')
 }
 
 const getLatestVersion = async () => {
