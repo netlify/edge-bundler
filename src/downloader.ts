@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { promisify } from 'util'
 
 import fetch from 'node-fetch'
 import StreamZip from 'node-stream-zip'
@@ -19,13 +20,12 @@ const downloadWithRetry = async (targetDirectory: string, versionRange: string, 
 
 const download = async (targetDirectory: string, versionRange: string) => {
   const zipPath = path.join(targetDirectory, 'deno-cli-latest.zip')
+  const data = await downloadVersion(versionRange)
+  const binaryName = `deno${getBinaryExtension()}`
+  const binaryPath = path.join(targetDirectory, binaryName)
+  const file = fs.createWriteStream(zipPath)
 
   try {
-    const data = await downloadVersion(versionRange)
-    const binaryName = `deno${getBinaryExtension()}`
-    const binaryPath = path.join(targetDirectory, binaryName)
-    const file = fs.createWriteStream(zipPath)
-
     await new Promise((resolve, reject) => {
       data.pipe(file)
       data.on('error', reject)
@@ -38,6 +38,7 @@ const download = async (targetDirectory: string, versionRange: string) => {
   } finally {
     try {
       // Try deleting the zip file in an case, error or not
+      await promisify(file.close)()
       await fs.promises.unlink(zipPath)
     } catch {
       // no-op
