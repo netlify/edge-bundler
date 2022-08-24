@@ -36,13 +36,9 @@ const download = async (targetDirectory: string, versionRange: string) => {
 
     return binaryPath
   } finally {
-    try {
-      // Try deleting the zip file in an case, error or not
-      await promisify(file.close)()
-      await fs.promises.unlink(zipPath)
-    } catch {
-      // no-op
-    }
+    // Try deleting the zip file in an case, error or not
+    await promisify(file.close.bind(file))()
+    await fs.promises.rm(zipPath, { force: true })
   }
 }
 

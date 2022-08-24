@@ -64,7 +64,7 @@ test.serial('tries downloading binary up to 4 times', async (t) => {
   const res = await execa(deno)
   t.is(res.stdout, 'hello')
 
-  await fs.rmdir(tmpDir.path, { recursive: true })
+  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })
 
 test.serial('fails downloading binary after 4th time', async (t) => {
@@ -103,7 +103,7 @@ test.serial('fails downloading binary after 4th time', async (t) => {
 
   t.true(latestVersionMock.isDone())
 
-  await fs.rmdir(tmpDir.path, { recursive: true })
+  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })
 
 test.serial('fails downloading if response stream throws error', async (t) => {
@@ -143,5 +143,5 @@ test.serial('fails downloading if response stream throws error', async (t) => {
 
   t.true(latestVersionMock.isDone())
 
-  await fs.rmdir(tmpDir.path, { recursive: true })
+  await fs.rm(tmpDir.path, { recursive: true, force: true })
 })
