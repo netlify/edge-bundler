@@ -19,34 +19,30 @@ const downloadWithRetry = async (targetDirectory: string, versionRange: string, 
 
 const download = async (targetDirectory: string, versionRange: string) => {
   const zipPath = path.join(targetDirectory, 'deno-cli-latest.zip')
-  const data = await downloadVersion(versionRange)
-  const binaryName = `deno${getBinaryExtension()}`
-  const binaryPath = path.join(targetDirectory, binaryName)
-  const file = fs.createWriteStream(zipPath)
 
   try {
+    const data = await downloadVersion(versionRange)
+    const binaryName = `deno${getBinaryExtension()}`
+    const binaryPath = path.join(targetDirectory, binaryName)
+    const file = fs.createWriteStream(zipPath)
+
     await new Promise((resolve, reject) => {
       data.pipe(file)
       data.on('error', reject)
       file.on('finish', resolve)
     })
-  } catch (error) {
+
+    await extractBinaryFromZip(zipPath, binaryPath, binaryName)
+
+    return binaryPath
+  } finally {
     try {
-      // Delete any possible already saved data
+      // Try deleting the zip file in an case, error or not
       await fs.promises.unlink(zipPath)
-    } catch {}
-    throw error
+    } catch {
+      // no-op
+    }
   }
-
-  await extractBinaryFromZip(zipPath, binaryPath, binaryName)
-
-  try {
-    await fs.promises.unlink(zipPath)
-  } catch {
-    // no-op
-  }
-
-  return binaryPath
 }
 
 const downloadVersion = async (versionRange: string) => {
