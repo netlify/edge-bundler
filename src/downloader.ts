@@ -36,7 +36,7 @@ const download = async (targetDirectory: string, versionRange: string) => {
 
     return binaryPath
   } finally {
-    // Try closing and deleting the zip file in an case, error or not
+    // Try closing and deleting the zip file in any case, error or not
     await promisify(file.close.bind(file))()
 
     try {
@@ -52,7 +52,8 @@ const downloadVersion = async (versionRange: string) => {
   const url = getReleaseURL(version)
   const res = await fetch(url)
 
-  if (res.body === null || res.status !== 200) {
+  // eslint-disable-next-line no-magic-numbers
+  if (res.body === null || res.status < 200 || res.status > 299) {
     throw new Error(`Download failed with status code ${res.status}`)
   }
 
