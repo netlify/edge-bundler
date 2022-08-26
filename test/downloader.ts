@@ -13,7 +13,6 @@ import { getLogger } from '../src/logger.js'
 import { getPlatformTarget } from '../src/platform.js'
 
 const testLogger = getLogger(() => {
-  // console.log(...args)
 })
 
 const streamError = () => {
