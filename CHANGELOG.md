@@ -1,5 +1,87 @@
 # Changelog
 
+## [1.14.1](https://github.com/netlify/edge-bundler/compare/v1.14.0...v1.14.1) (2022-08-26)
+
+
+### Bug Fixes
+
+* fix deno download retry logic ([#104](https://github.com/netlify/edge-bundler/issues/104)) ([270290c](https://github.com/netlify/edge-bundler/commit/270290c9bd4ec1734522f24f3c17db93d83ecc48))
+
+## [1.14.0](https://github.com/netlify/edge-bundler/compare/v1.13.0...v1.14.0) (2022-08-22)
+
+
+### Features
+
+* inline stage 2 ESZIP bundler ([#102](https://github.com/netlify/edge-bundler/issues/102)) ([5df5291](https://github.com/netlify/edge-bundler/commit/5df529197e7feea8b5fb80658f002ad267d74da3))
+
+## [1.13.0](https://github.com/netlify/edge-bundler/compare/v1.12.1...v1.13.0) (2022-08-18)
+
+
+### Features
+
+* update edge-bundler-bootstrap ([#96](https://github.com/netlify/edge-bundler/issues/96)) ([5bc3973](https://github.com/netlify/edge-bundler/commit/5bc39734d63eed506c07fab83f821c526b06b61c))
+
+
+### Bug Fixes
+
+* implement retries for Deno CLI download and additional logging ([#100](https://github.com/netlify/edge-bundler/issues/100)) ([489cbd3](https://github.com/netlify/edge-bundler/commit/489cbd3fbc1cadaa0aa1da288204b6534705ed3a))
+
+## [1.12.1](https://github.com/netlify/edge-bundler/compare/v1.12.0...v1.12.1) (2022-08-10)
+
+
+### Bug Fixes
+
+* ensure PATH is always set ([#93](https://github.com/netlify/edge-bundler/issues/93)) ([2f71c57](https://github.com/netlify/edge-bundler/commit/2f71c5752d7ef869d3bf106b78c26bebfd9e32b2))
+
+## [1.12.0](https://github.com/netlify/edge-bundler/compare/v1.11.0...v1.12.0) (2022-08-09)
+
+
+### Features
+
+* update bootstrap url ([#84](https://github.com/netlify/edge-bundler/issues/84)) ([af95e7d](https://github.com/netlify/edge-bundler/commit/af95e7d55979984eccb15a5e1497ae738ad71a1c))
+
+## [1.11.0](https://github.com/netlify/edge-bundler/compare/v1.10.0...v1.11.0) (2022-08-09)
+
+
+### Features
+
+* allow setting environment variables and disable extending in DenoServer ([#82](https://github.com/netlify/edge-bundler/issues/82)) ([3b9af3d](https://github.com/netlify/edge-bundler/commit/3b9af3dc0bf39a74adad1d96574aae8ba0adb2e8))
+
+## [1.10.0](https://github.com/netlify/edge-bundler/compare/v1.9.0...v1.10.0) (2022-08-08)
+
+
+### Features
+
+* use default logger in DenoBridge ([#89](https://github.com/netlify/edge-bundler/issues/89)) ([50b91e7](https://github.com/netlify/edge-bundler/commit/50b91e7298f0a9fddff4bb9d662e3fa1b1fd81f9))
+
+## [1.9.0](https://github.com/netlify/edge-bundler/compare/v1.8.0...v1.9.0) (2022-08-04)
+
+
+### Features
+
+* add support for system logger ([#85](https://github.com/netlify/edge-bundler/issues/85)) ([9188bd7](https://github.com/netlify/edge-bundler/commit/9188bd70887d0abb868cca03f18cdd538d8ba7a2))
+
+## [1.8.0](https://github.com/netlify/edge-bundler/compare/v1.7.0...v1.8.0) (2022-07-29)
+
+
+### Features
+
+* add support for `denoDir` parameter ([#80](https://github.com/netlify/edge-bundler/issues/80)) ([b5dd4a7](https://github.com/netlify/edge-bundler/commit/b5dd4a71ccddefff5cf7c7d69ee71128f5d9e6ee))
+
+## [1.7.0](https://github.com/netlify/edge-bundler/compare/v1.6.0...v1.7.0) (2022-07-22)
+
+
+### Features
+
+* accept `basePath` parameter ([#76](https://github.com/netlify/edge-bundler/issues/76)) ([a1c95cc](https://github.com/netlify/edge-bundler/commit/a1c95cc1e8013f9f37a11db40ed937e58897264f))
+
+## [1.6.0](https://github.com/netlify/edge-bundler/compare/v1.5.0...v1.6.0) (2022-07-15)
+
+
+### Features
+
+* add support for import maps when bundling ESZIP ([#72](https://github.com/netlify/edge-bundler/issues/72)) ([47c618c](https://github.com/netlify/edge-bundler/commit/47c618cba7514224c777cfe4408f120721612adc))
+
 ## [1.5.0](https://github.com/netlify/edge-bundler/compare/v1.4.3...v1.5.0) (2022-07-01)
 
 

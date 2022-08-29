@@ -4,6 +4,7 @@ import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef } fro
 import type { EdgeFunction } from '../edge_function.js'
 import { generateStage2 } from '../formats/javascript.js'
 import { ImportMap, ImportMapFile } from '../import_map.js'
+import { getLogger, LogFunction } from '../logger.js'
 import { ensureLatestTypes } from '../types.js'
 
 import { killProcess, waitForServer } from './util.js'
@@ -29,7 +30,7 @@ const prepareServer = ({
   port,
 }: PrepareServerOptions) => {
   const processRef: ProcessRef = {}
-  const startIsolate = async (newFunctions: EdgeFunction[]) => {
+  const startIsolate = async (newFunctions: EdgeFunction[], env: NodeJS.ProcessEnv = {}) => {
     if (processRef?.ps !== undefined) {
       await killProcess(processRef.ps)
     }
@@ -59,7 +60,14 @@ const prepareServer = ({
 
     const bootstrapFlags = ['--port', port.toString()]
 
-    await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], true, processRef)
+    // We set `extendEnv: false` to avoid polluting the edge function context
+    // with variables from the user's system, since those will not be available
+    // in the production environment.
+    await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], processRef, {
+      pipeOutput: true,
+      env,
+      extendEnv: false,
+    })
 
     const success = await waitForServer(port, processRef.ps)
 
@@ -93,6 +101,7 @@ interface ServeOptions {
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
   port: number
+  systemLogger?: LogFunction
 }
 
 const serve = async ({
@@ -106,9 +115,12 @@ const serve = async ({
   onAfterDownload,
   onBeforeDownload,
   port,
+  systemLogger,
 }: ServeOptions) => {
+  const logger = getLogger(systemLogger, debug)
   const deno = new DenoBridge({
     debug,
+    logger,
     onAfterDownload,
     onBeforeDownload,
   })
@@ -121,7 +133,7 @@ const serve = async ({
   await deno.getBinaryPath()
 
   // Downloading latest types if needed.
-  await ensureLatestTypes(deno)
+  await ensureLatestTypes(deno, logger)
 
   // Creating an ImportMap instance with any import maps supplied by the user,
   // if any.
