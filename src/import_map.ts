@@ -5,7 +5,7 @@ import { dirname } from 'path'
 import { parse } from '@import-maps/resolve'
 
 const INTERNAL_IMPORTS = {
-  'netlify:edge': 'https://edge.netlify.com/v1/index.ts',
+  'netlify:edge': new URL('https://edge.netlify.com/v1/index.ts'),
 }
 
 interface ImportMapFile {
@@ -15,21 +15,26 @@ interface ImportMapFile {
 }
 
 class ImportMap {
-  imports: Record<string, string>
+  imports: Record<string, URL | null>
 
-  constructor(input: ImportMapFile[] = []) {
-    const inputImports = input.reduce((acc, importMapFile) => {
-      const { imports } = ImportMap.resolve(importMapFile)
+  constructor(files: ImportMapFile[] = []) {
+    let imports: ImportMap['imports'] = {}
 
-      return {
-        ...acc,
-        ...imports,
-      }
-    }, {})
+    files.forEach((file) => {
+      const importMap = ImportMap.resolve(file)
 
-    // `INTERNAL_IMPORTS` must come last,
-    // because we need to guarantee `netlify:edge` isn't user-defined.
-    this.imports = { ...inputImports, ...INTERNAL_IMPORTS }
+      imports = { ...imports, ...importMap.imports }
+    })
+
+    // Internal imports must come last, because we need to guarantee that
+    // `netlify:edge` isn't user-defined.
+    Object.entries(INTERNAL_IMPORTS).forEach((internalImport) => {
+      const [specifier, url] = internalImport
+
+      imports[specifier] = url
+    })
+
+    this.imports = imports
   }
 
   static resolve(importMapFile: ImportMapFile) {

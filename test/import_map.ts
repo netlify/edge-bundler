@@ -17,10 +17,11 @@ test('Handles import maps with full URLs without specifying a base URL', (t) => 
   }
 
   const map = new ImportMap([inputFile1, inputFile2])
+  const { imports } = JSON.parse(map.getContents())
 
-  t.is(map.imports['netlify:edge'], 'https://edge.netlify.com/v1/index.ts')
-  t.is(map.imports['alias:jamstack'], 'https://jamstack.org/')
-  t.is(map.imports['alias:pets'], 'https://petsofnetlify.com/')
+  t.is(imports['netlify:edge'], 'https://edge.netlify.com/v1/index.ts')
+  t.is(imports['alias:jamstack'], 'https://jamstack.org/')
+  t.is(imports['alias:pets'], 'https://petsofnetlify.com/')
 })
 
 test('Handles import maps with relative paths', (t) => {
@@ -32,7 +33,8 @@ test('Handles import maps with relative paths', (t) => {
   }
 
   const map = new ImportMap([inputFile1])
+  const { imports } = JSON.parse(map.getContents())
 
-  t.is(map.imports['netlify:edge'], 'https://edge.netlify.com/v1/index.ts')
-  t.is(map.imports['alias:pets'], 'file:///Users/jane-doe/my-site/heart/pets/')
+  t.is(imports['netlify:edge'], 'https://edge.netlify.com/v1/index.ts')
+  t.is(imports['alias:pets'], 'file:///Users/jane-doe/my-site/heart/pets/')
 })
