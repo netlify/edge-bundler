@@ -34,23 +34,9 @@ class ImportMap {
 
   static resolve(importMapFile: ImportMapFile) {
     const { baseURL, ...importMap } = importMapFile
+    const parsedImportMap = parse(importMap, baseURL)
 
-    // TODO: Add support for `scopes`.
-    const { imports } = parse(importMap, baseURL)
-
-    if (imports === undefined) {
-      return { imports: {} }
-    }
-
-    const resolvedImports: Record<string, string> = Object.entries(imports).reduce(
-      (acc, [key, value]) => ({
-        ...acc,
-        [key]: value instanceof URL ? value.toString() : value,
-      }),
-      {},
-    )
-
-    return { imports: resolvedImports }
+    return parsedImportMap
   }
 
   getContents() {
