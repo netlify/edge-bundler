@@ -2,24 +2,46 @@ import { Buffer } from 'buffer'
 import { promises as fs } from 'fs'
 import { dirname } from 'path'
 
-const DEFAULT_IMPORTS = {
-  'netlify:edge': 'https://edge-bootstrap.netlify.app/v1/index.ts',
+import { parse } from '@import-maps/resolve'
+
+const INTERNAL_IMPORTS = {
+  'netlify:edge': new URL('https://edge.netlify.com/v1/index.ts'),
 }
 
 interface ImportMapFile {
+  baseURL: URL
   imports: Record<string, string>
-  scopes?: Record<string, string>
+  scopes?: Record<string, Record<string, string>>
 }
 
 class ImportMap {
-  imports: Record<string, string>
+  imports: Record<string, URL | null>
 
-  constructor(input: ImportMapFile[] = []) {
-    const inputImports = input.reduce((acc, { imports }) => ({ ...acc, ...imports }), {})
+  constructor(files: ImportMapFile[] = []) {
+    let imports: ImportMap['imports'] = {}
 
-    // `DEFAULT_IMPORTS` must come last because we want our internal imports to
-    // take precedence.
-    this.imports = { ...inputImports, ...DEFAULT_IMPORTS }
+    files.forEach((file) => {
+      const importMap = ImportMap.resolve(file)
+
+      imports = { ...imports, ...importMap.imports }
+    })
+
+    // Internal imports must come last, because we need to guarantee that
+    // `netlify:edge` isn't user-defined.
+    Object.entries(INTERNAL_IMPORTS).forEach((internalImport) => {
+      const [specifier, url] = internalImport
+
+      imports[specifier] = url
+    })
+
+    this.imports = imports
+  }
+
+  static resolve(importMapFile: ImportMapFile) {
+    const { baseURL, ...importMap } = importMapFile
+    const parsedImportMap = parse(importMap, baseURL)
+
+    return parsedImportMap
   }
 
   getContents() {

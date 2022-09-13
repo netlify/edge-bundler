@@ -13,7 +13,7 @@ import { ImportMap } from '../import_map.js'
 import type { FormatFunction } from '../server/server.js'
 import { getFileHash } from '../utils/sha256.js'
 
-const BOOTSTRAP_LATEST = 'https://6270f39aacac8b000a2f84f4--edge-bootstrap.netlify.app/bootstrap/index-combined.ts'
+const BOOTSTRAP_LATEST = 'https://62f5f45fbc76ed0009624267--edge.netlify.com/bootstrap/index-combined.ts'
 
 interface BundleJSOptions {
   buildID: string
@@ -22,14 +22,6 @@ interface BundleJSOptions {
   distDirectory: string
   functions: EdgeFunction[]
   importMap: ImportMap
-}
-
-const bundle = async (options: BundleJSOptions) => {
-  try {
-    return await bundleJS(options)
-  } catch (error: unknown) {
-    throw wrapBundleError(error, { format: 'javascript' })
-  }
 }
 
 const bundleJS = async ({
@@ -49,7 +41,12 @@ const bundleJS = async ({
     flags.push('--quiet')
   }
 
-  await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true })
+  try {
+    await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true })
+  } catch (error: unknown) {
+    throw wrapBundleError(error, { format: 'javascript' })
+  }
+
   await fs.unlink(stage2Path)
 
   const hash = await getFileHash(jsBundlePath)
@@ -153,4 +150,4 @@ const getProductionEntryPoint = (functions: EdgeFunction[]) => {
   return [bootImport, importLines, exportDeclaration, defaultExport].join('\n\n')
 }
 
-export { bundle, generateStage2, getBootstrapURL }
+export { bundleJS as bundle, generateStage2, getBootstrapURL }

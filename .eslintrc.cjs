@@ -9,6 +9,9 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    complexity: 'off',
+    'max-lines': 'off',
+    'max-statements': 'off',
     'node/no-missing-import': 'off',
   },
   overrides: [
