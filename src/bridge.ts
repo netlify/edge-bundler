@@ -2,23 +2,28 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import process from 'process'
 
-import { execa, ExecaChildProcess } from 'execa'
+import { execa, ExecaChildProcess, Options } from 'execa'
+import pathKey from 'path-key'
 import semver from 'semver'
 
 import { download } from './downloader.js'
 import { getPathInHome } from './home_path.js'
+import { getLogger, Logger } from './logger.js'
 import { getBinaryExtension } from './platform.js'
 
 const DENO_VERSION_FILE = 'version.txt'
 const DENO_VERSION_RANGE = '^1.20.3'
 
-type LifecycleHook = () => void | Promise<void>
+type OnBeforeDownloadHook = () => void | Promise<void>
+type OnAfterDownloadHook = (error?: Error) => void | Promise<void>
 
 interface DenoOptions {
   cacheDirectory?: string
   debug?: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  denoDir?: string
+  logger?: Logger
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal?: boolean
   versionRange?: string
 }
@@ -29,20 +34,26 @@ interface ProcessRef {
 
 interface RunOptions {
   pipeOutput?: boolean
+  env?: NodeJS.ProcessEnv
+  extendEnv?: boolean
 }
 
 class DenoBridge {
   cacheDirectory: string
   currentDownload?: ReturnType<DenoBridge['downloadBinary']>
   debug: boolean
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  denoDir?: string
+  logger: Logger
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   useGlobal: boolean
   versionRange: string
 
-  constructor(options: DenoOptions = {}) {
+  constructor(options: DenoOptions) {
     this.cacheDirectory = options.cacheDirectory ?? getPathInHome('deno-cli')
     this.debug = options.debug ?? false
+    this.denoDir = options.denoDir
+    this.logger = options.logger ?? getLogger(undefined, options.debug)
     this.onAfterDownload = options.onAfterDownload
     this.onBeforeDownload = options.onBeforeDownload
     this.useGlobal = options.useGlobal ?? true
@@ -50,46 +61,49 @@ class DenoBridge {
   }
 
   private async downloadBinary() {
-    if (this.onBeforeDownload) {
-      this.onBeforeDownload()
-    }
+    await this.onBeforeDownload?.()
 
-    await fs.mkdir(this.cacheDirectory, { recursive: true })
+    await this.ensureCacheDirectory()
 
-    this.log(`Downloading Deno CLI to ${this.cacheDirectory}...`)
+    this.logger.system(`Downloading Deno CLI to ${this.cacheDirectory}`)
 
-    const binaryPath = await download(this.cacheDirectory, this.versionRange)
-    const downloadedVersion = await DenoBridge.getBinaryVersion(binaryPath)
+    const binaryPath = await download(this.cacheDirectory, this.versionRange, this.logger)
+    const downloadedVersion = await this.getBinaryVersion(binaryPath)
 
     // We should never get here, because it means that `DENO_VERSION_RANGE` is
     // a malformed semver range. If this does happen, let's throw an error so
     // that the tests catch it.
     if (downloadedVersion === undefined) {
-      throw new Error('Could not read downloaded binary')
+      const error = new Error(
+        'There was a problem setting up the Edge Functions environment. To try a manual installation, visit https://ntl.fyi/install-deno.',
+      )
+
+      await this.onAfterDownload?.(error)
+
+      this.logger.system('Could not run downloaded Deno CLI', error)
+
+      throw error
     }
 
     await this.writeVersionFile(downloadedVersion)
 
-    if (this.onAfterDownload) {
-      this.onAfterDownload()
-    }
+    await this.onAfterDownload?.()
 
     return binaryPath
   }
 
-  static async getBinaryVersion(binaryPath: string) {
+  private async getBinaryVersion(binaryPath: string) {
     try {
       const { stdout } = await execa(binaryPath, ['--version'])
       const version = stdout.match(/^deno ([\d.]+)/)
 
       if (!version) {
+        this.logger.system(`getBinaryVersion no version found. binaryPath ${binaryPath}`)
         return
       }
 
       return version[1]
-    } catch {
-      // no-op
-    }
+    } catch {}
   }
 
   private async getCachedBinary() {
@@ -99,11 +113,13 @@ class DenoBridge {
 
     try {
       cachedVersion = await fs.readFile(versionFilePath, 'utf8')
-    } catch {
+    } catch (error) {
+      this.logger.system('Error getting cached binary', error)
       return
     }
 
     if (!semver.satisfies(cachedVersion, this.versionRange)) {
+      this.logger.system(`semver not satisfied. cachedVersion: ${cachedVersion}, versionRange: ${this.versionRange}`)
       return
     }
 
@@ -118,9 +134,12 @@ class DenoBridge {
     }
 
     const globalBinaryName = 'deno'
-    const globalVersion = await DenoBridge.getBinaryVersion(globalBinaryName)
+    const globalVersion = await this.getBinaryVersion(globalBinaryName)
 
     if (globalVersion === undefined || !semver.satisfies(globalVersion, this.versionRange)) {
+      this.logger.system(
+        `No globalVersion or semver not satisfied. globalVersion: ${globalVersion}, versionRange: ${this.versionRange}`,
+      )
       return
     }
 
@@ -135,16 +154,8 @@ class DenoBridge {
     return this.currentDownload
   }
 
-  private log(...data: unknown[]) {
-    if (!this.debug) {
-      return
-    }
-
-    console.log(...data)
-  }
-
-  private static runWithBinary(binaryPath: string, args: string[], pipeOutput?: boolean) {
-    const runDeno = execa(binaryPath, args)
+  private static runWithBinary(binaryPath: string, args: string[], options?: Options, pipeOutput?: boolean) {
+    const runDeno = execa(binaryPath, args, options)
 
     if (pipeOutput) {
       runDeno.stdout?.pipe(process.stdout)
@@ -155,16 +166,22 @@ class DenoBridge {
   }
 
   private async writeVersionFile(version: string) {
+    await this.ensureCacheDirectory()
+
     const versionFilePath = path.join(this.cacheDirectory, DENO_VERSION_FILE)
 
     await fs.writeFile(versionFilePath, version)
+  }
+
+  async ensureCacheDirectory() {
+    await fs.mkdir(this.cacheDirectory, { recursive: true })
   }
 
   async getBinaryPath() {
     const globalPath = await this.getGlobalBinary()
 
     if (globalPath !== undefined) {
-      this.log('Using global installation of Deno CLI')
+      this.logger.system('Using global installation of Deno CLI')
 
       return { global: true, path: globalPath }
     }
@@ -172,7 +189,7 @@ class DenoBridge {
     const cachedPath = await this.getCachedBinary()
 
     if (cachedPath !== undefined) {
-      this.log('Using cached Deno CLI from', cachedPath)
+      this.logger.system('Using cached Deno CLI from', cachedPath)
 
       return { global: false, path: cachedPath }
     }
@@ -182,19 +199,40 @@ class DenoBridge {
     return { global: false, path: downloadedPath }
   }
 
+  getEnvironmentVariables(inputEnv: NodeJS.ProcessEnv = {}) {
+    const env: NodeJS.ProcessEnv = { ...inputEnv }
+
+    if (this.denoDir !== undefined) {
+      env.DENO_DIR = this.denoDir
+    }
+
+    // Ensure PATH is always set as otherwise we are not able to find the global deno binary
+    env[pathKey()] = inputEnv[pathKey({ env: inputEnv })] || process.env[pathKey()]
+
+    return env
+  }
+
   // Runs the Deno CLI in the background and returns a reference to the child
   // process, awaiting its execution.
-  async run(args: string[], { pipeOutput }: RunOptions = {}) {
+  async run(args: string[], { pipeOutput, env: inputEnv, extendEnv = true }: RunOptions = {}) {
     const { path: binaryPath } = await this.getBinaryPath()
+    const env = this.getEnvironmentVariables(inputEnv)
+    const options: Options = { env, extendEnv }
 
-    return DenoBridge.runWithBinary(binaryPath, args, pipeOutput)
+    return DenoBridge.runWithBinary(binaryPath, args, options, pipeOutput)
   }
 
   // Runs the Deno CLI in the background, assigning a reference of the child
   // process to a `ps` property in the `ref` argument, if one is supplied.
-  async runInBackground(args: string[], pipeOutput?: boolean, ref?: ProcessRef) {
+  async runInBackground(
+    args: string[],
+    ref?: ProcessRef,
+    { pipeOutput, env: inputEnv, extendEnv = true }: RunOptions = {},
+  ) {
     const { path: binaryPath } = await this.getBinaryPath()
-    const ps = DenoBridge.runWithBinary(binaryPath, args, pipeOutput)
+    const env = this.getEnvironmentVariables(inputEnv)
+    const options: Options = { env, extendEnv }
+    const ps = DenoBridge.runWithBinary(binaryPath, args, options, pipeOutput)
 
     if (ref !== undefined) {
       // eslint-disable-next-line no-param-reassign
@@ -204,4 +242,4 @@ class DenoBridge {
 }
 
 export { DenoBridge }
-export type { LifecycleHook, ProcessRef }
+export type { DenoOptions, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef }

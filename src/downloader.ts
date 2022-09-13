@@ -1,34 +1,50 @@
-import fs from 'fs'
+import { createWriteStream, promises as fs } from 'fs'
 import path from 'path'
+import { promisify } from 'util'
 
 import fetch from 'node-fetch'
 import StreamZip from 'node-stream-zip'
+import pRetry from 'p-retry'
 import semver from 'semver'
 
+import { Logger } from './logger.js'
 import { getBinaryExtension, getPlatformTarget } from './platform.js'
+
+const downloadWithRetry = async (targetDirectory: string, versionRange: string, logger: Logger) =>
+  await pRetry(async () => await download(targetDirectory, versionRange), {
+    retries: 3,
+    onFailedAttempt: (error) => {
+      logger.system('Deno download with retry failed', error)
+    },
+  })
 
 const download = async (targetDirectory: string, versionRange: string) => {
   const zipPath = path.join(targetDirectory, 'deno-cli-latest.zip')
   const data = await downloadVersion(versionRange)
   const binaryName = `deno${getBinaryExtension()}`
   const binaryPath = path.join(targetDirectory, binaryName)
-  const file = fs.createWriteStream(zipPath)
-
-  await new Promise((resolve, reject) => {
-    data.pipe(file)
-    data.on('error', reject)
-    file.on('finish', resolve)
-  })
-
-  await extractBinaryFromZip(zipPath, binaryPath, binaryName)
+  const file = createWriteStream(zipPath)
 
   try {
-    await fs.promises.unlink(zipPath)
-  } catch {
-    // no-op
-  }
+    await new Promise((resolve, reject) => {
+      data.pipe(file)
+      data.on('error', reject)
+      file.on('finish', resolve)
+    })
 
-  return binaryPath
+    await extractBinaryFromZip(zipPath, binaryPath, binaryName)
+
+    return binaryPath
+  } finally {
+    // Try closing and deleting the zip file in any case, error or not
+    await promisify(file.close.bind(file))()
+
+    try {
+      await fs.unlink(zipPath)
+    } catch {
+      // no-op
+    }
+  }
 }
 
 const downloadVersion = async (versionRange: string) => {
@@ -36,8 +52,9 @@ const downloadVersion = async (versionRange: string) => {
   const url = getReleaseURL(version)
   const res = await fetch(url)
 
-  if (res.body === null) {
-    throw new Error('Could not download Deno')
+  // eslint-disable-next-line no-magic-numbers
+  if (res.body === null || res.status < 200 || res.status > 299) {
+    throw new Error(`Download failed with status code ${res.status}`)
   }
 
   return res.body
@@ -49,7 +66,7 @@ const extractBinaryFromZip = async (zipPath: string, binaryPath: string, binaryN
 
   await zip.extract(binaryName, binaryPath)
   await zip.close()
-  await fs.promises.chmod(binaryPath, '755')
+  await fs.chmod(binaryPath, '755')
 }
 
 const getLatestVersion = async () => {
@@ -96,4 +113,4 @@ const getReleaseURL = (version: string) => {
   return `https://dl.deno.land/release/v${version}/deno-${target}.zip`
 }
 
-export { download }
+export { downloadWithRetry as download }

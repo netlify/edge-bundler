@@ -1,9 +1,11 @@
 import { tmpName } from 'tmp-promise'
 
-import { DenoBridge, LifecycleHook, ProcessRef } from '../bridge.js'
+import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef } from '../bridge.js'
 import type { EdgeFunction } from '../edge_function.js'
 import { generateStage2 } from '../formats/javascript.js'
 import { ImportMap, ImportMapFile } from '../import_map.js'
+import { getLogger, LogFunction } from '../logger.js'
+import { ensureLatestTypes } from '../types.js'
 
 import { killProcess, waitForServer } from './util.js'
 
@@ -28,7 +30,7 @@ const prepareServer = ({
   port,
 }: PrepareServerOptions) => {
   const processRef: ProcessRef = {}
-  const startIsolate = async (newFunctions: EdgeFunction[]) => {
+  const startIsolate = async (newFunctions: EdgeFunction[], env: NodeJS.ProcessEnv = {}) => {
     if (processRef?.ps !== undefined) {
       await killProcess(processRef.ps)
     }
@@ -58,7 +60,14 @@ const prepareServer = ({
 
     const bootstrapFlags = ['--port', port.toString()]
 
-    await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], true, processRef)
+    // We set `extendEnv: false` to avoid polluting the edge function context
+    // with variables from the user's system, since those will not be available
+    // in the production environment.
+    await deno.runInBackground(['run', ...denoFlags, stage2Path, ...bootstrapFlags], processRef, {
+      pipeOutput: true,
+      env,
+      extendEnv: false,
+    })
 
     const success = await waitForServer(port, processRef.ps)
 
@@ -71,31 +80,47 @@ const prepareServer = ({
   return startIsolate
 }
 
+interface InspectSettings {
+  // Inspect mode enabled
+  enabled: boolean
+
+  // Pause on breakpoints (i.e. "--brk")
+  pause: boolean
+
+  // Host/port override (optional)
+  address?: string
+}
 interface ServeOptions {
   certificatePath?: string
   debug?: boolean
   distImportMapPath?: string
+  inspectSettings?: InspectSettings
   importMaps?: ImportMapFile[]
-  onAfterDownload?: LifecycleHook
-  onBeforeDownload?: LifecycleHook
+  onAfterDownload?: OnAfterDownloadHook
+  onBeforeDownload?: OnBeforeDownloadHook
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
   port: number
+  systemLogger?: LogFunction
 }
 
 const serve = async ({
   certificatePath,
   debug,
   distImportMapPath,
+  inspectSettings,
   formatExportTypeError,
   formatImportError,
   importMaps,
   onAfterDownload,
   onBeforeDownload,
   port,
+  systemLogger,
 }: ServeOptions) => {
+  const logger = getLogger(systemLogger, debug)
   const deno = new DenoBridge({
     debug,
+    logger,
     onAfterDownload,
     onBeforeDownload,
   })
@@ -107,10 +132,18 @@ const serve = async ({
   // Wait for the binary to be downloaded if needed.
   await deno.getBinaryPath()
 
+  // Downloading latest types if needed.
+  await ensureLatestTypes(deno, logger)
+
   // Creating an ImportMap instance with any import maps supplied by the user,
   // if any.
   const importMap = new ImportMap(importMaps)
-  const flags = ['--allow-all', '--unstable', `--import-map=${importMap.toDataURL()}`]
+  const flags = [
+    '--allow-all',
+    '--unstable',
+    `--import-map=${importMap.toDataURL()}`,
+    '--v8-flags=--disallow-code-generation-from-strings',
+  ]
 
   if (certificatePath) {
     flags.push(`--cert=${certificatePath}`)
@@ -120,6 +153,14 @@ const serve = async ({
     flags.push('--log-level=debug')
   } else {
     flags.push('--quiet')
+  }
+
+  if (inspectSettings && inspectSettings.enabled) {
+    if (inspectSettings.pause) {
+      flags.push(inspectSettings.address ? `--inspect-brk=${inspectSettings.address}` : '--inspect-brk')
+    } else {
+      flags.push(inspectSettings.address ? `--inspect=${inspectSettings.address}` : '--inspect')
+    }
   }
 
   const server = await prepareServer({

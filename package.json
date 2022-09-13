@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "1.1.0",
+  "version": "2.0.1",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/index.js",
@@ -79,6 +79,7 @@
     "node": "^12.20.0 || ^14.14.0 || >=16.0.0"
   },
   "dependencies": {
+    "@import-maps/resolve": "^1.0.1",
     "common-path-prefix": "^3.0.0",
     "del": "^6.0.0",
     "env-paths": "^3.0.0",
@@ -86,9 +87,11 @@
     "glob-to-regexp": "^0.4.1",
     "node-fetch": "^3.1.1",
     "node-stream-zip": "^1.15.0",
+    "p-retry": "^5.1.1",
     "p-wait-for": "^4.1.0",
+    "path-key": "^4.0.0",
     "semver": "^7.3.5",
     "tmp-promise": "^3.0.3",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.0"
   }
 }
