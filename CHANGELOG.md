@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.1](https://github.com/netlify/edge-bundler/compare/v2.0.0...v2.0.1) (2022-09-13)
+
+
+### Bug Fixes
+
+* move `stage2.ts` to `src` ([#113](https://github.com/netlify/edge-bundler/issues/113)) ([0d14125](https://github.com/netlify/edge-bundler/commit/0d141253bdda65ba9bc31f5452b4c0a915f14416))
+
+## [2.0.0](https://github.com/netlify/edge-bundler/compare/v1.14.1...v2.0.0) (2022-09-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* `importMaps` now expects a `baseURL` containing the URL of the import map file
+
+### Features
+
+* add support for import maps with ESZIP ([#109](https://github.com/netlify/edge-bundler/issues/109)) ([19031eb](https://github.com/netlify/edge-bundler/commit/19031eb4923fd37de0c004b67c542ea8b1aff374))
+
 ## [1.14.1](https://github.com/netlify/edge-bundler/compare/v1.14.0...v1.14.1) (2022-08-26)
 
 

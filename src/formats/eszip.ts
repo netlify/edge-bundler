@@ -6,6 +6,7 @@ import type { Bundle } from '../bundle.js'
 import { wrapBundleError } from '../bundle_error.js'
 import { EdgeFunction } from '../edge_function.js'
 import { ImportMap } from '../import_map.js'
+import type { WriteStage2Options } from '../stage2.js'
 import { getFileHash } from '../utils/sha256.js'
 
 interface BundleESZIPOptions {
@@ -30,11 +31,11 @@ const bundleESZIP = async ({
   const extension = '.eszip'
   const destPath = join(distDirectory, `${buildID}${extension}`)
   const bundler = getESZIPBundler()
-  const payload = {
+  const payload: WriteStage2Options = {
     basePath,
     destPath,
     functions,
-    imports: importMap.imports,
+    importMapURL: importMap.toDataURL(),
   }
   const flags = ['--allow-all']
 
