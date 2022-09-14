@@ -2,6 +2,7 @@ import { join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
 import test from 'ava'
+import getPort from 'get-port'
 import fetch from 'node-fetch'
 
 import { serve } from '../src/index.js'
@@ -11,9 +12,9 @@ const dirname = fileURLToPath(url)
 const fixturesDir = resolve(dirname, '..', 'fixtures')
 
 test.serial('bundler serving functionality', async (t) => {
-  const PORT_THATS_HOPEFULLY_FREE = 5832
+  const port = await getPort()
   const server = await serve({
-    port: PORT_THATS_HOPEFULLY_FREE,
+    port,
   })
 
   const { success } = await server(
@@ -30,7 +31,7 @@ test.serial('bundler serving functionality', async (t) => {
 
   t.true(success)
 
-  const response = await fetch(`http://0.0.0.0:${PORT_THATS_HOPEFULLY_FREE}/foo`, {
+  const response = await fetch(`http://0.0.0.0:${port}/foo`, {
     headers: {
       'x-deno-functions': 'echo_env',
       'x-deno-pass': 'passthrough',
