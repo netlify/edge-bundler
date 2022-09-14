@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/node/index.js",
@@ -73,7 +73,7 @@
     "husky": "^8.0.0",
     "nock": "^13.2.4",
     "nyc": "^15.0.0",
-    "sinon": "^13.0.0",
+    "sinon": "^14.0.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4"
   },
@@ -86,6 +86,7 @@
     "del": "^6.0.0",
     "env-paths": "^3.0.0",
     "execa": "^6.0.0",
+    "find-up": "^6.3.0",
     "glob-to-regexp": "^0.4.1",
     "node-fetch": "^3.1.1",
     "node-stream-zip": "^1.15.0",
