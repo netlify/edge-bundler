@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.0.5](https://github.com/netlify/edge-bundler/compare/v2.0.4...v2.0.5) (2022-09-14)
+
+
+### Bug Fixes
+
+* convert file URL to path ([#123](https://github.com/netlify/edge-bundler/issues/123)) ([ff78c96](https://github.com/netlify/edge-bundler/commit/ff78c9637c3279d3a339abda82cc5a30ae3b452a))
+
+## [2.0.4](https://github.com/netlify/edge-bundler/compare/v2.0.3...v2.0.4) (2022-09-14)
+
+
+### Bug Fixes
+
+* use right location for Deno bundler ([#120](https://github.com/netlify/edge-bundler/issues/120)) ([a8a9f5d](https://github.com/netlify/edge-bundler/commit/a8a9f5d213d45ab8200e08ee6b2159a8b2c2351f))
+
+## [2.0.3](https://github.com/netlify/edge-bundler/compare/v2.0.2...v2.0.3) (2022-09-14)
+
+
+### Bug Fixes
+
+* fix `getPackageVersion` ([#118](https://github.com/netlify/edge-bundler/issues/118)) ([d57335a](https://github.com/netlify/edge-bundler/commit/d57335a1f91289bc4b18881b50f1fab705b68ae2))
+
+## [2.0.2](https://github.com/netlify/edge-bundler/compare/v2.0.1...v2.0.2) (2022-09-14)
+
+
+### Bug Fixes
+
+* create shared directory ([#117](https://github.com/netlify/edge-bundler/issues/117)) ([9a21c18](https://github.com/netlify/edge-bundler/commit/9a21c1826395fe42e8e443931773a4c7f0b17108))
+* **deps:** update dependency uuid to v9 ([#111](https://github.com/netlify/edge-bundler/issues/111)) ([0525b27](https://github.com/netlify/edge-bundler/commit/0525b27743f5203cd274890e02718a8eda0dd93f))
+
 ## [2.0.1](https://github.com/netlify/edge-bundler/compare/v2.0.0...v2.0.1) (2022-09-13)
 
 
