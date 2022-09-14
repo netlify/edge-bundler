@@ -25,13 +25,15 @@ export const getStage2Entry = (basePath: string, functions: InputFunction[]) => 
   const lines = functions.map((func, index) => getFunctionReference(basePath, func, index))
   const importLines = lines.map(({ importLine }) => importLine).join('\n')
   const exportLines = lines.map(({ exportLine }) => exportLine).join(', ')
-  const metadataLines = lines.map(({ metadata, name }) => {
-    const metadataString = JSON.stringify(metadata)
-
-    return `"${name}":${metadataString}`
-  })
+  const metadata = lines.reduce(
+    (acc, { metadata, name }) => ({
+      ...acc,
+      [name]: metadata,
+    }),
+    {},
+  )
   const functionsExport = `export const functions = {${exportLines}};`
-  const metadataExport = `export const metadata = {${metadataLines}};`
+  const metadataExport = `export const metadata = ${JSON.stringify(metadata)};`
 
   return [importLines, functionsExport, metadataExport].join('\n\n')
 }
