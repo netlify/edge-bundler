@@ -30,7 +30,7 @@ test.serial('bundler serving functionality', async (t) => {
 
   t.true(success)
 
-  const response = await fetch(`http://localhost:${PORT_THATS_HOPEFULLY_FREE}/foo`, {
+  const response = await fetch(`http://0.0.0.0:${PORT_THATS_HOPEFULLY_FREE}/foo`, {
     headers: {
       'x-deno-functions': 'echo_env',
       'x-deno-pass': 'passthrough',
