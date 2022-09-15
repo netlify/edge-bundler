@@ -6,6 +6,7 @@ import { pathToFileURL } from 'url'
 import test from 'ava'
 import del from 'del'
 import { execa } from 'execa'
+import semver from 'semver'
 import tmp from 'tmp-promise'
 
 import { getLocalEntryPoint } from '../../node/formats/javascript.js'
@@ -31,7 +32,10 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
   await fs.writeFile(printerPath, printer)
   process.env.NETLIFY_EDGE_BOOTSTRAP = pathToFileURL(printerPath).toString()
 
-  const functions = [{ name: 'func1', path: join(tmpDir, 'func1.mjs'), response: 'Hello from function 1' }]
+  const functions = [
+    { name: 'func1', path: join(tmpDir, 'func1.mjs'), response: 'Hello from function 1' },
+    { name: 'func2', path: join(tmpDir, 'func2.mjs'), response: 'Hello from function 2' },
+  ]
 
   for (const func of functions) {
     const contents = `export default () => ${JSON.stringify(func.response)}`
@@ -46,6 +50,16 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
   const stage2Path = join(tmpDir, 'stage2.mjs')
 
   await fs.writeFile(stage2Path, stage2)
+
+  // In Node <14, we're not able to actually load the stage 2 because ESM is
+  // not supported. The best we can do is to naively look for some assignments.
+  if (semver.lt(process.version.slice(1), '14.0.0')) {
+    for (const func of functions) {
+      t.true(stage2.includes(`metadata["${func.name}"] = {"url":"${pathToFileURL(func.path).toString()}"}`))
+    }
+
+    return
+  }
 
   const { stdout, stderr } = await execa('node', [stage2Path])
 
