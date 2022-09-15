@@ -12,6 +12,9 @@ import { getLocalEntryPoint } from '../../node/formats/javascript.js'
 
 test('`getLocalEntryPoint` returns a valid stage 2 file for local development', async (t) => {
   const { path: tmpDir } = await tmp.dir()
+
+  // This is a fake bootstrap that we'll create just for the purpose of logging
+  // the functions and the metadata that are sent to the `boot` function.
   const printer = `
     export const boot = async (functions, metadata) => {
       const responses = {}
