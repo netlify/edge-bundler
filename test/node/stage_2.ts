@@ -51,17 +51,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
 
   await fs.writeFile(stage2Path, stage2)
 
-  // In Node <14, we're not able to actually load the stage 2 because ESM is
-  // not supported. The best we can do is to naively look for some assignments.
-  if (semver.lt(process.version.slice(1), '14.0.0')) {
-    for (const func of functions) {
-      t.true(stage2.includes(`metadata["${func.name}"] = {"url":"${pathToFileURL(func.path).toString()}"}`))
-    }
-
-    return
-  }
-
-  const { stdout, stderr } = await execa('node', [stage2Path])
+  const { stdout, stderr } = await execa('deno', ['run', '--allow-all', stage2Path])
 
   t.is(stderr, '')
 
