@@ -29,7 +29,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
   const printerPath = join(tmpDir, 'printer.mjs')
 
   await fs.writeFile(printerPath, printer)
-  process.env.NETLIFY_EDGE_BOOTSTRAP = printerPath
+  process.env.NETLIFY_EDGE_BOOTSTRAP = pathToFileURL(printerPath).toString()
 
   const functions = [{ name: 'func1', path: join(tmpDir, 'func1.mjs'), response: 'Hello from function 1' }]
 
