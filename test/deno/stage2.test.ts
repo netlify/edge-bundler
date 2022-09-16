@@ -52,6 +52,6 @@ Deno.test('`getStage2Entry` returns a valid stage 2 file', async () => {
     const result = await mod.functions[func.name]()
 
     assertEquals(await result.text(), func.response)
-    assertEquals(mod.metadata[func.name].url, pathToFileURL(func.path).toString())
+    assertEquals(mod.metadata.functions[func.name].url, pathToFileURL(func.path).toString())
   }
 })
