@@ -255,7 +255,7 @@ test.serial('Ignores any user-defined `deno.json` files', async (t) => {
     importMap: importMapFile.path,
   }
 
-  // Let's ensure we're not overwriting a `deno.json` file that happens to br
+  // Let's ensure we're not overwriting a `deno.json` file that happens to be
   // in the current working directory.
   await t.throwsAsync(
     () => fs.access(denoConfigPath),
