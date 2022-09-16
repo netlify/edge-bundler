@@ -4,6 +4,7 @@ import process from 'process'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import test from 'ava'
+import del from 'del'
 import tmp from 'tmp-promise'
 
 import { BundleError } from '../../node/bundle_error.js'
@@ -282,7 +283,5 @@ test.serial('Ignores any user-defined `deno.json` files', async (t) => {
     }),
   )
 
-  await fs.rmdir(tmpDir.path, { recursive: true })
-  await fs.rm(denoConfigPath, { force: true })
-  await fs.rm(importMapFile.path)
+  await del([tmpDir.path, denoConfigPath, importMapFile.path], { force: true })
 })
