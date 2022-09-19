@@ -50,9 +50,10 @@ Deno.test('`getStage2Entry` returns a valid stage 2 file', async () => {
   await Deno.remove(directory, { recursive: true })
 
   for (const func of functions) {
-    const result = await mod.functions[func.name]()
+    const { handler, url } = mod.functions[func.name]
+    const result = await handler()
 
     assertEquals(await result.text(), func.response)
-    assertEquals(mod.metadata.functions[func.name].url, pathToFileURL(func.path).toString())
+    assertEquals(url, pathToFileURL(func.path).toString())
   }
 })

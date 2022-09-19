@@ -108,20 +108,16 @@ const getLocalEntryPoint = (
   }: GetLocalEntryPointOptions,
 ) => {
   const bootImport = `import { boot } from "${getBootstrapURL()}";`
-  const declaration = `const functions = {}; const metadata = { functions: {} };`
+  const declaration = `const functions = {};`
   const imports = functions.map((func) => {
     const url = pathToFileURL(func.path)
-    const metadata = {
-      url,
-    }
 
     return `
       try {
         const { default: func } = await import("${url}");
     
         if (typeof func === "function") {
-          functions["${func.name}"] = func;
-          metadata.functions["${func.name}"] = ${JSON.stringify(metadata)}
+          functions["${func.name}"] = {handler: func, url: ${JSON.stringify(url)}};
         } else {
           console.log(${JSON.stringify(formatExportTypeError(func.name))});
         }
@@ -131,7 +127,7 @@ const getLocalEntryPoint = (
       }
       `
   })
-  const bootCall = `boot(functions, metadata);`
+  const bootCall = `boot(functions);`
 
   return [bootImport, declaration, ...imports, bootCall].join('\n\n')
 }
@@ -139,9 +135,9 @@ const getLocalEntryPoint = (
 const getProductionEntryPoint = (functions: EdgeFunction[]) => {
   const bootImport = `import { boot } from "${getBootstrapURL()}";`
   const lines = functions.map((func, index) => {
-    const importName = `func${index}`
-    const exportLine = `"${func.name}": ${importName}`
     const url = pathToFileURL(func.path)
+    const importName = `func${index}`
+    const exportLine = `"${func.name}": {handler: ${importName}, url: ${JSON.stringify(url)}}`
 
     return {
       exportLine,
@@ -156,4 +152,4 @@ const getProductionEntryPoint = (functions: EdgeFunction[]) => {
   return [bootImport, importLines, exportDeclaration, defaultExport].join('\n\n')
 }
 
-export { bundleJS as bundle, generateStage2, getBootstrapURL, getLocalEntryPoint }
+export { bundleJS as bundle, generateStage2, getBootstrapURL, getLocalEntryPoint, getProductionEntryPoint }

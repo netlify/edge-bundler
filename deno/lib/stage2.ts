@@ -9,37 +9,17 @@ import { inlineModule, loadFromVirtualRoot, loadWithRetry } from './common.ts'
 interface FunctionReference {
   exportLine: string
   importLine: string
-  metadata: {
-    url: URL
-  }
   name: string
-}
-
-const getMetadata = (references: FunctionReference[]) => {
-  const functions = references.reduce(
-    (acc, { metadata, name }) => ({
-      ...acc,
-      [name]: metadata,
-    }),
-    {},
-  )
-
-  return {
-    functions,
-  }
 }
 
 const getFunctionReference = (basePath: string, func: InputFunction, index: number): FunctionReference => {
   const importName = `func${index}`
-  const exportLine = `"${func.name}": ${importName}`
   const url = getVirtualPath(basePath, func.path)
+  const exportLine = `"${func.name}": {"handler": ${importName}, "url": ${JSON.stringify(url)}}`
 
   return {
     exportLine,
     importLine: `import ${importName} from "${url}";`,
-    metadata: {
-      url,
-    },
     name: func.name,
   }
 }
@@ -48,11 +28,9 @@ export const getStage2Entry = (basePath: string, functions: InputFunction[]) => 
   const lines = functions.map((func, index) => getFunctionReference(basePath, func, index))
   const importLines = lines.map(({ importLine }) => importLine).join('\n')
   const exportLines = lines.map(({ exportLine }) => exportLine).join(', ')
-  const metadata = getMetadata(lines)
   const functionsExport = `export const functions = {${exportLines}};`
-  const metadataExport = `export const metadata = ${JSON.stringify(metadata)};`
 
-  return [importLines, functionsExport, metadataExport].join('\n\n')
+  return [importLines, functionsExport].join('\n\n')
 }
 
 const getVirtualPath = (basePath: string, filePath: string) => {
