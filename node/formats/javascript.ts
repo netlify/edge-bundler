@@ -35,7 +35,7 @@ const bundleJS = async ({
   const stage2Path = await generateStage2({ distDirectory, functions, fileName: `${buildID}-pre.js` })
   const extension = '.js'
   const jsBundlePath = join(distDirectory, `${buildID}${extension}`)
-  const flags = [`--import-map=${importMap.toDataURL()}`]
+  const flags = [`--import-map=${importMap.toDataURL()}`, '--no-config']
 
   if (!debug) {
     flags.push('--quiet')
@@ -108,7 +108,7 @@ const getLocalEntryPoint = (
   }: GetLocalEntryPointOptions,
 ) => {
   const bootImport = `import { boot } from "${getBootstrapURL()}";`
-  const declaration = `const functions = {}; const metadata = {};`
+  const declaration = `const functions = {}; const metadata = { functions: {} };`
   const imports = functions.map((func) => {
     const url = pathToFileURL(func.path)
     const metadata = {
@@ -121,7 +121,7 @@ const getLocalEntryPoint = (
     
         if (typeof func === "function") {
           functions["${func.name}"] = func;
-          metadata["${func.name}"] = ${JSON.stringify(metadata)}
+          metadata.functions["${func.name}"] = ${JSON.stringify(metadata)}
         } else {
           console.log(${JSON.stringify(formatExportTypeError(func.name))});
         }

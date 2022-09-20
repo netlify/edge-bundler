@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/node/index.js",
@@ -29,7 +29,8 @@
     "test:ci": "run-s build test:ci:*",
     "test:dev:ava": "ava",
     "test:dev:deno": "deno test --allow-all test/deno",
-    "test:ci:ava": "nyc -r lcovonly -r text -r json ava"
+    "test:ci:ava": "nyc -r lcovonly -r text -r json ava",
+    "test:ci:deno": "deno test --allow-all test/deno"
   },
   "config": {
     "eslint": "--ignore-path .gitignore --cache --format=codeframe --max-warnings=0 \"{node,scripts,.github}/**/*.{js,ts,md,html}\" \"*.{js,ts,md,html}\"",
