@@ -241,5 +241,5 @@ class DenoBridge {
   }
 }
 
-export { DenoBridge }
+export { DENO_VERSION_RANGE, DenoBridge }
 export type { DenoOptions, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef }
