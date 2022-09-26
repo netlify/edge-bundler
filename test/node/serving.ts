@@ -5,7 +5,7 @@ import test from 'ava'
 import getPort from 'get-port'
 import fetch from 'node-fetch'
 
-import { serve } from '../src/index.js'
+import { serve } from '../../node/index.js'
 
 const url = new URL(import.meta.url)
 const dirname = fileURLToPath(url)

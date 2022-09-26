@@ -27,10 +27,11 @@ test('Generates a manifest with different bundles', (t) => {
 
   t.deepEqual(manifest.bundles, expectedBundles)
   t.deepEqual(manifest.routes, expectedRoutes)
+  t.deepEqual(manifest.post_cache_routes, [])
   t.is(manifest.bundler_version, env.npm_package_version as string)
 })
 
-test('Excludes functions for which there are function files but no matching config declarations', (t) => {
+test('Excludes from `routes` any functions for which there is no config declaration, but adds it to `post_cache_routes`', (t) => {
   const bundle1 = {
     extension: '.ext2',
     format: 'format1',
@@ -43,9 +44,8 @@ test('Excludes functions for which there are function files but no matching conf
   const declarations = [{ function: 'func-1', path: '/f1' }]
   const manifest = generateManifest({ bundles: [bundle1], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$' }]
-
-  t.deepEqual(manifest.routes, expectedRoutes)
+  t.deepEqual(manifest.routes, [{ function: 'func-1', pattern: '^/f1/?$' }])
+  t.deepEqual(manifest.post_cache_routes, [{ function: 'func-2' }])
 })
 
 test('Excludes functions for which there are config declarations but no matching function files', (t) => {
