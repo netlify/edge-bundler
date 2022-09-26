@@ -326,3 +326,38 @@ test('Ignores any user-defined `deno.json` files', async () => {
 
   await deleteAsync([tmpDir.path, denoConfigPath, importMapFile.path], { force: true })
 })
+
+test('Produces readable bundling errors with eszip enabled', async (t) => {
+  const sourceDirectory = resolve(fixturesDir, 'syntax_error', 'functions')
+  const tmpDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+
+  try {
+    await bundle([sourceDirectory], tmpDir.path, declarations, {
+      basePath: fixturesDir,
+      featureFlags: { edge_functions_produce_eszip: true },
+    })
+    t.fail()
+  } catch (error) {
+    // Example of what we're testing for:
+    //
+    // error: Uncaught (in promise) Error: The module's source code could not be parsed: Expected '{', got 'async' at file:///root/netlify/edge-functions/functions-1.ts:2:8
+    //             const ret = new Error(getStringFromWasm0(arg0, arg1));
+    //                         ^
+    //           at __wbg_new_651776e932b7e9c7 (https://deno.land/x/eszip@v0.28.0/eszip_wasm.generated.js:313:19)
+    //           at <anonymous> (https://deno.land/x/eszip@v0.28.0/eszip_wasm_bg.wasm:1:78732)
+    //           at <anonymous> (https://deno.land/x/eszip@v0.28.0/eszip_wasm_bg.wasm:1:1463894)
+    //           at <anonymous> (https://deno.land/x/eszip@v0.28.0/eszip_wasm_bg.wasm:1:1957066)
+    //           at __wbg_adapter_18 (https://deno.land/x/eszip@v0.28.0/eszip_wasm.generated.js:144:6)
+    //           at real (https://deno.land/x/eszip@v0.28.0/eszip_wasm.generated.js:128:14)
+    //
+    const { message } = error as Error
+    t.false(message.includes('<anonymous>'))
+    t.true(message.includes("The module's source code could not be parsed: Expected '{', got 'async'"))
+  }
+})
