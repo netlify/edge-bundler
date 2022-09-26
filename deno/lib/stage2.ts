@@ -87,9 +87,20 @@ const stage2Loader = (basePath: string, functions: InputFunction[]) => {
 
 const writeStage2 = async ({ basePath, destPath, functions, importMapURL }: WriteStage2Options) => {
   const loader = stage2Loader(basePath, functions)
-  const bytes = await build([STAGE2_SPECIFIER], loader, importMapURL)
+  
+  try {
+    const bytes = await build([STAGE2_SPECIFIER], loader, importMapURL)
+    return await Deno.writeFile(destPath, bytes)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message.includes("The module's source code could not be parsed:")) {
+        console.error(error.message)
+        Deno.exit(1)
+      }
+    }
 
-  return await Deno.writeFile(destPath, bytes)
+    throw error
+  } 
 }
 
 export { writeStage2 }
