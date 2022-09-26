@@ -110,6 +110,10 @@ const bundle = async (
     options.denoDir = join(cacheDirectory, 'deno_dir')
   }
 
+  if (featureFlags.edge_functions_use_global_deno) {
+    options.useGlobal = true
+  }
+
   const deno = new DenoBridge(options)
   const basePath = getBasePath(sourceDirectories, inputBasePath)
 
