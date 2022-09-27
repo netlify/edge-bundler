@@ -77,7 +77,7 @@ test('tries downloading binary up to 4 times', async (ctx: TestContext) => {
 
   const res = await execa(deno)
   expect(res.stdout).toBe('hello')
-}, 15_000)
+})
 
 test('fails downloading binary after 4th time', async (ctx: TestContext) => {
   expect.assertions(2)
@@ -115,7 +115,7 @@ test('fails downloading binary after 4th time', async (ctx: TestContext) => {
   }
 
   expect(latestVersionMock.isDone()).toBe(true)
-}, 15_000)
+})
 
 test('fails downloading if response stream throws error', async (ctx: TestContext) => {
   expect.assertions(2)
@@ -154,4 +154,4 @@ test('fails downloading if response stream throws error', async (ctx: TestContex
   }
 
   expect(latestVersionMock.isDone()).toBe(true)
-}, 15_000)
+})
