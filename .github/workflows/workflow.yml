@@ -51,8 +51,8 @@ jobs:
       - name: Linting
         run: npm run format:ci
         if: "${{ matrix.node-version == '*' }}"
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      # - name: Setup upterm session
+      #   uses: lhotari/action-upterm@v1
       - name: Tests
         run: npm run test:ci
       - name: Get test coverage flags

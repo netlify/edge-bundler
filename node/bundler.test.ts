@@ -23,6 +23,7 @@ test('Produces a JavaScript bundle and a manifest file', async () => {
   ]
   const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
+    debug: true,
     importMaps: [
       {
         baseURL: pathToFileURL(join(fixturesDir, 'import-map.json')),
@@ -61,6 +62,7 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
   ]
   const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
+    debug: true,
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
@@ -103,7 +105,7 @@ test('Adds a custom error property to user errors during bundling', async () => 
   ]
 
   try {
-    await bundle([sourceDirectory], tmpDir.path, declarations)
+    await bundle([sourceDirectory], tmpDir.path, declarations, { debug: true })
   } catch (error) {
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).customErrorInfo).toEqual({
@@ -141,6 +143,7 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
   ]
   const options: BundleOptions = {
     basePath: fixturesDir,
+    debug: true,
     cacheDirectory: cacheDir.path,
     importMaps: [
       {
@@ -196,6 +199,7 @@ test('Supports import maps with relative paths', async () => {
   ]
   const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
+    debug: true,
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
@@ -273,6 +277,7 @@ test('Ignores any user-defined `deno.json` files', async () => {
   expect(() =>
     bundle([join(fixtureDir, 'functions')], tmpDir.path, declarations, {
       basePath: fixturesDir,
+      debug: true,
       featureFlags: {
         edge_functions_produce_eszip: true,
       },
