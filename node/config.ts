@@ -19,8 +19,9 @@ export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge) =>
     if (typeof func.config === "function") {
       try {
         const result = await func.config();
+        const collectorURL = new URL("${pathToFileURL(collector.path).href}");
 
-        await Deno.writeTextFile("${collector.path}", JSON.stringify(result));
+        await Deno.writeTextFile(collectorURL, JSON.stringify(result));
       } catch (error) {
         console.error(error);
       }
