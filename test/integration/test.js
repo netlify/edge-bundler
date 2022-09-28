@@ -18,6 +18,9 @@ const pathsToCleanup = new Set()
 
 const installPackage = async () => {
   const { path } = await tmp.dir()
+
+  console.log(`Running 'npm pack'...`)
+
   const { stdout } = await exec(`npm pack --json`)
   const match = stdout.match(/"filename": "(.*)",/)
 
@@ -26,6 +29,8 @@ const installPackage = async () => {
   }
 
   const filename = join(process.cwd(), match[1])
+
+  console.log(`Uncompressing the tarball at '${filename}'...`)
 
   // eslint-disable-next-line id-length
   await tar.x({ C: path, file: filename, strip: 1 })
@@ -37,6 +42,8 @@ const installPackage = async () => {
 }
 
 const bundleFunction = async (bundlerDir) => {
+  console.log(`Installing dependencies at '${bundlerDir}'...`)
+
   await exec(`npm --prefix ${bundlerDir} install`)
 
   const bundlerPath = require.resolve(bundlerDir)
@@ -45,6 +52,8 @@ const bundleFunction = async (bundlerDir) => {
   const { path: destPath } = await tmp.dir()
 
   pathsToCleanup.add(destPath)
+
+  console.log(`Bundling functions at '${functionsDir}'...`)
 
   return await bundle([functionsDir], destPath, [{ function: 'func1', path: '/func1' }])
 }
@@ -57,6 +66,8 @@ const runAssertions = ({ functions }) => {
 
 const cleanup = async () => {
   const directories = [...pathsToCleanup]
+
+  console.log(`Cleaning up temporary files...`)
 
   await del(directories, { force: true })
 }
