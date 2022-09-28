@@ -37,7 +37,6 @@ test('Produces a JavaScript bundle and a manifest file', async () => {
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles } = manifest
@@ -78,7 +77,6 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles } = manifest
@@ -213,7 +211,6 @@ test('Supports import maps with relative paths', async () => {
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles } = manifest

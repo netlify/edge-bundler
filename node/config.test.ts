@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import { join, resolve } from 'path'
 
 import del from 'del'
+import { stub } from 'sinon'
 import tmp from 'tmp-promise'
 import { test, expect } from 'vitest'
 
@@ -37,10 +38,48 @@ test('`getFunctionConfig` extracts configuration properties from function file',
       `,
     },
 
+    // Config with the wrong type
+    {
+      expectedConfig: {},
+      name: 'func3',
+      source: `
+      export default async () => new Response("Hello from function two")
+
+      export const config = {}
+    `,
+      userLog: /^'config' export in edge function at '(.*)' must be a function$/,
+    },
+
+    // Config with a syntax error
+    {
+      expectedConfig: {},
+      name: 'func4',
+      source: `
+      export default async () => new Response("Hello from function two")
+
+      export const config
+    `,
+      userLog: /^Could not load edge function at '(.*)'$/,
+    },
+
+    // Config that throws
+    {
+      expectedConfig: {},
+      name: 'func5',
+      source: `
+          export default async () => new Response("Hello from function two")
+    
+          export const config = () => {
+            throw new Error('uh-oh')
+          }
+        `,
+      userLog: /^Error while running 'config' function in edge function at '(.*)'$/,
+    },
+
     // Config with `path`
     {
       expectedConfig: { path: '/home' },
-      name: 'func3',
+      name: 'func6',
       source: `
         export default async () => new Response("Hello from function three")
 
@@ -50,6 +89,10 @@ test('`getFunctionConfig` extracts configuration properties from function file',
   ]
 
   for (const func of functions) {
+    const logger = {
+      user: stub().resolves(),
+      system: stub().resolves(),
+    }
     const path = join(tmpDir, `${func.name}.js`)
 
     await fs.writeFile(path, func.source)
@@ -60,9 +103,16 @@ test('`getFunctionConfig` extracts configuration properties from function file',
         path,
       },
       deno,
+      logger,
     )
 
     expect(config).toEqual(func.expectedConfig)
+
+    if (func.userLog) {
+      expect(logger.user.firstCall.firstArg).toMatch(func.userLog)
+    } else {
+      expect(logger.user.callCount).toBe(0)
+    }
   }
 
   await del(tmpDir, { force: true })
@@ -85,7 +135,6 @@ test('Ignores function paths from the in-source `config` function if the feature
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles, routes } = manifest
@@ -116,7 +165,6 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles, routes } = manifest
