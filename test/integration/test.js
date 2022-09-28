@@ -17,18 +17,17 @@ const functionsDir = resolve(fileURLToPath(import.meta.url), '..', 'functions')
 const pathsToCleanup = new Set()
 
 const installPackage = async () => {
+  console.log(`Getting package version from 'npm info'...`)
+
+  const { stdout: infoOutput } = await exec('npm info --json')
+  const { version } = JSON.parse(infoOutput)
   const { path } = await tmp.dir()
 
   console.log(`Running 'npm pack'...`)
 
-  const { stdout } = await exec(`npm pack --json`)
-  const match = stdout.match(/"version": "(.*)",/)
+  await exec('npm pack --json')
 
-  if (match === null) {
-    throw new Error('Failed to parse output of `npm pack`')
-  }
-
-  const filename = join(process.cwd(), `netlify-edge-bundler-${match[1]}.tgz`)
+  const filename = join(process.cwd(), `netlify-edge-bundler-${version}.tgz`)
 
   console.log(`Uncompressing the tarball at '${filename}'...`)
 
