@@ -22,13 +22,13 @@ const installPackage = async () => {
   console.log(`Running 'npm pack'...`)
 
   const { stdout } = await exec(`npm pack --json`)
-  const match = stdout.match(/"filename": "(.*)",/)
+  const match = stdout.match(/"version": "(.*)",/)
 
   if (match === null) {
     throw new Error('Failed to parse output of `npm pack`')
   }
 
-  const filename = join(process.cwd(), match[1])
+  const filename = join(process.cwd(), `netlify-edge-bundler-${match[1]}.tgz`)
 
   console.log(`Uncompressing the tarball at '${filename}'...`)
 
@@ -58,7 +58,11 @@ const bundleFunction = async (bundlerDir) => {
   return await bundle([functionsDir], destPath, [{ function: 'func1', path: '/func1' }])
 }
 
-const runAssertions = ({ functions }) => {
+const runAssertions = (bundleOutput) => {
+  console.log(`Running assertions on bundle output:`, bundleOutput)
+
+  const { functions } = bundleOutput
+
   assert.equal(functions.length, 1)
   assert.equal(functions[0].name, 'func1')
   assert.equal(functions[0].path, join(functionsDir, 'func1.ts'))
