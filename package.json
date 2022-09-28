@@ -32,7 +32,7 @@
     "test:dev:deno": "deno test --allow-all deno",
     "test:ci:vitest": "vitest run",
     "test:ci:deno": "deno test --allow-all deno",
-    "test:integration": "node test/integration/test.js"
+    "test:integration": "node --experimental-modules test/integration/test.js"
   },
   "config": {
     "eslint": "--ignore-path .gitignore --cache --format=codeframe --max-warnings=0 \"{node,scripts,.github}/**/*.{js,ts,md,html}\" \"*.{js,ts,md,html}\"",
