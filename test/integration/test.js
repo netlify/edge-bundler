@@ -12,22 +12,29 @@ import tmp from 'tmp-promise'
 const require = createRequire(import.meta.url)
 const functionsDir = resolve(fileURLToPath(import.meta.url), '..', 'functions')
 
-const directoriesToCleanup = new Set()
+const pathsToCleanup = new Set()
 
 const installPackage = async () => {
   const { path } = await tmp.dir()
-  const filename = join(path, 'netlify-edge-bundler-2.2.0.tgz')
-  const npmPack = execa('npm', ['pack', '--json', `--pack-destination=${path}`])
+  const npmPack = execa('npm', ['pack', '--json'])
 
-  npmPack.stdout?.pipe(process.stdout)
-  npmPack.stderr?.pipe(process.stderr)
+  npmPack.stdout.pipe(process.stdout)
+  npmPack.stderr.pipe(process.stderr)
 
-  await npmPack
+  const { stdout } = await npmPack
+  const match = stdout.match(/"filename": "(.*)",/)
+
+  if (match === null) {
+    throw new Error('Failed to parse output of `npm pack`')
+  }
+
+  const filename = join(process.cwd(), match[1])
 
   // eslint-disable-next-line id-length
   await tar.x({ C: path, file: filename, strip: 1 })
 
-  directoriesToCleanup.add(path)
+  pathsToCleanup.add(path)
+  pathsToCleanup.add(filename)
 
   return path
 }
@@ -35,8 +42,8 @@ const installPackage = async () => {
 const bundleFunction = async (bundlerDir) => {
   const npmInstall = execa('npm', ['--prefix', bundlerDir, 'install'])
 
-  npmInstall.stdout?.pipe(process.stdout)
-  npmInstall.stderr?.pipe(process.stderr)
+  npmInstall.stdout.pipe(process.stdout)
+  npmInstall.stderr.pipe(process.stderr)
 
   await npmInstall
 
@@ -45,7 +52,7 @@ const bundleFunction = async (bundlerDir) => {
   const { bundle } = await import(bundlerURL)
   const { path: destPath } = await tmp.dir()
 
-  directoriesToCleanup.add(destPath)
+  pathsToCleanup.add(destPath)
 
   return await bundle([functionsDir], destPath, [{ function: 'func1', path: '/func1' }])
 }
@@ -57,10 +64,18 @@ const runAssertions = ({ functions }) => {
 }
 
 const cleanup = async () => {
-  const directories = [...directoriesToCleanup]
+  const directories = [...pathsToCleanup]
 
   await del(directories, { force: true })
 }
 
-// eslint-disable-next-line promise/catch-or-return
-installPackage().then(bundleFunction).then(runAssertions).then(cleanup)
+installPackage()
+  .then(bundleFunction)
+  .then(runAssertions)
+  .then(cleanup)
+  // eslint-disable-next-line promise/prefer-await-to-callbacks
+  .catch((error) => {
+    console.error(error)
+
+    throw error
+  })
