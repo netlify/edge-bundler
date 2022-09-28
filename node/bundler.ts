@@ -133,7 +133,7 @@ const bundle = async (
         return {}
       }
 
-      return getFunctionConfig(func, deno)
+      return getFunctionConfig(func, deno, logger)
     }),
   )
 
