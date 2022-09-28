@@ -23,7 +23,7 @@ const installPackage = async () => {
   const { version } = JSON.parse(infoOutput)
   const { path } = await tmp.dir()
 
-  console.log(`Running 'npm pack'...`)
+  console.log(`Creating tarball with 'npm pack'...`)
 
   await exec('npm pack --json')
 
@@ -54,11 +54,16 @@ const bundleFunction = async (bundlerDir) => {
 
   console.log(`Bundling functions at '${functionsDir}'...`)
 
-  return await bundle([functionsDir], destPath, [{ function: 'func1', path: '/func1' }])
+  return await bundle([functionsDir], destPath, [{ function: 'func1', path: '/func1' }], {
+    featureFlags: {
+      edge_functions_produce_eszip: true,
+    },
+  })
 }
 
 const runAssertions = (bundleOutput) => {
-  console.log(`Running assertions on bundle output:`, bundleOutput)
+  console.log('Running assertions on bundle output:')
+  console.log(JSON.stringify(bundleOutput, null, 2))
 
   const { functions } = bundleOutput
 
