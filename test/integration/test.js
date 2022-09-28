@@ -1,14 +1,16 @@
 import assert from 'assert'
+import childProcess from 'child_process'
 import { createRequire } from 'module'
 import { join, resolve } from 'path'
 import process from 'process'
 import { fileURLToPath, pathToFileURL } from 'url'
+import { promisify } from 'util'
 
 import del from 'del'
-import { execa } from 'execa'
 import tar from 'tar'
 import tmp from 'tmp-promise'
 
+const exec = promisify(childProcess.exec)
 const require = createRequire(import.meta.url)
 const functionsDir = resolve(fileURLToPath(import.meta.url), '..', 'functions')
 
@@ -16,12 +18,7 @@ const pathsToCleanup = new Set()
 
 const installPackage = async () => {
   const { path } = await tmp.dir()
-  const npmPack = execa('npm', ['pack', '--json'])
-
-  npmPack.stdout.pipe(process.stdout)
-  npmPack.stderr.pipe(process.stderr)
-
-  const { stdout } = await npmPack
+  const { stdout } = await exec(`npm pack --json`)
   const match = stdout.match(/"filename": "(.*)",/)
 
   if (match === null) {
@@ -40,12 +37,7 @@ const installPackage = async () => {
 }
 
 const bundleFunction = async (bundlerDir) => {
-  const npmInstall = execa('npm', ['--prefix', bundlerDir, 'install'])
-
-  npmInstall.stdout.pipe(process.stdout)
-  npmInstall.stderr.pipe(process.stderr)
-
-  await npmInstall
+  await exec(`npm --prefix ${bundlerDir} install`)
 
   const bundlerPath = require.resolve(bundlerDir)
   const bundlerURL = pathToFileURL(bundlerPath)
