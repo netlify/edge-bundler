@@ -13,7 +13,7 @@ import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
 
 test('Produces a JavaScript bundle and a manifest file', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
@@ -51,7 +51,7 @@ test('Produces a JavaScript bundle and a manifest file', async () => {
 }, 10_000)
 
 test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` feature flag is set', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
@@ -130,7 +130,7 @@ test('Does not add a custom error property to system errors during bundling', as
 test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_cache_deno_dir` feature flag is set', async () => {
   expect.assertions(7)
 
-  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
   const outDir = await tmp.dir()
   const cacheDir = await tmp.dir()
   const declarations = [
@@ -186,7 +186,7 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
 }, 10_000)
 
 test('Supports import maps with relative paths', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
@@ -226,7 +226,7 @@ test('Supports import maps with relative paths', async () => {
 }, 10_000)
 
 test('Ignores any user-defined `deno.json` files', async () => {
-  const fixtureDir = join(fixturesDir, 'project_1')
+  const fixtureDir = join(fixturesDir, 'with_import_maps')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
