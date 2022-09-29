@@ -86,6 +86,22 @@ test('`getFunctionConfig` extracts configuration properties from function file',
         export const config = () => ({ path: "/home" })
       `,
     },
+
+    // Config that prints to stdout
+    {
+      expectedConfig: { path: '/home' },
+      name: 'func7',
+      source: `
+        export default async () => new Response("Hello from function three")
+
+        export const config = () => {
+          console.log("Hello from config!")
+
+          return { path: "/home" }
+        }
+      `,
+      userLog: /^Hello from config!$/,
+    },
   ]
 
   for (const func of functions) {

@@ -34,7 +34,7 @@ const getConfigExtractor = () => {
 export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge, log: Logger) => {
   const collector = await tmp.file()
   const extractorPath = getConfigExtractor()
-  const { exitCode } = await deno.run(
+  const { exitCode, stderr, stdout } = await deno.run(
     [
       'run',
       '--allow-read',
@@ -45,13 +45,17 @@ export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge, lo
       pathToFileURL(collector.path).href,
       JSON.stringify(ConfigExitCode),
     ],
-    { pipeOutput: true, rejectOnExitCode: false },
+    { rejectOnExitCode: false },
   )
 
   if (exitCode !== ConfigExitCode.Success) {
-    logConfigError(func, exitCode, log)
+    logConfigError(func, exitCode, stderr, log)
 
     return {}
+  }
+
+  if (stdout !== '') {
+    log.user(stdout)
   }
 
   try {
@@ -59,7 +63,7 @@ export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge, lo
 
     return JSON.parse(collectorData) as FunctionConfig
   } catch {
-    logConfigError(func, ConfigExitCode.UnhandledError, log)
+    logConfigError(func, ConfigExitCode.UnhandledError, stderr, log)
 
     return {}
   } finally {
@@ -67,10 +71,11 @@ export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge, lo
   }
 }
 
-const logConfigError = (func: EdgeFunction, exitCode: number, log: Logger) => {
+const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, log: Logger) => {
   switch (exitCode) {
     case ConfigExitCode.ImportError:
       log.user(`Could not load edge function at '${func.path}'`)
+      log.system(stderr)
 
       break
 
@@ -86,6 +91,7 @@ const logConfigError = (func: EdgeFunction, exitCode: number, log: Logger) => {
 
     case ConfigExitCode.RuntimeError:
       log.user(`Error while running 'config' function in edge function at '${func.path}'`)
+      log.user(stderr)
 
       break
 
@@ -96,5 +102,6 @@ const logConfigError = (func: EdgeFunction, exitCode: number, log: Logger) => {
 
     default:
       log.user(`Could not load configuration for edge function at '${func.path}'`)
+      log.user(stderr)
   }
 }
