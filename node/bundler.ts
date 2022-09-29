@@ -41,7 +41,7 @@ interface BundleFormatOptions {
   basePath: string
 }
 
-const createBundleOps = ({
+const createBundle = ({
   basePath,
   buildID,
   debug,
@@ -51,34 +51,26 @@ const createBundleOps = ({
   importMap,
   featureFlags,
 }: BundleFormatOptions) => {
-  const bundleOps = []
-
   if (featureFlags.edge_functions_produce_eszip) {
-    bundleOps.push(
-      bundleESZIP({
-        basePath,
-        buildID,
-        debug,
-        deno,
-        distDirectory,
-        functions,
-        importMap,
-      }),
-    )
-  } else {
-    bundleOps.push(
-      bundleJS({
-        buildID,
-        debug,
-        deno,
-        distDirectory,
-        functions,
-        importMap,
-      }),
-    )
+    return bundleESZIP({
+      basePath,
+      buildID,
+      debug,
+      deno,
+      distDirectory,
+      functions,
+      importMap,
+    })
   }
 
-  return bundleOps
+  return bundleJS({
+    buildID,
+    debug,
+    deno,
+    distDirectory,
+    functions,
+    importMap,
+  })
 }
 
 const bundle = async (
@@ -125,6 +117,21 @@ const bundle = async (
   // if any.
   const importMap = new ImportMap(importMaps)
   const functions = await findFunctions(sourceDirectories)
+  const functionBundle = await createBundle({
+    basePath,
+    buildID,
+    debug,
+    deno,
+    distDirectory,
+    functions,
+    importMap,
+    featureFlags,
+  })
+
+  // The final file name of the bundles contains a SHA256 hash of the contents,
+  // which we can only compute now that the files have been generated. So let's
+  // rename the bundles to their permanent names.
+  await createFinalBundles([functionBundle], distDirectory, buildID)
 
   // Retrieving a configuration object for each function.
   const functionsConfig = await Promise.all(
@@ -147,25 +154,8 @@ const bundle = async (
   // function configuration objects.
   const declarations = getDeclarationsFromConfig(tomlDeclarations, functionsWithConfig)
 
-  const bundleOps = createBundleOps({
-    basePath,
-    buildID,
-    debug,
-    deno,
-    distDirectory,
-    functions,
-    importMap,
-    featureFlags,
-  })
-  const bundles = await Promise.all(bundleOps)
-
-  // The final file name of the bundles contains a SHA256 hash of the contents,
-  // which we can only compute now that the files have been generated. So let's
-  // rename the bundles to their permanent names.
-  await createFinalBundles(bundles, distDirectory, buildID)
-
   const manifest = await writeManifest({
-    bundles,
+    bundles: [functionBundle],
     declarations,
     distDirectory,
     functions,
