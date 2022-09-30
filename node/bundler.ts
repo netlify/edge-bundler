@@ -35,7 +35,7 @@ interface BundleFormatOptions {
   deno: DenoBridge
   distDirectory: string
   functions: EdgeFunction[]
-  featureFlags: Record<string, string>
+  featureFlags: FeatureFlags
   importMap: ImportMap
   basePath: string
 }
@@ -60,6 +60,7 @@ const createBundleOps = ({
         debug,
         deno,
         distDirectory,
+        featureFlags,
         functions,
         importMap,
       }),
