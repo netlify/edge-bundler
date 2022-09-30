@@ -135,12 +135,11 @@ test('`getFunctionConfig` extracts configuration properties from function file',
 })
 
 test('Ignores function paths from the in-source `config` function if the feature flag is off', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'with_config', 'functions')
+  const userDirectory = resolve(fixturesDir, 'with_config', 'netlify', 'edge-functions')
+  const internalDirectory = resolve(fixturesDir, 'with_config', '.netlify', 'edge-functions')
   const tmpDir = await tmp.dir()
-
-  // No TOML declarations.
   const declarations: Declaration[] = []
-  const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
+  const result = await bundle([internalDirectory, userDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
     featureFlags: {
       edge_functions_produce_eszip: true,
@@ -148,7 +147,7 @@ test('Ignores function paths from the in-source `config` function if the feature
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
-  expect(result.functions.length).toBe(1)
+  expect(result.functions.length).toBe(4)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
@@ -164,12 +163,20 @@ test('Ignores function paths from the in-source `config` function if the feature
 })
 
 test('Loads function paths from the in-source `config` function', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'with_config', 'functions')
+  const userDirectory = resolve(fixturesDir, 'with_config', 'netlify', 'edge-functions')
+  const internalDirectory = resolve(fixturesDir, 'with_config', '.netlify', 'edge-functions')
   const tmpDir = await tmp.dir()
-
-  // No TOML declarations.
-  const declarations: Declaration[] = []
-  const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
+  const declarations: Declaration[] = [
+    {
+      function: 'framework-func2',
+      path: '/framework-func2',
+    },
+    {
+      function: 'user-func2',
+      path: '/user-func2',
+    },
+  ]
+  const result = await bundle([internalDirectory, userDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
     featureFlags: {
       edge_functions_config_export: true,
@@ -178,7 +185,7 @@ test('Loads function paths from the in-source `config` function', async () => {
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
-  expect(result.functions.length).toBe(1)
+  expect(result.functions.length).toBe(4)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
@@ -189,8 +196,11 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(bundles[0].format).toBe('eszip2')
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
-  expect(routes[0].function).toBe('func1')
-  expect(routes[0].pattern).toBe('^/hello/?$')
+  expect(routes.length).toBe(4)
+  expect(routes[0]).toEqual({ function: 'framework-func2', pattern: '^/framework-func2/?$' })
+  expect(routes[1]).toEqual({ function: 'user-func2', pattern: '^/user-func2/?$' })
+  expect(routes[2]).toEqual({ function: 'framework-func1', pattern: '^/framework-func1/?$' })
+  expect(routes[3]).toEqual({ function: 'user-func1', pattern: '^/user-func1/?$' })
 
   await fs.rmdir(tmpDir.path, { recursive: true })
 })
