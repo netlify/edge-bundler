@@ -8,7 +8,6 @@ import { fileURLToPath, pathToFileURL } from 'url'
 import { promisify } from 'util'
 
 import del from 'del'
-import { findUp } from 'find-up'
 import tar from 'tar'
 import tmp from 'tmp-promise'
 
@@ -21,9 +20,7 @@ const pathsToCleanup = new Set()
 const installPackage = async () => {
   console.log(`Getting package version...`)
 
-  const packageJsonPath = await findUp('package.json')
-  const packageJson = await fs.readFile(packageJsonPath, 'utf8')
-  const { name, version } = JSON.parse(packageJson)
+  const { name, version } = require('../../package.json')
 
   console.log(`Running integration tests for ${name} v${version}...`)
 
