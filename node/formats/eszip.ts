@@ -46,6 +46,8 @@ const bundleESZIP = async ({
     flags.push('--quiet')
   }
 
+  // To actually vendor the eszip module, we need to supply the import map that
+  // redirects `https://deno.land/` URLs to the local files.
   if (featureFlags.edge_functions_use_vendored_eszip) {
     flags.push(`--import-map=${bundlerImportMap}`)
   }
