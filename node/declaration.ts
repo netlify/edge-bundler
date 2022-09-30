@@ -1,10 +1,13 @@
-interface DeclarationWithPath {
+interface BaseDeclaration {
   function: string
+  displayName?: string
+}
+
+type DeclarationWithPath = BaseDeclaration & {
   path: string
 }
 
-interface DeclarationWithPattern {
-  function: string
+type DeclarationWithPattern = BaseDeclaration & {
   pattern: string
 }
 
