@@ -32,8 +32,20 @@ const getConfigExtractor = () => {
 }
 
 export const getFunctionConfig = async (func: EdgeFunction, deno: DenoBridge, log: Logger) => {
-  const collector = await tmp.file()
+  // The extractor is a Deno script that will import the function and run its
+  // `config` export, if one exists.
   const extractorPath = getConfigExtractor()
+
+  // We need to collect the output of the config function, which should be a
+  // JSON object. Rather than printing it to stdout, the extractor will write
+  // it to a temporary file, which we then read in the Node side. This allows
+  // the config function to write to stdout and stderr without that interfering
+  // with the extractor.
+  const collector = await tmp.file()
+
+  // The extractor will use its exit code to signal different error scenarios,
+  // based on the list of exit codes we send as an argument. We then capture
+  // the exit code to know exactly what happened and guide people accordingly.
   const { exitCode, stderr, stdout } = await deno.run(
     [
       'run',
