@@ -1,6 +1,6 @@
 interface BaseDeclaration {
   function: string
-  displayName?: string
+  name?: string
 }
 
 type DeclarationWithPath = BaseDeclaration & {

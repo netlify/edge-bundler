@@ -19,7 +19,7 @@ interface Manifest {
   // eslint-disable-next-line camelcase
   bundler_version: string
   bundles: { asset: string; format: string }[]
-  routes: { function: string; displayName?: string; pattern: string }[]
+  routes: { function: string; name?: string; pattern: string }[]
 }
 
 const generateManifest = ({ bundles = [], declarations = [], functions }: GenerateManifestOptions) => {
@@ -35,7 +35,7 @@ const generateManifest = ({ bundles = [], declarations = [], functions }: Genera
 
     return {
       function: func.name,
-      displayName: declaration.displayName,
+      name: declaration.name,
       pattern: serializablePattern,
     }
   })
