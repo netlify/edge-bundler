@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.6.0](https://github.com/netlify/edge-bundler/compare/v2.5.0...v2.6.0) (2022-10-03)
+
+
+### Features
+
+* Update bootstrap url to latest version ([#149](https://github.com/netlify/edge-bundler/issues/149)) ([04cce91](https://github.com/netlify/edge-bundler/commit/04cce91414af11aa7480096c3de56605ece305ab))
+
+## [2.5.0](https://github.com/netlify/edge-bundler/compare/v2.4.0...v2.5.0) (2022-10-03)
+
+
+### Features
+
+* allow display name in manifest ([#140](https://github.com/netlify/edge-bundler/issues/140)) ([0fc04e9](https://github.com/netlify/edge-bundler/commit/0fc04e9dcd3fc2e41e15b1e178d2209d658e7dfc))
+
+## [2.4.0](https://github.com/netlify/edge-bundler/compare/v2.3.1...v2.4.0) (2022-10-03)
+
+
+### Features
+
+* update bootstrap latest to use latest version of bootstrap ([#146](https://github.com/netlify/edge-bundler/issues/146)) ([9aef2f7](https://github.com/netlify/edge-bundler/commit/9aef2f7a1791d83617dddc6c6ff37b44b3e2ef78))
+
+## [2.3.1](https://github.com/netlify/edge-bundler/compare/v2.3.0...v2.3.1) (2022-10-03)
+
+
+### Bug Fixes
+
+* use `allow-net` flag to run `config` function ([#144](https://github.com/netlify/edge-bundler/issues/144)) ([57d0edb](https://github.com/netlify/edge-bundler/commit/57d0edb52a63537b8dbdd0eaf50ef88689c6387f))
+
+## [2.3.0](https://github.com/netlify/edge-bundler/compare/v2.2.0...v2.3.0) (2022-09-30)
+
+
+### Features
+
+* add support for `config` export ([#133](https://github.com/netlify/edge-bundler/issues/133)) ([adb4f82](https://github.com/netlify/edge-bundler/commit/adb4f829d57e9a7d39741444b7f214f96d739f2b))
+
 ## [2.2.0](https://github.com/netlify/edge-bundler/compare/v2.1.0...v2.2.0) (2022-09-20)
 
 
