@@ -54,13 +54,13 @@ const createBundle = ({
   if (featureFlags.edge_functions_produce_eszip) {
     return bundleESZIP({
       basePath,
-        buildID,
-        debug,
-        deno,
-        distDirectory,
-        featureFlags,
-        functions,
-        importMap,
+      buildID,
+      debug,
+      deno,
+      distDirectory,
+      featureFlags,
+      functions,
+      importMap,
     })
   }
 
