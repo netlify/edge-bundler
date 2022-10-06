@@ -117,7 +117,6 @@ test('Uses the vendored eszip module instead of fetching it from deno.land', asy
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
 
-  // eslint-disable-next-line unicorn/prefer-json-parse-buffer
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
   const { bundles } = manifest
