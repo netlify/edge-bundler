@@ -89,7 +89,7 @@ test('Produces only a ESZIP bundle when the `edge_functions_produce_eszip` featu
 })
 
 test('Uses the vendored eszip module instead of fetching it from deno.land', async () => {
-  const sourceDirectory = resolve(fixturesDir, 'project_1', 'functions')
+  const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
   const tmpDir = await tmp.dir()
   const declarations = [
     {
