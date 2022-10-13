@@ -4,7 +4,7 @@ import { basename, extname, join } from 'path'
 import { EdgeFunction } from './edge_function.js'
 import { nonNullable } from './utils/non_nullable.js'
 
-const ALLOWED_EXTENSIONS = new Set(['.js', '.ts'])
+const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx'])
 
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
