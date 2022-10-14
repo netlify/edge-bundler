@@ -8,9 +8,16 @@ const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx'])
 
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
-  const candidatePaths = [`${name}.js`, `index.js`, `${name}.ts`, `index.ts`].map((filename) =>
-    join(directory, filename),
-  )
+  const candidatePaths = [
+    `${name}.js`,
+    `index.js`,
+    `${name}.ts`,
+    `index.ts`,
+    `${name}.jsx`,
+    `index.jsx`,
+    `${name}.tsx`,
+    `index.tsx`,
+  ].map((filename) => join(directory, filename))
 
   let functionPath
 
