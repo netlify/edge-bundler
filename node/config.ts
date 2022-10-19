@@ -23,8 +23,8 @@ enum ConfigExitCode {
 
 // eslint-disable-next-line no-shadow
 export const enum Mode {
-  BeforeCache = 'before_cache',
-  AfterCache = 'after_cache',
+  BeforeCache = 'before-cache',
+  AfterCache = 'after-cache',
 }
 
 export interface FunctionConfig {
