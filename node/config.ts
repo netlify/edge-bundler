@@ -20,7 +20,14 @@ enum ConfigExitCode {
   SerializationError,
 }
 
+// eslint-disable-next-line no-shadow
+export const enum Mode {
+  BeforeCache = 'before_cache',
+  AfterCache = 'after_cache',
+}
+
 export interface FunctionConfig {
+  mode?: Mode
   path?: string
 }
 
