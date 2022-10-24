@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs'
 import { join, resolve } from 'path'
+import { pathToFileURL } from 'url'
 
 import del from 'del'
 import { stub } from 'sinon'
@@ -12,6 +13,14 @@ import { DenoBridge } from './bridge.js'
 import { bundle } from './bundler.js'
 import { getFunctionConfig } from './config.js'
 import type { Declaration } from './declaration.js'
+import { ImportMap } from './import_map.js'
+
+const importMapFile = {
+  baseURL: new URL('file:///some/path/import-map.json'),
+  imports: {
+    'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
+  },
+}
 
 test('`getFunctionConfig` extracts configuration properties from function file', async () => {
   const { path: tmpDir } = await tmp.dir()
@@ -118,6 +127,7 @@ test('`getFunctionConfig` extracts configuration properties from function file',
         name: func.name,
         path,
       },
+      new ImportMap([importMapFile]),
       deno,
       logger,
     )
@@ -144,10 +154,11 @@ test('Ignores function paths from the in-source `config` function if the feature
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
+    importMaps: [importMapFile],
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
-  expect(result.functions.length).toBe(4)
+  expect(result.functions.length).toBe(6)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
@@ -182,25 +193,30 @@ test('Loads function paths from the in-source `config` function', async () => {
       edge_functions_config_export: true,
       edge_functions_produce_eszip: true,
     },
+    importMaps: [importMapFile],
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
-  expect(result.functions.length).toBe(4)
+  expect(result.functions.length).toBe(6)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
-  const { bundles, routes } = manifest
+  const { bundles, routes, post_cache_routes: postCacheRoutes } = manifest
 
   expect(bundles.length).toBe(1)
   expect(bundles[0].format).toBe('eszip2')
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
-  expect(routes.length).toBe(4)
+  expect(routes.length).toBe(5)
   expect(routes[0]).toEqual({ function: 'framework-func2', pattern: '^/framework-func2/?$' })
   expect(routes[1]).toEqual({ function: 'user-func2', pattern: '^/user-func2/?$' })
   expect(routes[2]).toEqual({ function: 'framework-func1', pattern: '^/framework-func1/?$' })
   expect(routes[3]).toEqual({ function: 'user-func1', pattern: '^/user-func1/?$' })
+  expect(routes[4]).toEqual({ function: 'user-func3', pattern: '^/user-func3/?$' })
+
+  expect(postCacheRoutes.length).toBe(1)
+  expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$' })
 
   await fs.rmdir(tmpDir.path, { recursive: true })
 })
