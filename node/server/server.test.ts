@@ -4,9 +4,8 @@ import getPort from 'get-port'
 import fetch from 'node-fetch'
 import { test, expect } from 'vitest'
 
-import { fixturesDir } from '../test/util.js'
-
-import { serve } from './index.js'
+import { fixturesDir } from '../../test/util.js'
+import { serve } from '../index.js'
 
 test('bundler serving functionality', async () => {
   const port = await getPort()
