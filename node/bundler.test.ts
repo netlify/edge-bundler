@@ -342,7 +342,7 @@ test('Produces readable bundling errors with eszip enabled', async (t) => {
       basePath: fixturesDir,
       featureFlags: { edge_functions_produce_eszip: true },
     })
-    t.fail()
+    t.expect(false).toBe(true)
   } catch (error) {
     // Example of what we're testing for:
     //
@@ -357,7 +357,7 @@ test('Produces readable bundling errors with eszip enabled', async (t) => {
     //           at real (https://deno.land/x/eszip@v0.28.0/eszip_wasm.generated.js:128:14)
     //
     const { message } = error as Error
-    t.false(message.includes('<anonymous>'))
-    t.true(message.includes("The module's source code could not be parsed: Expected '{', got 'async'"))
+    t.expect(message).to.include('<anonymous>')
+    t.expect(message).to.include("The module's source code could not be parsed: Expected '{', got 'async'")
   }
 })
