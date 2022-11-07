@@ -53,7 +53,7 @@
     "@commitlint/config-conventional": "^17.0.0",
     "@netlify/eslint-config-node": "^4.1.7",
     "@types/glob-to-regexp": "^0.4.1",
-    "@types/node": "^14.18.32",
+    "@types/node": "^18.0.0",
     "@types/semver": "^7.3.9",
     "@types/sinon": "^10.0.8",
     "@types/uuid": "^8.3.4",
