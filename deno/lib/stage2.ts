@@ -1,4 +1,5 @@
-import { build, LoadResponse } from 'https://deno.land/x/eszip@v0.28.0/mod.ts'
+// important to load this as a local file, so that vendored .wasm file is used
+import { build, LoadResponse } from '../vendor/deno.land/x/eszip@v0.28.0/mod.ts'
 
 import * as path from 'https://deno.land/std@0.127.0/path/mod.ts'
 
