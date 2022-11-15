@@ -11,6 +11,7 @@ import { fixturesDir } from '../test/util.js'
 
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
+import { NPMImportError } from './npm_import_error.js'
 
 test('Produces a JavaScript bundle and a manifest file', async () => {
   const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
@@ -150,6 +151,29 @@ test('Adds a custom error property to user errors during bundling', async () => 
       },
       type: 'functionsBundling',
     })
+  }
+})
+
+test('Prints a nice error message when user tries importing NPM module', async () => {
+  expect.assertions(3)
+
+  const sourceDirectory = resolve(fixturesDir, 'imports_npm_module', 'functions')
+  const tmpDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+
+  try {
+    await bundle([sourceDirectory], tmpDir.path, declarations)
+  } catch (error) {
+    expect(error).toBeInstanceOf(NPMImportError)
+    expect((error as NPMImportError).moduleName).toEqual('p-retry')
+    expect((error as NPMImportError).message).toEqual(
+      `It seems like you're trying to import an NPM module, did you mean to 'import ... from "npm:p-retry"'?`,
+    )
   }
 })
 
