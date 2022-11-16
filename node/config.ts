@@ -18,6 +18,8 @@ enum ConfigExitCode {
   InvalidExport,
   RuntimeError,
   SerializationError,
+  NoDefaultExport,
+  InvalidDefaultExport
 }
 
 export const enum Cache {
@@ -93,6 +95,7 @@ export const getFunctionConfig = async (func: EdgeFunction, importMap: ImportMap
 }
 
 const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, log: Logger) => {
+  let errMsg
   switch (exitCode) {
     case ConfigExitCode.ImportError:
       log.user(`Could not load edge function at '${func.path}'`)
@@ -118,6 +121,18 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
 
     case ConfigExitCode.SerializationError:
       log.user(`'config' function in edge function at '${func.path}' must return an object with primitive values only`)
+
+      break
+
+    case ConfigExitCode.NoDefaultExport:
+      errMsg = `No default export found in edge function at '${func.path}'`
+      throw new Error(errMsg)
+
+      break
+
+    case ConfigExitCode.InvalidDefaultExport:
+      errMsg = `Default export in edge function at '${func.path}' must be a function`
+      throw new Error(errMsg)
 
       break
 

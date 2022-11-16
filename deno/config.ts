@@ -11,6 +11,14 @@ try {
   Deno.exit(exitCodes.ImportError)
 }
 
+if (func.default === undefined) {
+  Deno.exit(exitCodes.NoDefaultExport)
+}
+
+if (typeof func.default !== 'function') {
+  Deno.exit(exitCodes.InvalidDefaultExport)
+}
+
 if (func.config === undefined) {
   Deno.exit(exitCodes.NoConfig)
 }
