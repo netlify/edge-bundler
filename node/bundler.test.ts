@@ -154,7 +154,7 @@ test('Adds a custom error property to user errors during bundling', async () => 
   }
 })
 
-test.only('Prints a nice error message when user tries importing NPM module', async () => {
+test('Prints a nice error message when user tries importing NPM module', async () => {
   expect.assertions(3)
 
   const sourceDirectory = resolve(fixturesDir, 'imports_npm_module', 'functions')
