@@ -1,6 +1,8 @@
 class NPMImportError extends Error {
   constructor(originalError: Error, public readonly moduleName: string) {
-    super(`It seems like you're trying to import an NPM module. This is only supported in Deno via CDNs like esm.sh, have you tried 'import ... from "https://esm.sh/${moduleName}"'?`)
+    super(
+      `It seems like you're trying to import an NPM module. This is only supported in Deno via CDNs like esm.sh, have you tried 'import ... from "https://esm.sh/${moduleName}"'?`,
+    )
 
     this.name = 'NPMImportError'
     this.stack = originalError.stack
