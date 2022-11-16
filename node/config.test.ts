@@ -273,7 +273,7 @@ test('`getFunctionConfig` validates the default export', async () => {
 
     switch (func.name) {
       case 'func1': {
-        expect(config).not.throw()
+        expect(config).not.instanceOf(Error)
 
         break
       }
