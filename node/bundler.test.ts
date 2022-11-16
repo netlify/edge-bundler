@@ -154,7 +154,7 @@ test('Adds a custom error property to user errors during bundling', async () => 
   }
 })
 
-test('Prints a nice error message when user tries importing NPM module', async () => {
+test.only('Prints a nice error message when user tries importing NPM module', async () => {
   expect.assertions(3)
 
   const sourceDirectory = resolve(fixturesDir, 'imports_npm_module', 'functions')
@@ -172,7 +172,7 @@ test('Prints a nice error message when user tries importing NPM module', async (
     expect(error).toBeInstanceOf(NPMImportError)
     expect((error as NPMImportError).moduleName).toEqual('p-retry')
     expect((error as NPMImportError).message).toEqual(
-      `It seems like you're trying to import an NPM module, did you mean to 'import ... from "npm:p-retry"'?`,
+      `It seems like you're trying to import an NPM module. This is only supported in Deno via CDNs like esm.sh, have you tried 'import ... from "https://esm.sh/p-retry"'?`,
     )
   }
 })
