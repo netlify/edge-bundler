@@ -19,7 +19,7 @@ enum ConfigExitCode {
   RuntimeError,
   SerializationError,
   NoDefaultExport,
-  InvalidDefaultExport
+  InvalidDefaultExport,
 }
 
 export const enum Cache {
