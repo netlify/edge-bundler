@@ -167,7 +167,11 @@ test('Prints a nice error message when user tries importing NPM module', async (
   ]
 
   try {
-    await bundle([sourceDirectory], tmpDir.path, declarations)
+    await bundle([sourceDirectory], tmpDir.path, declarations, {
+      featureFlags: {
+        edge_functions_produce_eszip: true,
+      },
+    })
   } catch (error) {
     expect(error).toBeInstanceOf(NPMImportError)
     expect((error as NPMImportError).moduleName).toEqual('p-retry')

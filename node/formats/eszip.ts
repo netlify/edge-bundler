@@ -7,6 +7,7 @@ import { wrapBundleError } from '../bundle_error.js'
 import { EdgeFunction } from '../edge_function.js'
 import { FeatureFlags } from '../feature_flags.js'
 import { ImportMap } from '../import_map.js'
+import { checkNpmImportError } from '../npm_import_error.js'
 import { getPackagePath } from '../package_json.js'
 import { getFileHash } from '../utils/sha256.js'
 
@@ -52,6 +53,11 @@ const bundleESZIP = async ({
   try {
     await deno.run(['run', ...flags, bundler, JSON.stringify(payload)], { pipeOutput: true })
   } catch (error: unknown) {
+    const npmImportError = checkNpmImportError(error)
+    if (npmImportError) {
+      throw npmImportError
+    }
+
     throw wrapBundleError(error, { format: 'eszip' })
   }
 
