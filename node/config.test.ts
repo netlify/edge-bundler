@@ -220,48 +220,30 @@ test('Loads function paths from the in-source `config` function', async () => {
   await fs.rmdir(tmpDir.path, { recursive: true })
 })
 
-test('`getFunctionConfig` validates the default export', async () => {
+test('Passes validation if default export exists and is a function', async () => {
   const { path: tmpDir } = await tmp.dir()
   const deno = new DenoBridge({
     cacheDirectory: tmpDir,
   })
 
-  const functions = [
-    {
-      name: 'func1',
-      source: `
+  const func = {
+    name: 'func1',
+    source: `
         const func = () => new Response("Hello world!")
         export default func
       `,
-    },
-    {
-      name: 'func2',
-      source: `
-        export const func = () => new Response("Hello world!")
-      `,
-    },
-    {
-      name: 'func3',
-      source: `
-        export const func = new Response("Hello world!")
-      `,
-    },
-  ]
+  }
 
-  for (const func of functions) {
-    const logger = {
-      user: vi.fn().mockResolvedValue(null),
-      system: vi.fn().mockResolvedValue(null),
-    }
-    const path = join(tmpDir, `${func.name}.ts`)
+  const logger = {
+    user: vi.fn().mockResolvedValue(null),
+    system: vi.fn().mockResolvedValue(null),
+  }
+  const path = join(tmpDir, `${func.name}.ts`)
 
-    const noDefaultExportErr = `No default export found in edge function at '${path}'`
+  await fs.writeFile(path, func.source)
 
-    const defaultExportNotFunctionErr = `Default export in edge function at '${path}' must be a function`
-
-    await fs.writeFile(path, func.source)
-
-    const config = await getFunctionConfig(
+  expect(async () => {
+    await getFunctionConfig(
       {
         name: func.name,
         path,
@@ -270,26 +252,85 @@ test('`getFunctionConfig` validates the default export', async () => {
       deno,
       logger,
     )
+  }).not.toThrow()
 
-    switch (func.name) {
-      case 'func1': {
-        expect(config).not.instanceOf(Error)
+  await deleteAsync(tmpDir, { force: true })
+})
 
-        break
-      }
-      case 'func2': {
-        expect(config).toThrowError(noDefaultExportErr)
+test('Fails validation if default export is not function', async () => {
+  const { path: tmpDir } = await tmp.dir()
+  const deno = new DenoBridge({
+    cacheDirectory: tmpDir,
+  })
 
-        break
-      }
-      case 'func3': {
-        expect(config).toThrowError(defaultExportNotFunctionErr)
-
-        break
-      }
-      // No default
-    }
+  const func = {
+    name: 'func2',
+    source: `
+        const func = new Response("Hello world!")
+        export default func
+      `,
   }
+
+  const logger = {
+    user: vi.fn().mockResolvedValue(null),
+    system: vi.fn().mockResolvedValue(null),
+  }
+  const path = join(tmpDir, `${func.name}.ts`)
+
+  const defaultExportNotFunctionErr = `Default export in edge function at '${path}' must be a function`
+
+  await fs.writeFile(path, func.source)
+
+  expect(async () => {
+    await getFunctionConfig(
+      {
+        name: func.name,
+        path,
+      },
+      new ImportMap([importMapFile]),
+      deno,
+      logger,
+    )
+  }).toThrowError(defaultExportNotFunctionErr)
+
+  await deleteAsync(tmpDir, { force: true })
+})
+
+test('Fails validation if default export is not present', async () => {
+  const { path: tmpDir } = await tmp.dir()
+  const deno = new DenoBridge({
+    cacheDirectory: tmpDir,
+  })
+
+  const func = {
+    name: 'func3',
+    source: `
+        const func = new Response("Hello world!")
+        export func
+      `,
+  }
+
+  const logger = {
+    user: vi.fn().mockResolvedValue(null),
+    system: vi.fn().mockResolvedValue(null),
+  }
+  const path = join(tmpDir, `${func.name}.ts`)
+
+  const noDefaultExportErr = `No default export found in edge function at '${path}'`
+
+  await fs.writeFile(path, func.source)
+
+  expect(async () => {
+    await getFunctionConfig(
+      {
+        name: func.name,
+        path,
+      },
+      new ImportMap([importMapFile]),
+      deno,
+      logger,
+    )
+  }).toThrowError(noDefaultExportErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
