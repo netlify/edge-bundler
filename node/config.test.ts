@@ -281,17 +281,17 @@ test('Fails validation if default export is not function', async () => {
 
   await fs.writeFile(path, func.source)
 
-  expect(async () => {
-    await getFunctionConfig(
-      {
-        name: func.name,
-        path,
-      },
-      new ImportMap([importMapFile]),
-      deno,
-      logger,
-    )
-  }).toThrowError(defaultExportNotFunctionErr)
+  const config = await getFunctionConfig(
+    {
+      name: func.name,
+      path,
+    },
+    new ImportMap([importMapFile]),
+    deno,
+    logger,
+  )
+
+  expect(config).toThrowError(defaultExportNotFunctionErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
@@ -320,17 +320,17 @@ test('Fails validation if default export is not present', async () => {
 
   await fs.writeFile(path, func.source)
 
-  expect(async () => {
-    await getFunctionConfig(
-      {
-        name: func.name,
-        path,
-      },
-      new ImportMap([importMapFile]),
-      deno,
-      logger,
-    )
-  }).toThrowError(noDefaultExportErr)
+  const config = await getFunctionConfig(
+    {
+      name: func.name,
+      path,
+    },
+    new ImportMap([importMapFile]),
+    deno,
+    logger,
+  )
+
+  expect(config).toThrowError(noDefaultExportErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
