@@ -281,7 +281,7 @@ test('Fails validation if default export is not function', async () => {
 
   await fs.writeFile(path, func.source)
 
-  const config = await getFunctionConfig(
+  const config = getFunctionConfig(
     {
       name: func.name,
       path,
@@ -291,7 +291,7 @@ test('Fails validation if default export is not function', async () => {
     logger,
   )
 
-  expect(() => config).toThrowError(defaultExportNotFunctionErr)
+  await expect(config).rejects.toThrowError(defaultExportNotFunctionErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
@@ -305,8 +305,7 @@ test('Fails validation if default export is not present', async () => {
   const func = {
     name: 'func3',
     source: `
-        const func = new Response("Hello world!")
-        export func
+        export const func = new Response("Hello world!")
       `,
   }
 
@@ -320,7 +319,7 @@ test('Fails validation if default export is not present', async () => {
 
   await fs.writeFile(path, func.source)
 
-  const config = await getFunctionConfig(
+  const config = getFunctionConfig(
     {
       name: func.name,
       path,
@@ -330,7 +329,7 @@ test('Fails validation if default export is not present', async () => {
     logger,
   )
 
-  expect(() => config).toThrowError(noDefaultExportErr)
+  await expect(config).rejects.toThrowError(noDefaultExportErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
