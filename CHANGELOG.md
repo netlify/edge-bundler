@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.1.0](https://github.com/netlify/edge-bundler/compare/v4.0.2...v4.1.0) (2022-11-16)
+
+
+### Features
+
+* add support for custom layers ([#198](https://github.com/netlify/edge-bundler/issues/198)) ([ec3848b](https://github.com/netlify/edge-bundler/commit/ec3848be0851f75ebddc78d952469fb752ecbeee))
+
+## [4.0.2](https://github.com/netlify/edge-bundler/compare/v4.0.1...v4.0.2) (2022-11-15)
+
+
+### Bug Fixes
+
+* update to newer version of bootstrap: 636e17c6f5c1ed0008150054 ([#196](https://github.com/netlify/edge-bundler/issues/196)) ([aa980a0](https://github.com/netlify/edge-bundler/commit/aa980a06130bfa9e9423b1a2f76baadba05fc628))
+
+## [4.0.1](https://github.com/netlify/edge-bundler/compare/v4.0.0...v4.0.1) (2022-11-14)
+
+
+### Bug Fixes
+
+* log when module loading fails after max tries ([#193](https://github.com/netlify/edge-bundler/issues/193)) ([b25b4db](https://github.com/netlify/edge-bundler/commit/b25b4dbc0e59aade01fd74b23daf633acce3e476))
+
 ## [4.0.0](https://github.com/netlify/edge-bundler/compare/v3.1.1...v4.0.0) (2022-11-10)
 
 
