@@ -291,7 +291,7 @@ test('Fails validation if default export is not function', async () => {
     logger,
   )
 
-  expect(config).toThrowError(defaultExportNotFunctionErr)
+  expect(() => config).toThrowError(defaultExportNotFunctionErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
@@ -330,7 +330,7 @@ test('Fails validation if default export is not present', async () => {
     logger,
   )
 
-  expect(config).toThrowError(noDefaultExportErr)
+  expect(() => config).toThrowError(noDefaultExportErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
