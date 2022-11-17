@@ -277,7 +277,7 @@ test('Fails validation if default export is not function', async () => {
   }
   const path = join(tmpDir, `${func.name}.ts`)
 
-  const defaultExportNotFunctionErr = `Default export in edge function at '${path}' must be a function`
+  const defaultExportNotFunctionErr = `Default export in edge function at '${path}' must be a function. More on the Edge Functions API at https://docs.netlify.com/edge-functions/api/`
 
   await fs.writeFile(path, func.source)
 
@@ -292,44 +292,6 @@ test('Fails validation if default export is not function', async () => {
   )
 
   await expect(config).rejects.toThrowError(defaultExportNotFunctionErr)
-
-  await deleteAsync(tmpDir, { force: true })
-})
-
-test('Fails validation if default export is not present', async () => {
-  const { path: tmpDir } = await tmp.dir()
-  const deno = new DenoBridge({
-    cacheDirectory: tmpDir,
-  })
-
-  const func = {
-    name: 'func3',
-    source: `
-        export const func = new Response("Hello world!")
-      `,
-  }
-
-  const logger = {
-    user: vi.fn().mockResolvedValue(null),
-    system: vi.fn().mockResolvedValue(null),
-  }
-  const path = join(tmpDir, `${func.name}.ts`)
-
-  const noDefaultExportErr = `No default export found in edge function at '${path}'`
-
-  await fs.writeFile(path, func.source)
-
-  const config = getFunctionConfig(
-    {
-      name: func.name,
-      path,
-    },
-    new ImportMap([importMapFile]),
-    deno,
-    logger,
-  )
-
-  await expect(config).rejects.toThrowError(noDefaultExportErr)
 
   await deleteAsync(tmpDir, { force: true })
 })
