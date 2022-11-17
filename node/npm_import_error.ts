@@ -12,7 +12,7 @@ class NPMImportError extends Error {
   }
 }
 
-const checkNpmImportError = (input: unknown): NPMImportError | undefined => {
+const wrapNpmImportError = (input: unknown)  => {
   if (input instanceof Error) {
     const match = input.message.match(/Relative import path "(.*)" not prefixed with/)
     if (match !== null) {
@@ -20,6 +20,8 @@ const checkNpmImportError = (input: unknown): NPMImportError | undefined => {
       return new NPMImportError(input, moduleName)
     }
   }
+
+  return input
 }
 
-export { NPMImportError, checkNpmImportError }
+export { NPMImportError, wrapNpmImportError }
