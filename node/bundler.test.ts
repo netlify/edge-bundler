@@ -11,7 +11,6 @@ import { fixturesDir } from '../test/util.js'
 
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
-import { NPMImportError } from './npm_import_error.js'
 
 test('Produces a JavaScript bundle and a manifest file', async () => {
   const sourceDirectory = resolve(fixturesDir, 'with_import_maps', 'functions')
@@ -155,7 +154,7 @@ test('Adds a custom error property to user errors during bundling', async () => 
 })
 
 test('Prints a nice error message when user tries importing NPM module', async () => {
-  expect.assertions(3)
+  expect.assertions(2)
 
   const sourceDirectory = resolve(fixturesDir, 'imports_npm_module', 'functions')
   const tmpDir = await tmp.dir()
@@ -173,9 +172,8 @@ test('Prints a nice error message when user tries importing NPM module', async (
       },
     })
   } catch (error) {
-    expect(error).toBeInstanceOf(NPMImportError)
-    expect((error as NPMImportError).moduleName).toEqual('p-retry')
-    expect((error as NPMImportError).message).toEqual(
+    expect(error).toBeInstanceOf(BundleError)
+    expect((error as BundleError).message).toEqual(
       `It seems like you're trying to import an npm module. This is only supported in Deno via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/p-retry"'?`,
     )
   }

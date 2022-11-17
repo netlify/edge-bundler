@@ -1,5 +1,5 @@
 class NPMImportError extends Error {
-  constructor(originalError: Error, public readonly moduleName: string) {
+  constructor(originalError: Error, moduleName: string) {
     super(
       `It seems like you're trying to import an npm module. This is only supported in Deno via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/${moduleName}"'?`,
     )

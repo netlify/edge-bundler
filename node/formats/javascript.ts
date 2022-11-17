@@ -44,12 +44,9 @@ const bundleJS = async ({
 
   try {
     await deno.run(['bundle', ...flags, stage2Path, jsBundlePath], { pipeOutput: true })
-  } catch (error: unknown) {
-    const npmImportError = checkNpmImportError(error)
-    if (npmImportError) {
-      throw npmImportError
-    }
-
+  } catch (_error: unknown) {
+    let error = _error
+    error = checkNpmImportError(error) ?? error
     throw wrapBundleError(error, { format: 'javascript' })
   }
 
