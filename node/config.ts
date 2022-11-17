@@ -125,7 +125,7 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
       break
 
     case ConfigExitCode.InvalidDefaultExport:
-      errMsg = `Default export in edge function at '${func.path}' must be a function. More on the Edge Functions API at https://docs.netlify.com/edge-functions/api/`
+      errMsg = `Default export in edge function at '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api`
       throw new Error(errMsg)
 
       break
