@@ -88,6 +88,9 @@ const stage2Loader = (basePath: string, functions: InputFunction[]) => {
 const writeStage2 = async ({ basePath, destPath, functions, importMapURL }: WriteStage2Options) => {
   const loader = stage2Loader(basePath, functions)
   const bytes = await build([STAGE2_SPECIFIER], loader, importMapURL)
+  const directory = path.dirname(destPath)
+
+  await Deno.mkdir(directory, { recursive: true })
 
   return await Deno.writeFile(destPath, bytes)
 }
