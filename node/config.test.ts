@@ -22,7 +22,7 @@ const importMapFile = {
 }
 
 const invalidDefaultExportErr = (path: string) =>
-  `Default export in edge function at '${path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api`
+  `Default export in '${path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`
 
 test('`getFunctionConfig` extracts configuration properties from function file', async () => {
   const { path: tmpDir } = await tmp.dir()

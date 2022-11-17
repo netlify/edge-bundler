@@ -18,7 +18,6 @@ enum ConfigExitCode {
   InvalidExport,
   RuntimeError,
   SerializationError,
-  NoDefaultExport,
   InvalidDefaultExport,
 }
 
@@ -95,7 +94,6 @@ export const getFunctionConfig = async (func: EdgeFunction, importMap: ImportMap
 }
 
 const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, log: Logger) => {
-  let errMsg
   switch (exitCode) {
     case ConfigExitCode.ImportError:
       log.user(`Could not load edge function at '${func.path}'`)
@@ -125,10 +123,7 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
       break
 
     case ConfigExitCode.InvalidDefaultExport:
-      errMsg = `Default export in edge function at '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api`
-      throw new Error(errMsg)
-
-      break
+      throw new Error(`Default export in '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`)
 
     default:
       log.user(`Could not load configuration for edge function at '${func.path}'`)
