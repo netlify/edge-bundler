@@ -123,7 +123,9 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
       break
 
     case ConfigExitCode.InvalidDefaultExport:
-      throw new Error(`Default export in '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`)
+      throw new Error(
+        `Default export in '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+      )
 
     default:
       log.user(`Could not load configuration for edge function at '${func.path}'`)
