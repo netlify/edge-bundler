@@ -12,7 +12,7 @@ class NPMImportError extends Error {
   }
 }
 
-const wrapNpmImportError = (input: unknown)  => {
+const wrapNpmImportError = (input: unknown) => {
   if (input instanceof Error) {
     const match = input.message.match(/Relative import path "(.*)" not prefixed with/)
     if (match !== null) {
