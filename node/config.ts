@@ -5,7 +5,7 @@ import { pathToFileURL } from 'url'
 import tmp from 'tmp-promise'
 
 import { DenoBridge } from './bridge.js'
-import { wrapBundleError } from './bundle_error.js'
+import { BundleError } from './bundle_error.js'
 import { EdgeFunction } from './edge_function.js'
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
@@ -124,12 +124,10 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
       break
 
     case ConfigExitCode.InvalidDefaultExport:
-      throw wrapBundleError(
+      throw new BundleError(
         new Error(
           `Default export in '${func.path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
         ),
-        // empty string because it's not associated with a bundling format
-        { format: '' },
       )
 
     default:
