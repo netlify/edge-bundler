@@ -153,6 +153,32 @@ test('Adds a custom error property to user errors during bundling', async () => 
   }
 })
 
+test('Prints a nice error message when user tries importing NPM module', async () => {
+  expect.assertions(2)
+
+  const sourceDirectory = resolve(fixturesDir, 'imports_npm_module', 'functions')
+  const tmpDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+
+  try {
+    await bundle([sourceDirectory], tmpDir.path, declarations, {
+      featureFlags: {
+        edge_functions_produce_eszip: true,
+      },
+    })
+  } catch (error) {
+    expect(error).toBeInstanceOf(BundleError)
+    expect((error as BundleError).message).toEqual(
+      `It seems like you're trying to import an npm module. This is only supported in Deno via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/p-retry"'?`,
+    )
+  }
+})
+
 test('Does not add a custom error property to system errors during bundling', async () => {
   expect.assertions(1)
 
@@ -324,4 +350,39 @@ test('Ignores any user-defined `deno.json` files', async () => {
   ).not.toThrow()
 
   await deleteAsync([tmpDir.path, denoConfigPath, importMapFile.path], { force: true })
+})
+
+test('Processes a function that imports a custom layer', async () => {
+  const sourceDirectory = resolve(fixturesDir, 'with_layers', 'functions')
+  const tmpDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const layer = { name: 'test', flag: 'edge-functions-layer-test' }
+  const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
+    basePath: fixturesDir,
+    featureFlags: {
+      edge_functions_produce_eszip: true,
+    },
+    layers: [layer],
+  })
+  const generatedFiles = await fs.readdir(tmpDir.path)
+
+  expect(result.functions.length).toBe(1)
+  expect(generatedFiles.length).toBe(2)
+
+  const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
+  const manifest = JSON.parse(manifestFile)
+  const { bundles, layers } = manifest
+
+  expect(bundles.length).toBe(1)
+  expect(bundles[0].format).toBe('eszip2')
+  expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
+
+  expect(layers).toEqual([layer])
+
+  await fs.rmdir(tmpDir.path, { recursive: true })
 })
