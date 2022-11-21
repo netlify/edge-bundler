@@ -51,7 +51,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
     "@commitlint/config-conventional": "^17.0.0",
-    "@netlify/eslint-config-node": "^4.1.7",
+    "@netlify/eslint-config-node": "^7.0.0",
     "@types/glob-to-regexp": "^0.4.1",
     "@types/node": "^14.18.32",
     "@types/semver": "^7.3.9",
