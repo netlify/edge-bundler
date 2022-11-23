@@ -1,4 +1,4 @@
-import { greet } from 'alias:helper2'
+import { greet } from 'alias:helper'
 
 import { echo } from '../../util.ts'
 
