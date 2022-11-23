@@ -30,13 +30,9 @@ export const getDeclarationsFromConfig = (
   for (const declaration of tomlDeclarations) {
     const config = functionsConfig[declaration.function] ?? {}
 
-    if (config) {
-      functionsVisited.add(declaration.function)
+    functionsVisited.add(declaration.function)
 
-      declarations.push({ ...declaration, ...config })
-    } else {
-      declarations.push(declaration)
-    }
+    declarations.push({ ...declaration, ...config })
   }
 
   // Finally, we must create declarations for functions that are not declared
