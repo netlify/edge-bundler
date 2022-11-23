@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer'
 import { promises as fs } from 'fs'
 import { dirname } from 'path'
+import { pathToFileURL } from 'url'
 
 import { parse } from '@import-maps/resolve'
 
@@ -17,7 +18,7 @@ interface ImportMapFile {
 class ImportMap {
   imports: Record<string, URL | null>
 
-  constructor(files: ImportMapFile[] = []) {
+  constructor(files: ImportMapFile[]) {
     let imports: ImportMap['imports'] = {}
 
     files.forEach((file) => {
@@ -67,5 +68,26 @@ class ImportMap {
   }
 }
 
-export { ImportMap }
+const readFile = async (path: string): Promise<ImportMapFile> => {
+  const baseURL = pathToFileURL(path)
+
+  try {
+    const data = await fs.readFile(path, 'utf8')
+    const importMap = JSON.parse(data)
+
+    return {
+      ...importMap,
+      baseURL,
+    }
+  } catch {
+    // no-op
+  }
+
+  return {
+    baseURL,
+    imports: {},
+  }
+}
+
+export { ImportMap, readFile }
 export type { ImportMapFile }
