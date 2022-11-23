@@ -119,9 +119,12 @@ const bundle = async (
   // exists.
   const deployConfig = await loadDeployConfig(configPath, logger)
 
-  // Creating an ImportMap instance with any import maps supplied by the user,
-  // if any.
-  const importMap = new ImportMap(deployConfig.importMap ? [deployConfig.importMap] : [])
+  const importMap = new ImportMap()
+
+  if (deployConfig.importMap) {
+    importMap.add(deployConfig.importMap)
+  }
+
   const functions = await findFunctions(sourceDirectories)
   const functionBundle = await createBundle({
     basePath,
