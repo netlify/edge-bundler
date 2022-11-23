@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs'
 import { join, resolve } from 'path'
 import process from 'process'
-import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
@@ -185,14 +184,7 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
   const options: BundleOptions = {
     basePath: fixturesDir,
     cacheDirectory: cacheDir.path,
-    importMaps: [
-      {
-        baseURL: pathToFileURL(join(fixturesDir, 'import-map.json')),
-        imports: {
-          'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
-        },
-      },
-    ],
+    configPath: join(sourceDirectory, 'config.json'),
   }
 
   // Run #1, feature flag off: The directory should not be populated.
@@ -239,17 +231,10 @@ test('Supports import maps with relative paths', async () => {
   ]
   const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
     basePath: fixturesDir,
+    configPath: join(sourceDirectory, 'config.json'),
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
-    importMaps: [
-      {
-        baseURL: pathToFileURL(join(fixturesDir, 'import-map.json')),
-        imports: {
-          'alias:helper': './helper.ts',
-        },
-      },
-    ],
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 
@@ -314,17 +299,10 @@ test('Ignores any user-defined `deno.json` files', async () => {
   expect(() =>
     bundle([join(fixtureDir, 'functions')], tmpDir.path, declarations, {
       basePath: fixturesDir,
+      configPath: join(fixtureDir, 'functions', 'config.json'),
       featureFlags: {
         edge_functions_produce_eszip: true,
       },
-      importMaps: [
-        {
-          baseURL: pathToFileURL(join(fixturesDir, 'import-map.json')),
-          imports: {
-            'alias:helper': pathToFileURL(join(fixturesDir, 'helper.ts')).toString(),
-          },
-        },
-      ],
     }),
   ).not.toThrow()
 
@@ -382,14 +360,6 @@ test('Loads declarations and import maps from the deploy configuration', async (
     featureFlags: {
       edge_functions_produce_eszip: true,
     },
-    importMaps: [
-      {
-        baseURL: pathToFileURL(join(fixtureDir, 'import-map.json')),
-        imports: {
-          'alias:helper1': pathToFileURL(join(fixtureDir, 'util.ts')).toString(),
-        },
-      },
-    ],
   })
   const generatedFiles = await fs.readdir(tmpDir.path)
 

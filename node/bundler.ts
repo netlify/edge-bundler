@@ -14,11 +14,10 @@ import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { bundle as bundleJS } from './formats/javascript.js'
-import { ImportMap, ImportMapFile } from './import_map.js'
+import { ImportMap } from './import_map.js'
 import { getLogger, LogFunction } from './logger.js'
 import { writeManifest } from './manifest.js'
 import { ensureLatestTypes } from './types.js'
-import { nonNullable } from './utils/non_nullable.js'
 
 interface BundleOptions {
   basePath?: string
@@ -27,7 +26,6 @@ interface BundleOptions {
   debug?: boolean
   distImportMapPath?: string
   featureFlags?: FeatureFlags
-  importMaps?: ImportMapFile[]
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   systemLogger?: LogFunction
@@ -88,7 +86,6 @@ const bundle = async (
     debug,
     distImportMapPath,
     featureFlags: inputFeatureFlags,
-    importMaps = [],
     onAfterDownload,
     onBeforeDownload,
     systemLogger,
@@ -124,7 +121,7 @@ const bundle = async (
 
   // Creating an ImportMap instance with any import maps supplied by the user,
   // if any.
-  const importMap = new ImportMap([...importMaps, deployConfig.importMap].filter(nonNullable))
+  const importMap = new ImportMap(deployConfig.importMap ? [deployConfig.importMap] : [])
   const functions = await findFunctions(sourceDirectories)
   const functionBundle = await createBundle({
     basePath,
