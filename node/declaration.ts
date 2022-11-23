@@ -30,15 +30,10 @@ export const getDeclarationsFromConfig = (
   // a function configuration object, we replace the path because that object
   // takes precedence.
   for (const declaration of [...tomlDeclarations, ...deployConfig.declarations]) {
-    const { path } = functionsConfig[declaration.function] ?? {}
+    const config = functionsConfig[declaration.function] ?? {}
 
-    if (path) {
-      functionsVisited.add(declaration.function)
-
-      declarations.push({ ...declaration, path })
-    } else {
-      declarations.push(declaration)
-    }
+    functionsVisited.add(declaration.function)
+    declarations.push({ ...declaration, ...config })
   }
 
   // Finally, we must create declarations for functions that are not declared
