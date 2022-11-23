@@ -25,14 +25,14 @@ export const getDeclarationsFromConfig = (
 
   // We start by iterating over all the TOML declarations. For any declaration
   // for which we also have a function configuration object, we replace the
-  // path because that object takes precedence.
+  // path or cache because that object takes precedence.
   for (const declaration of tomlDeclarations) {
-    const { path } = functionsConfig[declaration.function] ?? {}
+    const config = functionsConfig[declaration.function] ?? {}
 
-    if (path) {
+    if (config) {
       functionsVisited.add(declaration.function)
 
-      declarations.push({ ...declaration, path })
+      declarations.push({ ...declaration, ...config })
     } else {
       declarations.push(declaration)
     }
