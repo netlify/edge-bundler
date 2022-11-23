@@ -23,17 +23,21 @@ export interface DeployConfig {
 }
 
 export const load = async (path: string | undefined, logger: Logger): Promise<DeployConfig> => {
-  if (path !== undefined) {
-    try {
-      const data = await fs.readFile(path, 'utf8')
-      const config = JSON.parse(data) as DeployConfigFile
+  if (path === undefined) {
+    return {
+      declarations: [],
+      layers: [],
+    }
+  }
 
-      return parse(config, path)
-    } catch (error) {
-      // eslint-disable-next-line max-depth
-      if (isNodeError(error) && error.code !== 'ENOENT') {
-        logger.system('Error while parsing internal edge functions manifest:', error)
-      }
+  try {
+    const data = await fs.readFile(path, 'utf8')
+    const config = JSON.parse(data) as DeployConfigFile
+
+    return parse(config, path)
+  } catch (error) {
+    if (isNodeError(error) && error.code !== 'ENOENT') {
+      logger.system('Error while parsing internal edge functions manifest:', error)
     }
   }
 
