@@ -52,3 +52,46 @@ test('Starts a server and serves requests for edge functions', async () => {
   const body = (await response.json()) as Record<string, string>
   expect(body.very_secret_secret).toBe('i love netlify')
 })
+
+test('Serves functions that use custom layers', async () => {
+  const fixtureDir = join(fixturesDir, 'serve_test', 'with_layers')
+  const configPath = join(fixtureDir, 'config.json')
+  const functionPath = join(fixtureDir, 'func.ts')
+
+  const port = await getPort()
+  const server = await serve({
+    configPath,
+    port,
+  })
+
+  const functions = [
+    {
+      name: 'scream',
+      path: functionPath,
+    },
+  ]
+  const options = {
+    getFunctionsConfig: true,
+  }
+  const { functionsConfig, graph, success } = await server(functions, {}, options)
+  expect(success).toBe(true)
+
+  expect(functionsConfig).toEqual([{ path: '/my-function' }])
+
+  const graphEntry = graph?.modules.some(
+    // @ts-expect-error TODO: Module graph is currently not typed
+    ({ kind, mediaType, local }) => kind === 'esm' && mediaType === 'TypeScript' && local === functionPath,
+  )
+  expect(graphEntry).toBe(true)
+
+  const response = await fetch(`http://0.0.0.0:${port}/foo`, {
+    headers: {
+      'x-deno-functions': 'scream',
+      'x-deno-pass': 'passthrough',
+      'X-NF-Request-ID': 'foo',
+    },
+  })
+  expect(response.status).toBe(200)
+
+  expect(await response.text()).toBe('HELLO')
+})

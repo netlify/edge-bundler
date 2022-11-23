@@ -1,0 +1,17 @@
+{
+  "functions": [
+    {
+      "function": "func2",
+      "path": "/func2"
+    }
+  ],
+  "layers": [
+    {
+      "name": "test",
+      "flag": "edge-functions-layer-test",
+      "local": "data:application/javascript;base64,ZXhwb3J0IGNvbnN0IHNjcmVhbSA9IChpbnB1dCkgPT4gaW5wdXQudG9VcHBlckNhc2UoKQ=="
+    }
+  ],
+  "import_map": "import_map.json",
+  "version": 1
+}

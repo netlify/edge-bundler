@@ -332,3 +332,46 @@ test('Fails validation if default export is not present', async () => {
 
   await deleteAsync(tmpDir, { force: true })
 })
+
+test('Handles functions using custom-layers', async () => {
+  const sourceDirectory = resolve(fixturesDir, 'with_layers', 'functions')
+  const tmpDir = await tmp.dir()
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const result = await bundle([sourceDirectory], tmpDir.path, declarations, {
+    basePath: fixturesDir,
+    configPath: join(sourceDirectory, 'config.json'),
+    featureFlags: {
+      edge_functions_config_export: true,
+      edge_functions_produce_eszip: true,
+    },
+  })
+  const generatedFiles = await fs.readdir(tmpDir.path)
+
+  expect(result.functions.length).toBe(1)
+  expect(generatedFiles.length).toBe(2)
+
+  const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
+  const manifest = JSON.parse(manifestFile)
+  const { bundles, layers, routes } = manifest
+
+  expect(bundles.length).toBe(1)
+  expect(bundles[0].format).toBe('eszip2')
+  expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
+
+  expect(layers).toEqual([
+    {
+      name: 'test',
+      flag: 'edge-functions-layer-test',
+      local: 'data:application/javascript;base64,ZXhwb3J0IGNvbnN0IGhhbmRsZVJlcXVlc3QgPSAocikgPT4gcg==',
+    },
+  ])
+
+  expect(routes[0]).toEqual({ function: 'func1', pattern: '^/with-layer/?$' })
+
+  await fs.rmdir(tmpDir.path, { recursive: true })
+})

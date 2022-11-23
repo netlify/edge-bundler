@@ -39,6 +39,10 @@ class ImportMap {
     this.files.push(file)
   }
 
+  clone() {
+    return new ImportMap(this.files)
+  }
+
   getContents() {
     let imports: Record<string, URL | null> = {}
 

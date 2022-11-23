@@ -2,9 +2,11 @@ import { tmpName } from 'tmp-promise'
 
 import { DenoBridge, OnAfterDownloadHook, OnBeforeDownloadHook, ProcessRef } from '../bridge.js'
 import { getFunctionConfig, FunctionConfig } from '../config.js'
+import { DeployConfig, load as loadDeployConfig } from '../deploy_config.js'
 import type { EdgeFunction } from '../edge_function.js'
 import { generateStage2 } from '../formats/javascript.js'
 import { ImportMap, ImportMapFile } from '../import_map.js'
+import { getImportMap as getImportMapWithLayers } from '../layer.js'
 import { getLogger, LogFunction, Logger } from '../logger.js'
 import { ensureLatestTypes } from '../types.js'
 
@@ -14,6 +16,7 @@ type FormatFunction = (name: string) => string
 
 interface PrepareServerOptions {
   deno: DenoBridge
+  deployConfig: DeployConfig
   distDirectory: string
   entryPoint?: string
   flags: string[]
@@ -112,6 +115,7 @@ interface InspectSettings {
 }
 interface ServeOptions {
   certificatePath?: string
+  configPath?: string
   debug?: boolean
   distImportMapPath?: string
   inspectSettings?: InspectSettings
@@ -126,6 +130,7 @@ interface ServeOptions {
 
 const serve = async ({
   certificatePath,
+  configPath,
   debug,
   distImportMapPath,
   inspectSettings,
@@ -145,6 +150,10 @@ const serve = async ({
     onBeforeDownload,
   })
 
+  // Loading any configuration options from the deploy configuration API, if it
+  // exists.
+  const deployConfig = await loadDeployConfig(configPath, logger)
+
   // We need to generate a stage 2 file and write it somewhere. We use a
   // temporary directory for that.
   const distDirectory = await tmpName()
@@ -155,9 +164,10 @@ const serve = async ({
   // Downloading latest types if needed.
   await ensureLatestTypes(deno, logger)
 
-  // Creating an ImportMap instance with any import maps supplied by the user,
-  // if any.
-  const importMap = new ImportMap(importMaps ?? [])
+  // Creating an import map that maps specifiers of any custom layers to URLs
+  // so that they work in local development.
+  const importMap = getImportMapWithLayers(new ImportMap(importMaps ?? []), deployConfig.layers)
+
   const flags = ['--allow-all', '--unstable', `--import-map=${importMap.toDataURL()}`, '--no-config']
 
   if (certificatePath) {
@@ -180,6 +190,7 @@ const serve = async ({
 
   const server = prepareServer({
     deno,
+    deployConfig,
     distDirectory,
     flags,
     formatExportTypeError,

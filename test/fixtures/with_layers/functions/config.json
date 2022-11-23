@@ -1,4 +1,10 @@
 {
-  "layers": [{ "name": "test", "flag": "edge-functions-layer-test" }],
+  "layers": [
+    {
+      "name": "test",
+      "flag": "edge-functions-layer-test",
+      "local": "data:application/javascript;base64,ZXhwb3J0IGNvbnN0IGhhbmRsZVJlcXVlc3QgPSAocikgPT4gcg=="
+    }
+  ],
   "version": 1
 }

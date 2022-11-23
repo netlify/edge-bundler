@@ -15,6 +15,7 @@ import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { bundle as bundleJS } from './formats/javascript.js'
 import { ImportMap } from './import_map.js'
+import { getImportMap as getImportMapWithLayers } from './layer.js'
 import { getLogger, LogFunction } from './logger.js'
 import { writeManifest } from './manifest.js'
 import { ensureLatestTypes } from './types.js'
@@ -142,6 +143,11 @@ const bundle = async (
   // rename the bundles to their permanent names.
   await createFinalBundles([functionBundle], distDirectory, buildID)
 
+  // Before we start extracting the in-source configuration objects, we have to
+  // create an import map with the layer specifiers, otherwise their imports
+  // will throw.
+  const configImportMap = getImportMapWithLayers(importMap, deployConfig.layers)
+
   // Retrieving a configuration object for each function.
   const functionsConfig = await Promise.all(
     functions.map((func) => {
@@ -149,7 +155,7 @@ const bundle = async (
         return {}
       }
 
-      return getFunctionConfig(func, importMap, deno, logger)
+      return getFunctionConfig(func, configImportMap, deno, logger)
     }),
   )
 
