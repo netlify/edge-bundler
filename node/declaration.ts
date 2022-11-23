@@ -25,7 +25,8 @@ export const getDeclarationsFromConfig = (
 
   // We start by iterating over all the TOML declarations. For any declaration
   // for which we also have a function configuration object, we replace the
-  // path or cache because that object takes precedence.
+  // defined config (currently path or cache or both) because that object takes
+  // precedence.
   for (const declaration of tomlDeclarations) {
     const config = functionsConfig[declaration.function] ?? {}
 
