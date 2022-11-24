@@ -45,8 +45,8 @@ const generateManifest = ({ bundles = [], declarations = [], functions, layers =
       return
     }
 
-    const pattern = getRegularExpression(declaration)
-    const serializablePattern = pattern.source.replace(/\\\//g, '/')
+    const pattern = getDeclarationPattern(declaration)
+    const serializablePattern = pattern.replace(/\\\//g, '/')
     const route = {
       function: func.name,
       name: declaration.name,
@@ -74,9 +74,9 @@ const generateManifest = ({ bundles = [], declarations = [], functions, layers =
   return manifest
 }
 
-const getRegularExpression = (declaration: Declaration) => {
+const getDeclarationPattern = (declaration: Declaration) => {
   if ('pattern' in declaration) {
-    return new RegExp(declaration.pattern)
+    return declaration.pattern
   }
 
   // We use the global flag so that `globToRegExp` will not wrap the expression
@@ -86,9 +86,7 @@ const getRegularExpression = (declaration: Declaration) => {
   // Wrapping the expression source with `^` and `$`. Also, adding an optional
   // trailing slash, so that a declaration of `path: "/foo"` matches requests
   // for both `/foo` and `/foo/`.
-  const normalizedSource = `^${regularExpression.source}\\/?$`
-
-  return new RegExp(normalizedSource)
+  return `^${regularExpression.source}\\/?$`
 }
 
 interface WriteManifestOptions {
