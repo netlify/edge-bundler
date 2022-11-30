@@ -12,5 +12,5 @@ export default async () => {
 }
 
 export const config = () => ({
-  path: '/user-func1',
+  path: ['/user-func1'],
 })
