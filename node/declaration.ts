@@ -1,6 +1,7 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable max-depth */
 import { FunctionConfig } from './config.js'
 import type { DeployConfig } from './deploy_config.js'
-import { Logger } from './logger.js'
 
 interface BaseDeclaration {
   cache?: string
@@ -22,7 +23,6 @@ export const getDeclarationsFromConfig = (
   tomlDeclarations: Declaration[],
   functionsConfig: Record<string, FunctionConfig>,
   deployConfig: DeployConfig,
-  log: Logger,
 ) => {
   const declarations: Declaration[] = []
   const functionsVisited: Set<string> = new Set()
@@ -39,18 +39,16 @@ export const getDeclarationsFromConfig = (
       declarations.push(declaration)
     }
 
-    // log if the path property is not an array
-    if (config.path && !Array.isArray(config.path)) {
-      log.user(
-        `Can't use in source config path property: ${config.path}. Function configuration path property must be an array.`,
-      )
-    }
-
     // If we have path specified create a declaration for each path
-    if (Array.isArray(config.path) && config.path.length !== 0) {
-      config.path.forEach((path) => {
-        declarations.push({ ...declaration, ...config, path })
-      })
+    if (config.path) {
+      if (!Array.isArray(config.path)) config.path = [config.path]
+
+      if (config.path.length !== 0)
+        config.path.forEach((path) => {
+          declarations.push({ ...declaration, ...config, path })
+        })
+      // if empty path array with cache set, add declaration with cache
+      else if (config.cache) declarations.push({ ...declaration, cache: config.cache })
       // If only cache was specified, add it to the declaration
     } else if (config.cache) {
       declarations.push({ ...declaration, cache: config.cache })
@@ -62,20 +60,18 @@ export const getDeclarationsFromConfig = (
   // Finally, we must create declarations for functions that are not declared
   // in the TOML at all.
   for (const name in functionsConfig) {
-    const { path, ...config } = functionsConfig[name]
-
-    // log if the path property is not an array
-    if (path && !Array.isArray(path)) {
-      log.user(
-        `Can't use in source config path property: ${path}. Function configuration path property must be an array.`,
-      )
-    }
+    const { ...config } = functionsConfig[name]
+    let { path } = functionsConfig[name]
 
     // If we have path specified create a declaration for each path
-    if (!functionsVisited.has(name) && Array.isArray(path) && path.length !== 0) {
-      path.forEach((singlePath) => {
-        declarations.push({ ...config, function: name, path: singlePath })
-      })
+    if (!functionsVisited.has(name) && path) {
+      if (!Array.isArray(path)) path = [path]
+
+      if (path.length !== 0) {
+        path.forEach((singlePath) => {
+          declarations.push({ ...config, function: name, path: singlePath })
+        })
+      }
     }
   }
 
