@@ -119,7 +119,7 @@ const bundle = async (
 
   // Creating a final declarations array by combining the TOML file with the
   // deploy configuration API and the in-source configuration.
-  const declarations = getDeclarationsFromConfig(tomlDeclarations, functionsWithConfig, deployConfig)
+  const declarations = getDeclarationsFromConfig(tomlDeclarations, functionsWithConfig, deployConfig, logger)
 
   const manifest = await writeManifest({
     bundles: [functionBundle],

@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 
 import { FunctionConfig } from './config.js'
 import { getDeclarationsFromConfig } from './declaration.js'
@@ -9,6 +9,11 @@ const deployConfig = {
   layers: [],
 }
 
+const logger = {
+  user: vi.fn().mockResolvedValue(null),
+  system: vi.fn().mockResolvedValue(null),
+}
+
 test('In source config takes precedence over netlify.toml config', () => {
   const tomlConfig = [
     { function: 'geolocation', path: '/geo', cache: 'off' },
@@ -16,16 +21,17 @@ test('In source config takes precedence over netlify.toml config', () => {
   ]
 
   const funcConfig = {
-    geolocation: { path: '/geo-isc', cache: 'manual' },
-    json: { path: '/json', cache: 'off' },
+    geolocation: { path: ['/geo-isc', '/*'], cache: 'manual' },
+    json: { path: ['/json'], cache: 'off' },
   } as Record<string, FunctionConfig>
 
   const expectedDeclarations = [
     { function: 'geolocation', path: '/geo-isc', cache: 'manual' },
+    { function: 'geolocation', path: '/*', cache: 'manual' },
     { function: 'json', path: '/json', cache: 'off' },
   ]
 
-  const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)
+  const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig, logger)
 
   expect(declarations).toEqual(expectedDeclarations)
 })
@@ -37,7 +43,7 @@ test("Declarations don't break if no in source config is provided", () => {
   ]
 
   const funcConfig = {
-    geolocation: { path: '/geo-isc', cache: 'manual' },
+    geolocation: { path: ['/geo-isc'], cache: 'manual' },
     json: {},
   } as Record<string, FunctionConfig>
 
@@ -46,7 +52,7 @@ test("Declarations don't break if no in source config is provided", () => {
     { function: 'json', path: '/json', cache: 'manual' },
   ]
 
-  const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)
+  const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig, logger)
 
   expect(declarations).toEqual(expectedDeclarations)
 })
@@ -55,7 +61,7 @@ test('In source config works independent of the netlify.toml file if a path is d
   const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
 
   const funcConfigWithPath = {
-    json: { path: '/json', cache: 'off' },
+    json: { path: ['/json', '/json-isc'], cache: 'off' },
   } as Record<string, FunctionConfig>
 
   const funcConfigWithoutPath = {
@@ -65,13 +71,65 @@ test('In source config works independent of the netlify.toml file if a path is d
   const expectedDeclarationsWithISCPath = [
     { function: 'geolocation', path: '/geo', cache: 'off' },
     { function: 'json', path: '/json', cache: 'off' },
+    { function: 'json', path: '/json-isc', cache: 'off' },
   ]
 
   const expectedDeclarationsWithoutISCPath = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
 
-  const declarationsWithISCPath = getDeclarationsFromConfig(tomlConfig, funcConfigWithPath, deployConfig)
+  const declarationsWithISCPath = getDeclarationsFromConfig(tomlConfig, funcConfigWithPath, deployConfig, logger)
   expect(declarationsWithISCPath).toEqual(expectedDeclarationsWithISCPath)
 
-  const declarationsWithoutISCPath = getDeclarationsFromConfig(tomlConfig, funcConfigWithoutPath, deployConfig)
+  const declarationsWithoutISCPath = getDeclarationsFromConfig(tomlConfig, funcConfigWithoutPath, deployConfig, logger)
   expect(declarationsWithoutISCPath).toEqual(expectedDeclarationsWithoutISCPath)
+})
+
+test('In source config works if only the cache config property is set', () => {
+  const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
+
+  const funcConfig = {
+    geolocation: { cache: 'manual' },
+  } as Record<string, FunctionConfig>
+
+  const expectedDeclarations = [{ function: 'geolocation', path: '/geo', cache: 'manual' }]
+
+  expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig, logger)).toEqual(expectedDeclarations)
+})
+
+test('In source config path property is ignored if path is not an array', () => {
+  const tomlConfig = [{ function: 'json', path: '/json-toml', cache: 'off' }]
+
+  const funcConfig = {
+    json: { path: '/json', cache: 'manual' },
+    // use any to allow invalid type for path property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as Record<string, any>
+
+  const expectedDeclarations = [{ function: 'json', path: '/json-toml', cache: 'manual' }]
+
+  expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig, logger)).toEqual(expectedDeclarations)
+  expect(logger.user).toHaveBeenNthCalledWith(
+    1,
+    expect.stringMatching(
+      "Can't use in source config path property: /json. Function configuration path property must be an array.",
+    ),
+  )
+})
+
+test('Whole in source config is ignored if path is not an array and is not present in toml or deploy config', () => {
+  const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
+  const funcConfig = {
+    json: { path: '/json', cache: 'manual' },
+    // use any to allow invalid type for path property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as Record<string, any>
+
+  const expectedDeclarations = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
+
+  expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig, logger)).toEqual(expectedDeclarations)
+  expect(logger.user).toHaveBeenNthCalledWith(
+    1,
+    expect.stringMatching(
+      "Can't use in source config path property: /json. Function configuration path property must be an array.",
+    ),
+  )
 })
