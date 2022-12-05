@@ -45,7 +45,7 @@ export const getDeclarationsFromConfig = (
         declarations.push({ ...declaration, ...config, path })
       })
 
-      // If only cache was specified, add it to the declaration
+      // If a config was specified, add it to the declaration
     } else {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { path, ...rest } = config
