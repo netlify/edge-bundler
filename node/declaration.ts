@@ -38,17 +38,14 @@ export const getDeclarationsFromConfig = (
     }
 
     // If we have path specified create a declaration for each path
-    if (config.path) {
+    if (config.path?.length) {
       // eslint-disable-next-line max-depth
       if (!Array.isArray(config.path)) config.path = [config.path]
 
-      // eslint-disable-next-line max-depth
-      if (config.path.length !== 0)
-        config.path.forEach((path) => {
-          declarations.push({ ...declaration, ...config, path })
-        })
-      // if empty path array with cache set, add declaration with cache
-      else if (config.cache) declarations.push({ ...declaration, cache: config.cache })
+      config.path.forEach((path) => {
+        declarations.push({ ...declaration, ...config, path })
+      })
+
       // If only cache was specified, add it to the declaration
     } else if (config.cache) {
       declarations.push({ ...declaration, cache: config.cache })
