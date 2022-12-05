@@ -1,5 +1,3 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable max-depth */
 import { FunctionConfig } from './config.js'
 import type { DeployConfig } from './deploy_config.js'
 
@@ -41,8 +39,10 @@ export const getDeclarationsFromConfig = (
 
     // If we have path specified create a declaration for each path
     if (config.path) {
+      // eslint-disable-next-line max-depth
       if (!Array.isArray(config.path)) config.path = [config.path]
 
+      // eslint-disable-next-line max-depth
       if (config.path.length !== 0)
         config.path.forEach((path) => {
           declarations.push({ ...declaration, ...config, path })
