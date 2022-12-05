@@ -158,7 +158,9 @@ test('Ignores function paths from the in-source `config` function if the feature
   const generatedFiles = await fs.readdir(tmpDir.path)
 
   expect(result.functions.length).toBe(6)
-  expect(generatedFiles.length).toBe(2)
+
+  // ESZIP, manifest and import map.
+  expect(generatedFiles.length).toBe(3)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
@@ -196,7 +198,9 @@ test('Loads function paths from the in-source `config` function', async () => {
   const generatedFiles = await fs.readdir(tmpDir.path)
 
   expect(result.functions.length).toBe(6)
-  expect(generatedFiles.length).toBe(2)
+
+  // ESZIP, manifest and import map.
+  expect(generatedFiles.length).toBe(3)
 
   const manifestFile = await fs.readFile(resolve(tmpDir.path, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)

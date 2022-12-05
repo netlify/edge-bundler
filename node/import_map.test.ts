@@ -24,7 +24,7 @@ test('Handles import maps with full URLs without specifying a base URL', () => {
   expect(imports['alias:pets']).toBe('https://petsofnetlify.com/')
 })
 
-test('Handles import maps with relative paths', () => {
+test('Resolves relative paths to absolute paths if a root path is not provided', () => {
   const inputFile1 = {
     baseURL: new URL('file:///Users/jane-doe/my-site/import-map.json'),
     imports: {
@@ -37,4 +37,19 @@ test('Handles import maps with relative paths', () => {
 
   expect(imports['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports['alias:pets']).toBe('file:///Users/jane-doe/my-site/heart/pets/')
+})
+
+test('Transforms relative paths so that they use the root path as a base', () => {
+  const inputFile1 = {
+    baseURL: new URL('file:///Users/jane-doe/my-site/import-map.json'),
+    imports: {
+      'alias:pets': './heart/pets/',
+    },
+  }
+
+  const map = new ImportMap([inputFile1])
+  const { imports } = JSON.parse(map.getContents('/Users/jane-doe'))
+
+  expect(imports['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports['alias:pets']).toBe('./my-site/heart/pets')
 })
