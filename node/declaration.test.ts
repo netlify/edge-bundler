@@ -17,7 +17,7 @@ test('In source config takes precedence over netlify.toml config', () => {
 
   const funcConfig = {
     geolocation: { path: ['/geo-isc', '/*'], cache: 'manual' },
-    json: { path: ['/json'], cache: 'off' },
+    json: { path: '/json', cache: 'off' },
   } as Record<string, FunctionConfig>
 
   const expectedDeclarations = [
