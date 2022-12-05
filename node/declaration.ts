@@ -30,10 +30,10 @@ export const getDeclarationsFromConfig = (
   // a function configuration object, we replace the path because that object
   // takes precedence.
   for (const declaration of [...tomlDeclarations, ...deployConfig.declarations]) {
-    const config = functionsConfig[declaration.function] ?? {}
+    const config = functionsConfig[declaration.function]
 
     // If no config is found, add the declaration as is
-    if (Object.keys(config).length === 0) {
+    if (!config) {
       declarations.push(declaration)
 
       // If we have path specified create a declaration for each path
@@ -65,11 +65,9 @@ export const getDeclarationsFromConfig = (
     if (!functionsVisited.has(name) && path) {
       if (!Array.isArray(path)) path = [path]
 
-      if (path.length !== 0) {
-        path.forEach((singlePath) => {
-          declarations.push({ ...config, function: name, path: singlePath })
-        })
-      }
+      path.forEach((singlePath) => {
+        declarations.push({ ...config, function: name, path: singlePath })
+      })
     }
   }
 
