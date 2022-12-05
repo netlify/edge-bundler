@@ -35,10 +35,9 @@ export const getDeclarationsFromConfig = (
     // If no config is found, add the declaration as is
     if (Object.keys(config).length === 0) {
       declarations.push(declaration)
-    }
 
-    // If we have path specified create a declaration for each path
-    if (config.path?.length) {
+      // If we have path specified create a declaration for each path
+    } else if (config.path?.length) {
       // eslint-disable-next-line max-depth
       if (!Array.isArray(config.path)) config.path = [config.path]
 
@@ -47,8 +46,10 @@ export const getDeclarationsFromConfig = (
       })
 
       // If only cache was specified, add it to the declaration
-    } else if (config.cache) {
-      declarations.push({ ...declaration, cache: config.cache })
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { path, ...rest } = config
+      declarations.push({ ...declaration, ...rest })
     }
 
     functionsVisited.add(declaration.function)
