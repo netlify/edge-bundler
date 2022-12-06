@@ -63,7 +63,7 @@ ADDTIONAL PROPERTY must NOT have additional properties
      |       ^^^^^ 😲  foo is not expected to be here!
   28 |     }
   29 |   ],
-  30 |   \\"bundler_version\\": \\"1.6.0\\""
+  30 |   \\"importMapURL\\": \\"file:///root/.netlify/edge-functions-dist/import_map.json\\","
 `;
 
 exports[`layers > should throw on missing flag 1`] = `
@@ -148,29 +148,29 @@ exports[`should show multiple errors 1`] = `
 "Validation of Edge Functions manifest failed
 ADDTIONAL PROPERTY must NOT have additional properties
 
-  28 |   ],
-  29 |   \\"bundler_version\\": \\"1.6.0\\",
-> 30 |   \\"foo\\": \\"bar\\",
+  29 |   \\"importMapURL\\": \\"file:///root/.netlify/edge-functions-dist/import_map.json\\",
+  30 |   \\"bundler_version\\": \\"1.6.0\\",
+> 31 |   \\"foo\\": \\"bar\\",
      |   ^^^^^ 😲  foo is not expected to be here!
-  31 |   \\"baz\\": \\"bar\\"
-  32 | }
+  32 |   \\"baz\\": \\"bar\\"
+  33 | }
 
 ADDTIONAL PROPERTY must NOT have additional properties
 
-  29 |   \\"bundler_version\\": \\"1.6.0\\",
-  30 |   \\"foo\\": \\"bar\\",
-> 31 |   \\"baz\\": \\"bar\\"
+  30 |   \\"bundler_version\\": \\"1.6.0\\",
+  31 |   \\"foo\\": \\"bar\\",
+> 32 |   \\"baz\\": \\"bar\\"
      |   ^^^^^ 😲  baz is not expected to be here!
-  32 | }"
+  33 | }"
 `;
 
 exports[`should throw on additional property on root level 1`] = `
 "Validation of Edge Functions manifest failed
 ADDTIONAL PROPERTY must NOT have additional properties
 
-  28 |   ],
-  29 |   \\"bundler_version\\": \\"1.6.0\\",
-> 30 |   \\"foo\\": \\"bar\\"
+  29 |   \\"importMapURL\\": \\"file:///root/.netlify/edge-functions-dist/import_map.json\\",
+  30 |   \\"bundler_version\\": \\"1.6.0\\",
+> 31 |   \\"foo\\": \\"bar\\"
      |   ^^^^^ 😲  foo is not expected to be here!
-  31 | }"
+  32 | }"
 `;

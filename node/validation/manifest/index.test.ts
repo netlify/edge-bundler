@@ -1,4 +1,3 @@
-/* eslint-disable max-nested-callbacks */
 import { test, expect, describe } from 'vitest'
 
 import { validateManifest, ManifestValidationError } from './index.js'
@@ -33,6 +32,7 @@ const getBaseManifest = (): Record<string, any> => ({
       local: 'local',
     },
   ],
+  importMapURL: 'file:///root/.netlify/edge-functions-dist/import_map.json',
   bundler_version: '1.6.0',
 })
 
@@ -89,6 +89,7 @@ describe('bundle', () => {
     expect(() => validateManifest(manifest)).toThrowErrorMatchingSnapshot()
   })
 })
+
 describe('route', () => {
   test('should throw on additional property', () => {
     const manifest = getBaseManifest()
@@ -143,4 +144,3 @@ describe('layers', () => {
     expect(() => validateManifest(manifest)).toThrowErrorMatchingSnapshot()
   })
 })
-/* eslint-enable max-nested-callbacks */
