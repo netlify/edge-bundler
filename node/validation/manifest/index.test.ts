@@ -145,7 +145,7 @@ describe('layers', () => {
 })
 
 describe('import map URL', () => {
-  test('should accept string valid', () => {
+  test('should accept string value', () => {
     const manifest = getBaseManifest()
     manifest.importMapURL = 'file:///root/.netlify/edge-functions-dist/import_map.json'
 
