@@ -39,10 +39,10 @@ export const getDeclarationsFromConfig = (
       // If we have a path specified as either a string or non-empty array
       // create a declaration for each path
     } else if (config.path?.length) {
-      // eslint-disable-next-line max-depth
-      if (!Array.isArray(config.path)) config.path = [config.path]
 
-      config.path.forEach((path) => {
+      const paths = Array.isArray(config.path) ? config.path : [config.path]
+
+      paths.forEach((path) => {
         declarations.push({ ...declaration, ...config, path })
       })
 
@@ -60,13 +60,13 @@ export const getDeclarationsFromConfig = (
   // in the TOML at all.
   for (const name in functionsConfig) {
     const { ...config } = functionsConfig[name]
-    let { path } = functionsConfig[name]
+    const { path } = functionsConfig[name]
 
     // If we have path specified create a declaration for each path
     if (!functionsVisited.has(name) && path) {
-      if (!Array.isArray(path)) path = [path]
+      const paths = Array.isArray(path) ? path : [path]
 
-      path.forEach((singlePath) => {
+      paths.forEach((singlePath) => {
         declarations.push({ ...config, function: name, path: singlePath })
       })
     }
