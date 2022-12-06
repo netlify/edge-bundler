@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 import { promises as fs } from 'fs'
-import { dirname, isAbsolute, relative } from 'path'
+import { dirname, isAbsolute, posix, relative, sep } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import { parse } from '@import-maps/resolve'
@@ -47,8 +47,10 @@ class ImportMap {
       // If this is a file URL, we might want to transform it to use another
       // root path, as long as that root path is defined.
       if (url.protocol === 'file:' && rootPath !== undefined) {
-        const path = relative(rootPath, fileURLToPath(url))
-        const value = isAbsolute(path) ? path : `./${path}`
+        // We want to use POSIX paths for the import map regardless of the OS
+        // we're building in.
+        const path = relative(rootPath, fileURLToPath(url)).split(sep).join(posix.sep)
+        const value = isAbsolute(path) ? path : `.${posix.sep}${path}`
 
         newImports[specifier] = value
 
