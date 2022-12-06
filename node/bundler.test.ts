@@ -6,7 +6,7 @@ import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
 import { test, expect } from 'vitest'
 
-import { fixturesDir, useFixture } from '../test/util.js'
+import { useFixture } from '../test/util.js'
 
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
@@ -270,7 +270,7 @@ test('Ignores any user-defined `deno.json` files', async () => {
 
   expect(() =>
     bundle([sourceDirectory], distPath, declarations, {
-      basePath: fixturesDir,
+      basePath,
       configPath: join(sourceDirectory, 'config.json'),
     }),
   ).not.toThrow()
