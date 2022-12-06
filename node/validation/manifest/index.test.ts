@@ -154,7 +154,7 @@ describe('import map URL', () => {
 
   test('should throw on wrong type', () => {
     const manifest = getBaseManifest()
-    manifest.import_map = ['file:///root/.netlify/edge-functions-dist/import_map.json'] as any
+    manifest.import_map = ['file:///root/.netlify/edge-functions-dist/import_map.json']
 
     expect(() => validateManifest(manifest)).toThrowErrorMatchingSnapshot()
   })
