@@ -7,5 +7,5 @@ export default async () => {
 }
 
 export const config = () => ({
-  path:['/framework-func1'],
+  path: '/framework-func1',
 })
