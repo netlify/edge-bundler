@@ -36,7 +36,7 @@ export const getDeclarationsFromConfig = (
     if (!config) {
       declarations.push(declaration)
 
-      // If we have a path specified as either a string or non-tempty array
+      // If we have a path specified as either a string or non-empty array
       // create a declaration for each path
     } else if (config.path?.length) {
       // eslint-disable-next-line max-depth
