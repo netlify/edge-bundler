@@ -36,7 +36,8 @@ export const getDeclarationsFromConfig = (
     if (!config) {
       declarations.push(declaration)
 
-      // If we have path specified create a declaration for each path
+      // If we have a path specified as either a string or non-tempty array
+      // create a declaration for each path
     } else if (config.path?.length) {
       // eslint-disable-next-line max-depth
       if (!Array.isArray(config.path)) config.path = [config.path]
@@ -45,7 +46,7 @@ export const getDeclarationsFromConfig = (
         declarations.push({ ...declaration, ...config, path })
       })
 
-      // If a config was specified, add it to the declaration
+      // With an in-source config without a path, add the config to the declaration
     } else {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { path, ...rest } = config

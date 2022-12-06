@@ -9,7 +9,7 @@ const deployConfig = {
   layers: [],
 }
 
-test('In source config takes precedence over netlify.toml config', () => {
+test('In-source config takes precedence over netlify.toml config', () => {
   const tomlConfig = [
     { function: 'geolocation', path: '/geo', cache: 'off' },
     { function: 'json', path: '/json', cache: 'manual' },
@@ -31,7 +31,7 @@ test('In source config takes precedence over netlify.toml config', () => {
   expect(declarations).toEqual(expectedDeclarations)
 })
 
-test("Declarations don't break if no in source config is provided", () => {
+test("Declarations don't break if no in-source config is provided", () => {
   const tomlConfig = [
     { function: 'geolocation', path: '/geo', cache: 'off' },
     { function: 'json', path: '/json', cache: 'manual' },
@@ -52,7 +52,7 @@ test("Declarations don't break if no in source config is provided", () => {
   expect(declarations).toEqual(expectedDeclarations)
 })
 
-test('In source config works independent of the netlify.toml file if a path is defined and otherwise if no path is set', () => {
+test('In-source config works independent of the netlify.toml file if a path is defined and otherwise if no path is set', () => {
   const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
 
   const funcConfigWithPath = {
@@ -78,7 +78,7 @@ test('In source config works independent of the netlify.toml file if a path is d
   expect(declarationsWithoutISCPath).toEqual(expectedDeclarationsWithoutISCPath)
 })
 
-test('In source config works if only the cache config property is set', () => {
+test('In-source config works if only the cache config property is set', () => {
   const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
 
   const funcConfig = {
@@ -90,7 +90,7 @@ test('In source config works if only the cache config property is set', () => {
   expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)).toEqual(expectedDeclarations)
 })
 
-test("In source config path property works if it's not an array", () => {
+test("In-source config path property works if it's not an array", () => {
   const tomlConfig = [{ function: 'json', path: '/json-toml', cache: 'off' }]
 
   const funcConfig = {
@@ -102,7 +102,7 @@ test("In source config path property works if it's not an array", () => {
   expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)).toEqual(expectedDeclarations)
 })
 
-test("In source config path property works if it's not an array and it's not present in toml or deploy config", () => {
+test("In-source config path property works if it's not an array and it's not present in toml or deploy config", () => {
   const tomlConfig = [{ function: 'geolocation', path: '/geo', cache: 'off' }]
   const funcConfig = {
     json: { path: '/json-isc', cache: 'manual' },
@@ -116,7 +116,7 @@ test("In source config path property works if it's not an array and it's not pre
   expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)).toEqual(expectedDeclarations)
 })
 
-test('In source config works if path property is an empty array with cache value specified', () => {
+test('In-source config works if path property is an empty array with cache value specified', () => {
   const tomlConfig = [{ function: 'json', path: '/json-toml', cache: 'off' }]
 
   const funcConfig = {
