@@ -39,7 +39,6 @@ export const getDeclarationsFromConfig = (
       // If we have a path specified as either a string or non-empty array
       // create a declaration for each path
     } else if (config.path?.length) {
-
       const paths = Array.isArray(config.path) ? config.path : [config.path]
 
       paths.forEach((path) => {
