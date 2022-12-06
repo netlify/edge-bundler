@@ -32,7 +32,6 @@ const getBaseManifest = (): Record<string, any> => ({
       local: 'local',
     },
   ],
-  importMapURL: 'file:///root/.netlify/edge-functions-dist/import_map.json',
   bundler_version: '1.6.0',
 })
 
@@ -140,6 +139,22 @@ describe('layers', () => {
   test('should throw on missing flag', () => {
     const manifest = getBaseManifest()
     delete manifest.layers[0].flag
+
+    expect(() => validateManifest(manifest)).toThrowErrorMatchingSnapshot()
+  })
+})
+
+describe('import map URL', () => {
+  test('should accept string valid', () => {
+    const manifest = getBaseManifest()
+    manifest.importMapURL = 'file:///root/.netlify/edge-functions-dist/import_map.json'
+
+    expect(() => validateManifest(manifest)).not.toThrowError()
+  })
+
+  test('should throw on wrong type', () => {
+    const manifest = getBaseManifest()
+    manifest.importMapURL = ['file:///root/.netlify/edge-functions-dist/import_map.json']
 
     expect(() => validateManifest(manifest)).toThrowErrorMatchingSnapshot()
   })
