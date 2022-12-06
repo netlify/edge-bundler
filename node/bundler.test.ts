@@ -11,7 +11,7 @@ import { useFixture } from '../test/util.js'
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
 import { isNodeError } from './utils/error.js'
-import { validateManifest } from './validation/manifest/index.ts'
+import { validateManifest } from './validation/manifest/index.js'
 
 test('Produces an ESZIP bundle', async () => {
   const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
