@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.3.2](https://github.com/netlify/edge-bundler/compare/v5.3.1...v5.3.2) (2022-12-06)
+
+
+### Bug Fixes
+
+* correct import_map attribute name in validation ([#241](https://github.com/netlify/edge-bundler/issues/241)) ([dfcd90f](https://github.com/netlify/edge-bundler/commit/dfcd90fc74a53112800c2db8c73e1cef374010ed))
+
+## [5.3.1](https://github.com/netlify/edge-bundler/compare/v5.3.0...v5.3.1) (2022-12-06)
+
+
+### Bug Fixes
+
+* add `importMapURL` to manifest validation ([#239](https://github.com/netlify/edge-bundler/issues/239)) ([2ba1878](https://github.com/netlify/edge-bundler/commit/2ba1878765e219ba291bceb648bc50ee9bdb55c5))
+
+## [5.3.0](https://github.com/netlify/edge-bundler/compare/v5.2.0...v5.3.0) (2022-12-06)
+
+
+### Features
+
+* save import map URL to manifest ([#235](https://github.com/netlify/edge-bundler/issues/235)) ([94c6ec6](https://github.com/netlify/edge-bundler/commit/94c6ec61fb3663790d4b2561794f4bdf25f2264c))
+* support for multiple paths in in source configuration ([#230](https://github.com/netlify/edge-bundler/issues/230)) ([d4ec906](https://github.com/netlify/edge-bundler/commit/d4ec906edd311c4b5b137c6f2d3e4b564190d835))
+
+## [5.2.0](https://github.com/netlify/edge-bundler/compare/v5.1.0...v5.2.0) (2022-12-06)
+
+
+### Features
+
+* update bootstrap_url ([#236](https://github.com/netlify/edge-bundler/issues/236)) ([d1f44d6](https://github.com/netlify/edge-bundler/commit/d1f44d6fd970d51b79ae57f57f906c34c58e5b54))
+
+## [5.1.0](https://github.com/netlify/edge-bundler/compare/v5.0.0...v5.1.0) (2022-12-05)
+
+
+### Features
+
+* Update BOOTSTRAP_URL ([#233](https://github.com/netlify/edge-bundler/issues/233)) ([078009d](https://github.com/netlify/edge-bundler/commit/078009dca1828df177429d5f9a506c8e7106c86e))
+
 ## [5.0.0](https://github.com/netlify/edge-bundler/compare/v4.4.3...v5.0.0) (2022-11-28)
 
 

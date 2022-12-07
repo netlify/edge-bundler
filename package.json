@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "5.0.0",
+  "version": "5.3.2",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/node/index.js",
@@ -29,6 +29,7 @@
     "test:dev": "run-s test:dev:*",
     "test:ci": "run-s test:ci:*",
     "test:dev:vitest": "cross-env FORCE_COLOR=0 vitest run",
+    "test:dev:vitest:watch": "cross-env FORCE_COLOR=0 vitest watch",
     "test:dev:deno": "deno test --allow-all deno",
     "test:ci:vitest": "cross-env FORCE_COLOR=0 vitest run",
     "test:ci:deno": "deno test --allow-all deno",
@@ -59,6 +60,7 @@
     "@types/uuid": "^9.0.0",
     "@vitest/coverage-c8": "^0.25.0",
     "archiver": "^5.3.1",
+    "cpy": "^9.0.1",
     "cross-env": "^7.0.3",
     "husky": "^8.0.0",
     "nock": "^13.2.4",

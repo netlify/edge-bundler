@@ -55,6 +55,7 @@ const edgeManifestSchema = {
       type: 'array',
       items: layersSchema,
     },
+    import_map: { type: 'string' },
     bundler_version: { type: 'string' },
   },
   additionalProperties: false,
