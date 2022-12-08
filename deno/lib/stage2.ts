@@ -91,8 +91,9 @@ const stage2Loader = (basePath: string, functions: InputFunction[], externals: S
 }
 
 const writeStage2 = async ({ basePath, destPath, externals, functions, importMapData }: WriteStage2Options) => {
+  const importMapURL = importMapData ? importMapSpecifier : undefined
   const loader = stage2Loader(basePath, functions, new Set(externals), importMapData)
-  const bytes = await build([STAGE2_SPECIFIER], loader, importMapSpecifier)
+  const bytes = await build([STAGE2_SPECIFIER], loader, importMapURL)
   const directory = path.dirname(destPath)
 
   await Deno.mkdir(directory, { recursive: true })
