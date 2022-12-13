@@ -40,6 +40,57 @@ test('Throws a type error if the `importMap` contains anything other than a stri
   await cleanup()
 })
 
+test('Excludes unsupported properties', async () => {
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
+  const configPath = join(path, 'deno.json')
+  const data = JSON.stringify({
+    compilerOptions: {
+      allowJs: true,
+      lib: ['deno.window'],
+      strict: true,
+    },
+    importMap: 'import_map.json',
+    lint: {
+      files: {
+        include: ['src/'],
+        exclude: ['src/testdata/'],
+      },
+      rules: {
+        tags: ['recommended'],
+        include: ['ban-untagged-todo'],
+        exclude: ['no-unused-vars'],
+      },
+    },
+    fmt: {
+      files: {
+        include: ['src/'],
+        exclude: ['src/testdata/'],
+      },
+      options: {
+        useTabs: true,
+        lineWidth: 80,
+        indentWidth: 4,
+        singleQuote: true,
+        proseWrap: 'preserve',
+      },
+    },
+    test: {
+      files: {
+        include: ['src/'],
+        exclude: ['src/testdata/'],
+      },
+    },
+  })
+
+  await fs.writeFile(configPath, data)
+
+  const config = await getConfig(path)
+
+  expect(Object.keys(config ?? {})).toEqual(['importMap'])
+
+  await cleanup()
+})
+
 test('Resolves `importMap` into an absolute path', async () => {
   const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const configPath = join(path, 'deno.json')
