@@ -41,12 +41,16 @@ const getConfigFromFile = async (filePath: string) => {
   }
 }
 
-const normalizeConfig = (config: DenoConfigFile, basePath: string) => {
-  const newConfig = { ...config }
+const normalizeConfig = (rawConfig: DenoConfigFile, basePath: string) => {
+  const config: DenoConfigFile = {}
 
-  if (newConfig.importMap) {
-    newConfig.importMap = resolve(basePath, newConfig.importMap)
+  if (rawConfig.importMap) {
+    if (typeof rawConfig.importMap !== 'string') {
+      throw new TypeError(`'importMap' property in Deno config must be a string`)
+    }
+
+    config.importMap = resolve(basePath, rawConfig.importMap)
   }
 
-  return newConfig
+  return config
 }
