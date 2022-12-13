@@ -28,6 +28,18 @@ test('Returns an empty object if the config file cannot be parsed', async () => 
   await cleanup()
 })
 
+test('Throws a type error if the `importMap` contains anything other than a string', async () => {
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
+  const configPath = join(path, 'deno.json')
+  const data = JSON.stringify({ importMap: { imports: { foo: './bar/' } } })
+
+  await fs.writeFile(configPath, data)
+
+  await expect(getConfig(path)).rejects.toThrowError(TypeError)
+
+  await cleanup()
+})
+
 test('Resolves `importMap` into an absolute path', async () => {
   const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const configPath = join(path, 'deno.json')
