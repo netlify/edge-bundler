@@ -7,7 +7,7 @@ import { expect, test } from 'vitest'
 import { getConfig } from './deno_config.js'
 
 test('Returns `undefined` if no config file is found', async () => {
-  const { cleanup, path } = await tmp.dir()
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const config = await getConfig(path)
 
   expect(config).toBeUndefined()
@@ -16,7 +16,7 @@ test('Returns `undefined` if no config file is found', async () => {
 })
 
 test('Returns an empty object if the config file cannot be parsed', async () => {
-  const { path } = await tmp.dir()
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const configPath = join(path, 'deno.json')
 
   await fs.writeFile(configPath, '{')
@@ -25,11 +25,11 @@ test('Returns an empty object if the config file cannot be parsed', async () => 
 
   expect(config).toEqual({})
 
-  await fs.rm(path, { recursive: true })
+  await cleanup()
 })
 
 test('Resolves `importMap` into an absolute path', async () => {
-  const { path } = await tmp.dir()
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const configPath = join(path, 'deno.json')
   const data = JSON.stringify({ importMap: 'import_map.json' })
 
@@ -39,11 +39,11 @@ test('Resolves `importMap` into an absolute path', async () => {
 
   expect(config).toEqual({ importMap: join(path, 'import_map.json') })
 
-  await fs.rm(path, { recursive: true })
+  await cleanup()
 })
 
 test('Supports JSONC', async () => {
-  const { path } = await tmp.dir()
+  const { cleanup, path } = await tmp.dir({ unsafeCleanup: true })
   const configPath = join(path, 'deno.jsonc')
   const data = JSON.stringify({ importMap: 'import_map.json' })
 
@@ -53,5 +53,5 @@ test('Supports JSONC', async () => {
 
   expect(config).toEqual({ importMap: join(path, 'import_map.json') })
 
-  await fs.rm(path, { recursive: true })
+  await cleanup()
 })
