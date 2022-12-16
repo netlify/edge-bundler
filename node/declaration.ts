@@ -9,13 +9,18 @@ interface BaseDeclaration {
 
 type DeclarationWithPath = BaseDeclaration & {
   path: string
+  excludePath?: string
 }
 
 type DeclarationWithPattern = BaseDeclaration & {
   pattern: string
+  excludePattern?: string
 }
 
 type Declaration = DeclarationWithPath | DeclarationWithPattern
+
+const isDeclarationWithPattern = (declaration: Declaration): declaration is DeclarationWithPattern =>
+  'pattern' in declaration
 
 export const getDeclarationsFromConfig = (
   tomlDeclarations: Declaration[],
@@ -74,4 +79,4 @@ export const getDeclarationsFromConfig = (
   return declarations
 }
 
-export { Declaration, DeclarationWithPath, DeclarationWithPattern }
+export { Declaration, DeclarationWithPath, DeclarationWithPattern, isDeclarationWithPattern }
