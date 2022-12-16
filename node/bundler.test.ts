@@ -335,17 +335,7 @@ test('Loads declarations and import maps from the deploy configuration', async (
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
   // respects excludePath from deploy config
-  expect(routes[1].exclude_pattern).toEqual([
-    {
-      function: 'func1',
-      pattern: '^/func1/?$',
-    },
-    {
-      exclude_pattern: '^/func2/skip/?$',
-      function: 'func2',
-      pattern: '^/func2/.*/?$',
-    },
-  ])
+  expect(routes[1].exclude_pattern).toEqual('^/func2/skip/?$')
 
   await cleanup()
 })
