@@ -346,25 +346,45 @@ test('Loads declarations and import maps from the deploy configuration', async (
 test("Ignores entries in `importMapPaths` that don't point to an existing import map file", async () => {
   const systemLogger = vi.fn()
   const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
-  const sourceDirectory = join(basePath, 'functions')
-  const importMapPath = join(distPath, 'some-file-that-does-not-exist.json')
-  const declarations = [
-    {
-      function: 'func1',
-      path: '/func1',
+  const sourceDirectory = join(basePath, 'user-functions')
+
+  // Creating import map file
+  const importMap = await tmp.file()
+  const importMapContents = {
+    imports: {
+      helper: join(basePath, 'helper.ts'),
     },
-  ]
-  const result = await bundle([sourceDirectory], distPath, declarations, {
-    basePath,
-    configPath: join(sourceDirectory, 'config.json'),
-    importMapPaths: [importMapPath],
-    systemLogger,
-  })
+    scopes: {
+      [join(sourceDirectory, 'func3')]: {
+        helper: join(basePath, 'helper2.ts'),
+      },
+    },
+  }
+
+  await fs.writeFile(importMap.path, JSON.stringify(importMapContents))
+
+  const nonExistingImportMapPath = join(distPath, 'some-file-that-does-not-exist.json')
+  const result = await bundle(
+    [sourceDirectory],
+    distPath,
+    [
+      {
+        function: 'func1',
+        path: '/func1',
+      },
+    ],
+    {
+      basePath,
+      importMapPaths: [nonExistingImportMapPath, importMap.path],
+      systemLogger,
+    },
+  )
   const generatedFiles = await fs.readdir(distPath)
 
-  expect(result.functions.length).toBe(1)
+  expect(result.functions.length).toBe(2)
   expect(generatedFiles.length).toBe(2)
-  expect(systemLogger).toHaveBeenCalledWith(`Did not find an import map file at '${importMapPath}'.`)
+  expect(systemLogger).toHaveBeenCalledWith(`Did not find an import map file at '${nonExistingImportMapPath}'.`)
 
   await cleanup()
+  await importMap.cleanup()
 })
