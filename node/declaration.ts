@@ -19,9 +19,6 @@ type DeclarationWithPattern = BaseDeclaration & {
 
 type Declaration = DeclarationWithPath | DeclarationWithPattern
 
-const isDeclarationWithPattern = (declaration: Declaration): declaration is DeclarationWithPattern =>
-  'pattern' in declaration
-
 export const getDeclarationsFromConfig = (
   tomlDeclarations: Declaration[],
   functionsConfig: Record<string, FunctionConfig>,
@@ -79,4 +76,4 @@ export const getDeclarationsFromConfig = (
   return declarations
 }
 
-export { Declaration, DeclarationWithPath, DeclarationWithPattern, isDeclarationWithPattern }
+export { Declaration, DeclarationWithPath, DeclarationWithPattern }

@@ -6,7 +6,6 @@ import globToRegExp from 'glob-to-regexp'
 import type { Bundle } from './bundle.js'
 import { Cache } from './config.js'
 import type { Declaration } from './declaration.js'
-import { isDeclarationWithPattern } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
 import { Layer } from './layer.js'
 import { getPackageVersion } from './package_json.js'
@@ -109,7 +108,7 @@ const pathToRegularExpression = (path: string) => {
 }
 
 const getRegularExpression = (declaration: Declaration) => {
-  if (isDeclarationWithPattern(declaration)) {
+  if ('pattern' in declaration) {
     return new RegExp(declaration.pattern)
   }
 
@@ -117,11 +116,11 @@ const getRegularExpression = (declaration: Declaration) => {
 }
 
 const getExcludedRegularExpression = (declaration: Declaration) => {
-  if (isDeclarationWithPattern(declaration) && declaration.excludedPattern) {
+  if ('pattern' in declaration && declaration.excludedPattern) {
     return new RegExp(declaration.excludedPattern)
   }
 
-  if ('excludedPath' in declaration && declaration.excludedPath) {
+  if ('path' in declaration && declaration.excludedPath) {
     return pathToRegularExpression(declaration.excludedPath)
   }
 }
