@@ -117,18 +117,13 @@ const getRegularExpression = (declaration: Declaration) => {
 }
 
 const getExcludedRegularExpression = (declaration: Declaration) => {
-  if (isDeclarationWithPattern(declaration)) {
-    if (!declaration.excludedPattern) {
-      return
-    }
+  if (isDeclarationWithPattern(declaration) && declaration.excludedPattern) {
     return new RegExp(declaration.excludedPattern)
   }
 
-  if (!declaration.excludedPath) {
-    return
+  if ('excludedPath' in declaration && declaration.excludedPath) {
+    return pathToRegularExpression(declaration.excludedPath)
   }
-
-  return pathToRegularExpression(declaration.excludedPath)
 }
 
 interface WriteManifestOptions {
