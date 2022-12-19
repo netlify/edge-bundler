@@ -342,3 +342,25 @@ test('Loads declarations and import maps from the deploy configuration', async (
 
   await cleanup()
 })
+
+test("Ignores entries in `importMapPaths` that don't point to an existing import map file", async () => {
+  const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
+  const sourceDirectory = join(basePath, 'functions')
+  const declarations = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const result = await bundle([sourceDirectory], distPath, declarations, {
+    basePath,
+    configPath: join(sourceDirectory, 'config.json'),
+    importMapPaths: [join(distPath, 'some-file-that-does-not-exist.json')],
+  })
+  const generatedFiles = await fs.readdir(distPath)
+
+  expect(result.functions.length).toBe(1)
+  expect(generatedFiles.length).toBe(2)
+
+  await cleanup()
+})
