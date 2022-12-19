@@ -63,7 +63,13 @@ const runESZIP = async (eszipPath: string) => {
   await fs.rename(stage2Path, `${stage2Path}.js`)
 
   // Run function that imports the extracted stage 2 and invokes each function.
-  const { stdout } = await execa('deno', ['eval', '--import-map', importMapPath, inspectFunction(stage2Path)])
+  const { stdout } = await execa('deno', [
+    'eval',
+    '--no-check',
+    '--import-map',
+    importMapPath,
+    inspectFunction(stage2Path),
+  ])
 
   await tmpDir.cleanup()
 
