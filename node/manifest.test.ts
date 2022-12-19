@@ -52,7 +52,7 @@ test('Generates a manifest with display names', () => {
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 })
 
-test('Generates a manifest with excluded paths & patterns', () => {
+test('Generates a manifest with excluded paths and patterns', () => {
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
     { name: 'func-2', path: '/path/to/func-2.ts' },
