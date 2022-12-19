@@ -25,7 +25,7 @@ interface Route {
   function: string
   name?: string
   pattern: string
-  exclude_pattern?: string
+  excluded_pattern?: string
 }
 interface Manifest {
   bundler_version: string
@@ -68,9 +68,9 @@ const generateManifest = ({
       name: declaration.name,
       pattern: serializePattern(pattern),
     }
-    const excludePattern = getExcludeRegularExpression(declaration)
-    if (excludePattern) {
-      route.exclude_pattern = serializePattern(excludePattern)
+    const excludedPattern = getExcludedRegularExpression(declaration)
+    if (excludedPattern) {
+      route.excluded_pattern = serializePattern(excludedPattern)
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -116,19 +116,19 @@ const getRegularExpression = (declaration: Declaration) => {
   return pathToRegularExpression(declaration.path)
 }
 
-const getExcludeRegularExpression = (declaration: Declaration) => {
+const getExcludedRegularExpression = (declaration: Declaration) => {
   if (isDeclarationWithPattern(declaration)) {
-    if (!declaration.excludePattern) {
+    if (!declaration.excludedPattern) {
       return
     }
-    return new RegExp(declaration.excludePattern)
+    return new RegExp(declaration.excludedPattern)
   }
 
-  if (!declaration.excludePath) {
+  if (!declaration.excludedPath) {
     return
   }
 
-  return pathToRegularExpression(declaration.excludePath)
+  return pathToRegularExpression(declaration.excludedPath)
 }
 
 interface WriteManifestOptions {

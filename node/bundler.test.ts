@@ -334,8 +334,8 @@ test('Loads declarations and import maps from the deploy configuration', async (
   expect(bundles[0].format).toBe('eszip2')
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
-  // respects excludePath from deploy config
-  expect(routes[1].exclude_pattern).toEqual('^/func2/skip/?$')
+  // respects excludedPath from deploy config
+  expect(routes[1].excluded_pattern).toEqual('^/func2/skip/?$')
 
   await cleanup()
 })
