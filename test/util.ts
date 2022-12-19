@@ -29,7 +29,7 @@ const useFixture = async (fixtureName: string) => {
 }
 
 const inspectFunction = (path: string) => `
-  import { functions } from "${path}.js";
+  import { functions } from "${pathToFileURL(path)}.js";
 
   const responses = {};
 
