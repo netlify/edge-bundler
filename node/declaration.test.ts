@@ -133,9 +133,7 @@ test('netlify.toml-defined excludepaths are respected', () => {
 
   const funcConfig = {}
 
-  const expectedDeclarations = [
-    { function: 'geolocation', path: '/geo/*', excludePath: '/geo/exclude',  },
-  ]
+  const expectedDeclarations = [{ function: 'geolocation', path: '/geo/*', excludePath: '/geo/exclude' }]
 
   const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)
 
