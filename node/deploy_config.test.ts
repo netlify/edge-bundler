@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 import { cwd } from 'process'
-import { pathToFileURL } from 'url'
 
 import tmp from 'tmp-promise'
 import { test, expect } from 'vitest'
