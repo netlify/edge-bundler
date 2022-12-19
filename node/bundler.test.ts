@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs'
 import { join, resolve } from 'path'
 import process from 'process'
+import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
@@ -352,11 +353,11 @@ test("Ignores entries in `importMapPaths` that don't point to an existing import
   const importMap = await tmp.file()
   const importMapContents = {
     imports: {
-      helper: join(basePath, 'helper.ts'),
+      helper: pathToFileURL(join(basePath, 'helper.ts')).toString(),
     },
     scopes: {
-      [join(sourceDirectory, 'func3')]: {
-        helper: join(basePath, 'helper2.ts'),
+      [pathToFileURL(join(sourceDirectory, 'func3')).toString()]: {
+        helper: pathToFileURL(join(basePath, 'helper2.ts')).toString(),
       },
     },
   }
