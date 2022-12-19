@@ -127,3 +127,17 @@ test('In-source config works if path property is an empty array with cache value
 
   expect(getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)).toEqual(expectedDeclarations)
 })
+
+test('netlify.toml-defined excludepaths are respected', () => {
+  const tomlConfig = [{ function: 'geolocation', path: '/geo/*', excludePath: '/geo/exclude' }]
+
+  const funcConfig = {}
+
+  const expectedDeclarations = [
+    { function: 'geolocation', path: '/geo/*', excludePath: '/geo/exclude',  },
+  ]
+
+  const declarations = getDeclarationsFromConfig(tomlConfig, funcConfig, deployConfig)
+
+  expect(declarations).toEqual(expectedDeclarations)
+})
