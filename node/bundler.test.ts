@@ -4,14 +4,14 @@ import process from 'process'
 
 import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 
 import { importMapSpecifier } from '../shared/consts.js'
 import { runESZIP, useFixture } from '../test/util.js'
 
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
-import { isNodeError } from './utils/error.js'
+import { isFileNotFoundError } from './utils/error.js'
 import { validateManifest } from './validation/manifest/index.js'
 
 test('Produces an ESZIP bundle', async () => {
@@ -264,7 +264,7 @@ test('Ignores any user-defined `deno.json` files', async () => {
       `The file at '${denoConfigPath} would be overwritten by this test. Please move the file to a different location and try again.'`,
     )
   } catch (error) {
-    if (isNodeError(error) && error.code !== 'ENOENT') {
+    if (!isFileNotFoundError(error)) {
       throw error
     }
   }
@@ -344,8 +344,10 @@ test('Loads declarations and import maps from the deploy configuration', async (
 })
 
 test("Ignores entries in `importMapPaths` that don't point to an existing import map file", async () => {
+  const systemLogger = vi.fn()
   const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
   const sourceDirectory = join(basePath, 'functions')
+  const importMapPath = join(distPath, 'some-file-that-does-not-exist.json')
   const declarations = [
     {
       function: 'func1',
@@ -355,12 +357,14 @@ test("Ignores entries in `importMapPaths` that don't point to an existing import
   const result = await bundle([sourceDirectory], distPath, declarations, {
     basePath,
     configPath: join(sourceDirectory, 'config.json'),
-    importMapPaths: [join(distPath, 'some-file-that-does-not-exist.json')],
+    importMapPaths: [importMapPath],
+    systemLogger,
   })
   const generatedFiles = await fs.readdir(distPath)
 
   expect(result.functions.length).toBe(1)
   expect(generatedFiles.length).toBe(2)
+  expect(systemLogger).toHaveBeenCalledWith(`Did not find an import map file at '${importMapPath}'.`)
 
   await cleanup()
 })
