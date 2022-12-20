@@ -1,17 +1,18 @@
 import { promises as fs } from 'fs'
 import { join, resolve } from 'path'
 import process from 'process'
+import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 
 import { importMapSpecifier } from '../shared/consts.js'
-import { useFixture } from '../test/util.js'
+import { runESZIP, useFixture } from '../test/util.js'
 
 import { BundleError } from './bundle_error.js'
 import { bundle, BundleOptions } from './bundler.js'
-import { isNodeError } from './utils/error.js'
+import { isFileNotFoundError } from './utils/error.js'
 import { validateManifest } from './validation/manifest/index.js'
 
 test('Produces an ESZIP bundle', async () => {
@@ -27,13 +28,11 @@ test('Produces an ESZIP bundle', async () => {
   const result = await bundle([userDirectory, internalDirectory], distPath, declarations, {
     basePath,
     configPath: join(internalDirectory, 'config.json'),
-    featureFlags: {
-      edge_functions_read_deno_config: true,
-    },
+    importMapPaths: [join(userDirectory, 'import_map.json')],
   })
   const generatedFiles = await fs.readdir(distPath)
 
-  expect(result.functions.length).toBe(2)
+  expect(result.functions.length).toBe(3)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(distPath, 'manifest.json'), 'utf8')
@@ -46,6 +45,14 @@ test('Produces an ESZIP bundle', async () => {
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
   expect(importMapURL).toBe(importMapSpecifier)
+
+  const bundlePath = join(distPath, bundles[0].asset)
+
+  const { func1, func2, func3 } = await runESZIP(bundlePath)
+
+  expect(func1).toBe('HELLO, JANE DOE!')
+  expect(func2).toBe('Jane Doe')
+  expect(func3).toBe('hello, netlify!')
 
   await cleanup()
 })
@@ -258,7 +265,7 @@ test('Ignores any user-defined `deno.json` files', async () => {
       `The file at '${denoConfigPath} would be overwritten by this test. Please move the file to a different location and try again.'`,
     )
   } catch (error) {
-    if (isNodeError(error) && error.code !== 'ENOENT') {
+    if (!isFileNotFoundError(error)) {
       throw error
     }
   }
@@ -338,4 +345,50 @@ test('Loads declarations and import maps from the deploy configuration', async (
   expect(routes[1].excluded_pattern).toEqual('^/func2/skip/?$')
 
   await cleanup()
+})
+
+test("Ignores entries in `importMapPaths` that don't point to an existing import map file", async () => {
+  const systemLogger = vi.fn()
+  const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
+  const sourceDirectory = join(basePath, 'user-functions')
+
+  // Creating import map file
+  const importMap = await tmp.file()
+  const importMapContents = {
+    imports: {
+      helper: pathToFileURL(join(basePath, 'helper.ts')).toString(),
+    },
+    scopes: {
+      [pathToFileURL(join(sourceDirectory, 'func3')).toString()]: {
+        helper: pathToFileURL(join(basePath, 'helper2.ts')).toString(),
+      },
+    },
+  }
+
+  await fs.writeFile(importMap.path, JSON.stringify(importMapContents))
+
+  const nonExistingImportMapPath = join(distPath, 'some-file-that-does-not-exist.json')
+  const result = await bundle(
+    [sourceDirectory],
+    distPath,
+    [
+      {
+        function: 'func1',
+        path: '/func1',
+      },
+    ],
+    {
+      basePath,
+      importMapPaths: [nonExistingImportMapPath, importMap.path],
+      systemLogger,
+    },
+  )
+  const generatedFiles = await fs.readdir(distPath)
+
+  expect(result.functions.length).toBe(2)
+  expect(generatedFiles.length).toBe(2)
+  expect(systemLogger).toHaveBeenCalledWith(`Did not find an import map file at '${nonExistingImportMapPath}'.`)
+
+  await cleanup()
+  await importMap.cleanup()
 })
