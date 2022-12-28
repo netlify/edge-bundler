@@ -4,20 +4,12 @@ import { join } from 'path'
 import globToRegExp from 'glob-to-regexp'
 
 import type { Bundle } from './bundle.js'
-import { Cache } from './config.js'
+import { Cache, FunctionConfig } from './config.js'
 import type { Declaration } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
 import { Layer } from './layer.js'
 import { getPackageVersion } from './package_json.js'
 import { nonNullable } from './utils/non_nullable.js'
-
-interface GenerateManifestOptions {
-  bundles?: Bundle[]
-  declarations?: Declaration[]
-  functions: EdgeFunction[]
-  importMap?: string
-  layers?: Layer[]
-}
 
 /* eslint-disable camelcase */
 interface Route {
@@ -40,6 +32,15 @@ interface Manifest {
 
 /* eslint-enable camelcase */
 
+interface GenerateManifestOptions {
+  bundles?: Bundle[]
+  declarations?: Declaration[]
+  functions: EdgeFunction[]
+  functionConfig?: Record<string, FunctionConfig>
+  importMap?: string
+  layers?: Layer[]
+}
+
 interface Route {
   function: string
   name?: string
@@ -52,14 +53,23 @@ const generateManifest = ({
   bundles = [],
   declarations = [],
   functions,
+  functionConfig = {},
   importMap,
   layers = [],
 }: GenerateManifestOptions) => {
   const preCacheRoutes: Route[] = []
   const postCacheRoutes: Route[] = []
-  const functionConfig: Manifest['function_config'] = Object.fromEntries(
+  const manifestFunctionConfig: Manifest['function_config'] = Object.fromEntries(
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
+
+  for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
+    if (excludedPath) {
+      const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
+      const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
+      manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+    }
+  }
 
   declarations.forEach((declaration) => {
     const func = functions.find(({ name }) => declaration.function === name)
@@ -76,7 +86,7 @@ const generateManifest = ({
     }
     const excludedPattern = getExcludedRegularExpression(declaration)
     if (excludedPattern) {
-      functionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+      manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -96,7 +106,7 @@ const generateManifest = ({
     bundler_version: getPackageVersion(),
     layers,
     import_map: importMap,
-    function_config: functionConfig,
+    function_config: manifestFunctionConfig,
   }
 
   return manifest
@@ -133,24 +143,12 @@ const getExcludedRegularExpression = (declaration: Declaration) => {
   }
 }
 
-interface WriteManifestOptions {
-  bundles: Bundle[]
-  declarations: Declaration[]
+interface WriteManifestOptions extends GenerateManifestOptions {
   distDirectory: string
-  functions: EdgeFunction[]
-  importMap?: string
-  layers?: Layer[]
 }
 
-const writeManifest = async ({
-  bundles,
-  declarations = [],
-  distDirectory,
-  functions,
-  importMap,
-  layers,
-}: WriteManifestOptions) => {
-  const manifest = generateManifest({ bundles, declarations, functions, importMap, layers })
+const writeManifest = async ({ distDirectory, ...rest }: WriteManifestOptions) => {
+  const manifest = generateManifest(rest)
   const manifestPath = join(distDirectory, 'manifest.json')
 
   await fs.writeFile(manifestPath, JSON.stringify(manifest))
