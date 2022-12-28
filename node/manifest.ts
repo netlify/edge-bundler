@@ -24,7 +24,9 @@ interface Route {
   function: string
   name?: string
   pattern: string
-  excluded_pattern?: string
+}
+interface EdgeFunctionConfig {
+  excluded_patterns: string[]
 }
 interface Manifest {
   bundler_version: string
@@ -33,7 +35,9 @@ interface Manifest {
   layers: { name: string; flag: string }[]
   routes: Route[]
   post_cache_routes: Route[]
+  function_config: Record<string, EdgeFunctionConfig>
 }
+
 /* eslint-enable camelcase */
 
 interface Route {
@@ -53,6 +57,9 @@ const generateManifest = ({
 }: GenerateManifestOptions) => {
   const preCacheRoutes: Route[] = []
   const postCacheRoutes: Route[] = []
+  const functionConfig: Manifest['function_config'] = Object.fromEntries(
+    functions.map(({ name }) => [name, { excluded_patterns: [] }]),
+  )
 
   declarations.forEach((declaration) => {
     const func = functions.find(({ name }) => declaration.function === name)
@@ -69,7 +76,7 @@ const generateManifest = ({
     }
     const excludedPattern = getExcludedRegularExpression(declaration)
     if (excludedPattern) {
-      route.excluded_pattern = serializePattern(excludedPattern)
+      functionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -89,6 +96,7 @@ const generateManifest = ({
     bundler_version: getPackageVersion(),
     layers,
     import_map: importMap,
+    function_config: functionConfig,
   }
 
   return manifest
