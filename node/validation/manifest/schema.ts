@@ -26,7 +26,7 @@ const routesSchema = {
 
 const functionConfigSchema = {
   type: 'object',
-  required: ['excluded_patterns'],
+  required: [],
   properties: {
     excluded_patterns: {
       type: 'array',
