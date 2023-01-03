@@ -187,7 +187,7 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(postCacheRoutes.length).toBe(1)
   expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$' })
 
-  expect(Object.keys(functionConfig)).toHaveLength(7)
+  expect(Object.keys(functionConfig)).toHaveLength(1)
   expect(functionConfig['user-func5']).toEqual({
     excluded_patterns: ['^/user-func5/excluded/?$'],
   })

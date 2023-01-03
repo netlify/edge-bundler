@@ -59,15 +59,18 @@ const generateManifest = ({
 }: GenerateManifestOptions) => {
   const preCacheRoutes: Route[] = []
   const postCacheRoutes: Route[] = []
-  const manifestFunctionConfig: Manifest['function_config'] = Object.fromEntries(
-    functions.map(({ name }) => [name, { excluded_patterns: [] }]),
-  )
+  const manifestFunctionConfig: Manifest['function_config'] = {}
+
+  const getFunctionConfig = (name: string) => {
+    if (!manifestFunctionConfig[name]) manifestFunctionConfig[name] = { excluded_patterns: [] }
+    return manifestFunctionConfig[name]
+  }
 
   for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
     if (excludedPath) {
       const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
       const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
-      manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+      getFunctionConfig(name).excluded_patterns.push(...excludedPatterns)
     }
   }
 
@@ -86,7 +89,7 @@ const generateManifest = ({
     }
     const excludedPattern = getExcludedRegularExpression(declaration)
     if (excludedPattern) {
-      manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+      getFunctionConfig(func.name).excluded_patterns.push(serializePattern(excludedPattern))
     }
 
     if (declaration.cache === Cache.Manual) {
