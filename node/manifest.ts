@@ -72,7 +72,7 @@ const generateManifest = ({
   const preCacheRoutes: Route[] = []
   const postCacheRoutes: Route[] = []
   const manifestFunctionConfig: Manifest['function_config'] = Object.fromEntries(
-    Object.keys(functionConfig).map((key) => [key, { excluded_patterns: [] }]),
+    functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
 
   for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
