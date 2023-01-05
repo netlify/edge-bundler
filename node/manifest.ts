@@ -49,6 +49,18 @@ interface Route {
 
 const serializePattern = (regex: RegExp) => regex.source.replace(/\\\//g, '/')
 
+const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>): Record<string, EdgeFunctionConfig> => {
+  const newConfig = { ...config }
+
+  for (const [name, functionConfig] of Object.entries(newConfig)) {
+    if (functionConfig.excluded_patterns.length === 0) {
+      delete newConfig[name]
+    }
+  }
+
+  return newConfig
+}
+
 const generateManifest = ({
   bundles = [],
   declarations = [],
@@ -59,18 +71,15 @@ const generateManifest = ({
 }: GenerateManifestOptions) => {
   const preCacheRoutes: Route[] = []
   const postCacheRoutes: Route[] = []
-  const manifestFunctionConfig: Manifest['function_config'] = {}
-
-  const getFunctionConfig = (name: string) => {
-    if (!manifestFunctionConfig[name]) manifestFunctionConfig[name] = { excluded_patterns: [] }
-    return manifestFunctionConfig[name]
-  }
+  const manifestFunctionConfig: Manifest['function_config'] = Object.fromEntries(
+    Object.keys(functionConfig).map((key) => [key, { excluded_patterns: [] }]),
+  )
 
   for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
     if (excludedPath) {
       const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
       const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
-      getFunctionConfig(name).excluded_patterns.push(...excludedPatterns)
+      manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
     }
   }
 
@@ -89,7 +98,7 @@ const generateManifest = ({
     }
     const excludedPattern = getExcludedRegularExpression(declaration)
     if (excludedPattern) {
-      getFunctionConfig(func.name).excluded_patterns.push(serializePattern(excludedPattern))
+      manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -109,7 +118,7 @@ const generateManifest = ({
     bundler_version: getPackageVersion(),
     layers,
     import_map: importMap,
-    function_config: manifestFunctionConfig,
+    function_config: sanitizeEdgeFunctionConfig(manifestFunctionConfig),
   }
 
   return manifest
