@@ -50,11 +50,11 @@ interface Route {
 const serializePattern = (regex: RegExp) => regex.source.replace(/\\\//g, '/')
 
 const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>): Record<string, EdgeFunctionConfig> => {
-  const newConfig = { ...config }
+  const newConfig: Record<string, EdgeFunctionConfig> = {}
 
-  for (const [name, functionConfig] of Object.entries(newConfig)) {
-    if (functionConfig.excluded_patterns.length === 0) {
-      delete newConfig[name]
+  for (const [name, functionConfig] of Object.entries(config)) {
+    if (functionConfig.excluded_patterns.length !== 0) {
+      newConfig[name] = functionConfig
     }
   }
 
