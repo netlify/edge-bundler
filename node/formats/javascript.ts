@@ -59,7 +59,7 @@ const getLocalEntryPoint = (
   }: GetLocalEntryPointOptions,
 ) => {
   const bootImport = `import { boot } from "${getBootstrapURL()}";`
-  const declaration = `const functions = {}; const metadata = { functions: {} };`
+  const declaration = `const functions = {}; const metadata = { functions: {}, importErrors: {} };`
   const imports = functions.map((func) => {
     const url = pathToFileURL(func.path)
     const metadata = {
@@ -77,6 +77,7 @@ const getLocalEntryPoint = (
           console.log(${JSON.stringify(formatExportTypeError(func.name))});
         }
       } catch (error) {
+        metadata.importErrors["${func.name}"] = error;
         console.log(${JSON.stringify(formatImportError(func.name))});
         console.error(error);
       }
