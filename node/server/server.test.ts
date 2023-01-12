@@ -74,3 +74,38 @@ test('Starts a server and serves requests for edge functions', async () => {
   expect(response2.status).toBe(200)
   expect(await response2.text()).toBe('HELLO!')
 })
+
+test('should throw right error for top level exceptions', async () => {
+  const basePath = join(fixturesDir, 'serve_test_top_level_exception')
+  const paths = {
+    user: join(basePath, 'netlify', 'edge-functions'),
+  }
+  const port = await getPort()
+  const server = await serve({
+    port,
+  })
+
+  const functions = [
+    {
+      name: 'main',
+      path: join(paths.user, 'main.js'),
+    },
+  ]
+  const options = {
+    getFunctionsConfig: true,
+  }
+
+  const { success } = await server(functions, {}, options)
+  expect(success).toBe(true)
+
+  const response1 = await fetch(`http://0.0.0.0:${port}/foo`, {
+    headers: {
+      'x-deno-functions': 'main',
+      'x-deno-pass': 'passthrough',
+      'X-NF-Request-ID': uuidv4(),
+    },
+  })
+  expect(response1.status).toBe(500)
+  const { error } = (await response1.json()) as { error: { message: string } }
+  expect(error.message).toBe('top-level exception')
+})
