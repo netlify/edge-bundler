@@ -8,7 +8,7 @@ import { deleteAsync } from 'del'
 import { EdgeFunction } from '../edge_function.js'
 import type { FormatFunction } from '../server/server.js'
 
-const BOOTSTRAP_LATEST = 'https://63c01cf32d59e80008a857fc--edge.netlify.com/bootstrap/index-combined.ts'
+const BOOTSTRAP_LATEST = 'https://deploy-preview-153--edge.netlify.app/bootstrap/index-combined.ts'
 
 const defaultFormatExportTypeError: FormatFunction = (name) =>
   `The Edge Function "${name}" has failed to load. Does it have a function as the default export?`
@@ -59,7 +59,7 @@ const getLocalEntryPoint = (
   }: GetLocalEntryPointOptions,
 ) => {
   const bootImport = `import { boot } from "${getBootstrapURL()}";`
-  const declaration = `const functions = {}; const metadata = { functions: {} };`
+  const declaration = `const functions = {}; const metadata = { functions: {}, importErrors: {} };`
   const imports = functions.map((func) => {
     const url = pathToFileURL(func.path)
     const metadata = {
@@ -77,6 +77,7 @@ const getLocalEntryPoint = (
           console.log(${JSON.stringify(formatExportTypeError(func.name))});
         }
       } catch (error) {
+        metadata.importErrors["${func.name}"] = error;
         console.log(${JSON.stringify(formatImportError(func.name))});
         console.error(error);
       }
