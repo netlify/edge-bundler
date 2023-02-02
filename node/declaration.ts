@@ -86,7 +86,7 @@ export const parsePattern = (pattern: string) => {
     Assertion(path) {
       // Lookaheads are not supported. If we find one, throw an error.
       if (path.node.kind === 'Lookahead') {
-        throw new Error('Regular expressions with negative lookaheads are not supported')
+        throw new Error('Regular expressions with lookaheads are not supported')
       }
     },
 

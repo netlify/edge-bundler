@@ -197,7 +197,7 @@ test('Throws an error if the regular expression contains a negative lookahead', 
   const declarations = [{ function: 'func-1', pattern: '^/\\w+(?=\\d)$' }]
 
   expect(() => generateManifest({ bundles: [], declarations, functions })).toThrowError(
-    /^Could not parse path declaration of function 'func-1': Regular expressions with negative lookaheads are not supported$/,
+    /^Could not parse path declaration of function 'func-1': Regular expressions with lookaheads are not supported$/,
   )
 })
 
