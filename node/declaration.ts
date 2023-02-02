@@ -1,4 +1,4 @@
-import { transform } from 'regexp-tree'
+import regexpAST from 'regexp-tree'
 
 import { FunctionConfig } from './config.js'
 import type { DeployConfig } from './deploy_config.js'
@@ -81,7 +81,7 @@ export const getDeclarationsFromConfig = (
 // for the Go regexp engine.
 export const parsePattern = (pattern: string) => {
   const normalizedPattern = pattern.replace(/\//g, '\\/')
-  const regex = transform(`/${normalizedPattern}/`, {
+  const regex = regexpAST.transform(`/${normalizedPattern}/`, {
     Assertion(path) {
       // Lookaheads are not supported. If we find one, throw an error.
       if (path.node.kind === 'Lookahead') {
