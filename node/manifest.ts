@@ -158,7 +158,7 @@ const getRegularExpression = (declaration: Declaration) => {
 }
 
 const getExcludedRegularExpression = (declaration: Declaration) => {
-  if ('pattern' in declaration && declaration.excludedPattern) {
+  if ('excludedPattern' in declaration && declaration.excludedPattern) {
     try {
       return parsePattern(declaration.excludedPattern)
     } catch (error: unknown) {
