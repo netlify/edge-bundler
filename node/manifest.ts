@@ -82,7 +82,8 @@ const generateManifest = ({
   for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
     if (excludedPath) {
       const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
-      const excludedPatterns = paths.map(pathToRegularExpression)
+      const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
+
       manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
     }
   }
