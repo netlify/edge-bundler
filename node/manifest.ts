@@ -159,7 +159,13 @@ const getRegularExpression = (declaration: Declaration) => {
 
 const getExcludedRegularExpression = (declaration: Declaration) => {
   if ('pattern' in declaration && declaration.excludedPattern) {
-    return parsePattern(declaration.excludedPattern)
+    try {
+      return parsePattern(declaration.excludedPattern)
+    } catch (error: unknown) {
+      throw new Error(
+        `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+      )
+    }
   }
 
   if ('path' in declaration && declaration.excludedPath) {
