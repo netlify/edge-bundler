@@ -78,8 +78,9 @@ export const getDeclarationsFromConfig = (
 }
 
 // Validates and normalizes a pattern so that it's a valid regular expression
-// for the Go regexp engine.
+// in Go, which is the engine used by our edge nodes.
 export const parsePattern = (pattern: string) => {
+  // Escaping forward slashes with back slashes.
   const normalizedPattern = pattern.replace(/\//g, '\\/')
   const regex = regexpAST.transform(`/${normalizedPattern}/`, {
     Assertion(path) {
