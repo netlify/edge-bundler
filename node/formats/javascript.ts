@@ -87,4 +87,46 @@ const getLocalEntryPoint = (
   return [bootImport, declaration, ...imports, bootCall].join('\n\n')
 }
 
-export { generateStage2, getBootstrapURL, getLocalEntryPoint }
+const generateProductionEntryPoint = async (functions: EdgeFunction[], path: string) => {
+  const entryPoint = getProductionEntryPoint(functions, {})
+
+  await fs.writeFile(path, entryPoint)
+}
+
+const getProductionEntryPoint = (
+  functions: EdgeFunction[],
+  {
+    formatExportTypeError = defaultFormatExportTypeError,
+    formatImportError = defaultFormatImpoortError,
+  }: GetLocalEntryPointOptions,
+) => {
+  const bootImport = `import { handleEvent } from "https://hedge--edge.netlify.app/bootstrap/index-hedge.ts";`
+  const declaration = `const functions = {}; const metadata = { functions: {} };`
+  const imports = functions.map((func) => {
+    const url = pathToFileURL(func.path)
+    const metadata = {
+      url,
+    }
+
+    return `
+      try {
+        const { default: func } = await import("${url}");
+
+        if (typeof func === "function") {
+          functions["${func.name}"] = func;
+          metadata.functions["${func.name}"] = ${JSON.stringify(metadata)}
+        } else {
+          console.log(${JSON.stringify(formatExportTypeError(func.name))});
+        }
+      } catch (error) {
+        console.log(${JSON.stringify(formatImportError(func.name))});
+        console.error(error);
+      }
+      `
+  })
+  const handler = `export const handler = async (event) => handleEvent(event, functions);`
+
+  return [bootImport, declaration, ...imports, handler].join('\n\n')
+}
+
+export { generateProductionEntryPoint, generateStage2, getBootstrapURL, getLocalEntryPoint }

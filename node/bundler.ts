@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import { join } from 'path'
+import { join, resolve } from 'path'
 
 import commonPathPrefix from 'common-path-prefix'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,6 +14,7 @@ import { load as loadDeployConfig } from './deploy_config.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
+import { generateProductionEntryPoint } from './formats/javascript.js'
 import { ImportMap } from './import_map.js'
 import { getLogger, LogFunction } from './logger.js'
 import { writeManifest } from './manifest.js'
@@ -96,6 +97,12 @@ const bundle = async (
     featureFlags,
     importMap,
   })
+
+  if (featureFlags.edge_functions_deploy_hedge) {
+    const productionPath = resolve(distDirectory, '..', 'functions-internal', '___netlify-hedge')
+
+    await generateProductionEntryPoint(functions, productionPath)
+  }
 
   // The final file name of the bundles contains a SHA256 hash of the contents,
   // which we can only compute now that the files have been generated. So let's
