@@ -4,7 +4,6 @@ import { dirname, resolve } from 'path'
 import type { Declaration } from './declaration.js'
 import type { Layer } from './layer.js'
 import type { Logger } from './logger.js'
-import addGeneratorIfMissing from './utils/add_generator_if_missing.js'
 import { isFileNotFoundError } from './utils/error.js'
 
 /* eslint-disable camelcase */
@@ -53,7 +52,7 @@ const parse = (data: DeployConfigFile, path: string) => {
   }
 
   const config: DeployConfig = {
-    declarations: addGeneratorIfMissing(data.functions) ?? [],
+    declarations: data.functions ?? [],
     layers: data.layers ?? [],
   }
 
