@@ -4,7 +4,7 @@ const defaultFlags = {
 }
 
 type FeatureFlag = keyof typeof defaultFlags
-type FeatureFlags = Record<FeatureFlag | string, boolean>
+type FeatureFlags = Partial<Record<FeatureFlag, boolean>>
 
 const getFlags = (input: Record<string, boolean> = {}, flags = defaultFlags): FeatureFlags =>
   Object.entries(flags).reduce(
