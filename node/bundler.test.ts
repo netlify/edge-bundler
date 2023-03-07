@@ -333,7 +333,6 @@ test('Loads declarations and import maps from the deploy configuration', async (
     basePath,
     configPath: join(basePath, '.netlify', 'edge-functions', 'manifest.json'),
     internalSrcFolder: directories[1],
-    featureFlags: { edge_functions_config_export: true },
   })
   const generatedFiles = await fs.readdir(distPath)
 
