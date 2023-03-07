@@ -21,6 +21,7 @@ const routesSchema = {
         'pattern needs to be a regex that starts with ^ and ends with $ without any additional slashes before and afterwards',
     },
     generator: { type: 'string' },
+    on_error: { type: 'string' },
   },
   additionalProperties: false,
 }

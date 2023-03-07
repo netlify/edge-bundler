@@ -17,6 +17,7 @@ const getBaseManifest = (): Record<string, any> => ({
       function: 'hello',
       pattern: '^/hello/?$',
       generator: '@netlify/fake-plugin@1.0.0',
+      on_error: 'fail',
     },
   ],
   post_cache_routes: [
@@ -25,6 +26,7 @@ const getBaseManifest = (): Record<string, any> => ({
       function: 'hello',
       pattern: '^/hello/?$',
       generator: '@netlify/fake-plugin@1.0.0',
+      on_error: 'fail',
     },
   ],
   layers: [

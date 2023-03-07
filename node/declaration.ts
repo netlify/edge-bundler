@@ -1,6 +1,6 @@
 import regexpAST from 'regexp-tree'
 
-import { FunctionConfig } from './config.js'
+import { FunctionConfig, OnError } from './config.js'
 import type { DeployConfig } from './deploy_config.js'
 
 interface BaseDeclaration {
@@ -8,6 +8,7 @@ interface BaseDeclaration {
   function: string
   name?: string
   generator?: string
+  onError?: OnError
 }
 
 type DeclarationWithPath = BaseDeclaration & {
