@@ -115,10 +115,7 @@ const functions = [
       export default async () => new Response("Hello from function two")
       export const config = { onError: "foo" }
     `,
-    error: /The 'onError' config in edge function at .*/,
-    featureFlags: {
-      edge_functions_invalid_config_throw: false,
-    },
+    error: /The 'onError' config in edge function at .*/
   },
   {
     testName: 'config with `path`',
