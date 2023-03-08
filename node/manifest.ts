@@ -17,10 +17,10 @@ interface Route {
   name?: string
   pattern: string
   generator?: string
-  on_error?: string
 }
 interface EdgeFunctionConfig {
   excluded_patterns: string[]
+  on_error?: string
 }
 interface Manifest {
   bundler_version: string
@@ -52,7 +52,7 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
   const newConfig: Record<string, EdgeFunctionConfig> = {}
 
   for (const [name, functionConfig] of Object.entries(config)) {
-    if (functionConfig.excluded_patterns.length !== 0) {
+    if (functionConfig.excluded_patterns.length !== 0 || functionConfig.on_error) {
       newConfig[name] = functionConfig
     }
   }
@@ -75,12 +75,16 @@ const generateManifest = ({
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
 
-  for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
+  for (const [name, { excludedPath, onError }] of Object.entries(functionConfig)) {
     if (excludedPath) {
       const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
       const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
 
       manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+    }
+    
+    if (onError) {
+      manifestFunctionConfig[name].on_error = onError
     }
   }
 
@@ -97,7 +101,6 @@ const generateManifest = ({
       name: declaration.name,
       pattern: serializePattern(pattern),
       generator: declaration.generator,
-      on_error: declaration.onError ?? functionConfig[func.name]?.onError,
     }
     const excludedPattern = getExcludedRegularExpression(
       declaration,

@@ -108,9 +108,8 @@ test('Includes failure modes in manifest', () => {
     { name: 'func-2', path: '/path/to/func-2.ts' },
   ]
   const declarations: Declaration[] = [
-    { function: 'func-1', name: 'Display Name', path: '/f1/*', excludedPath: '/f1/exclude' },
-    { function: 'func-1', name: 'Display Name', path: '/f1/critical/*', onError: 'fail' },
-    { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
+    { function: 'func-1', name: 'Display Name', path: '/f1/*' },
+    { function: 'func-2', pattern: '^/f2/.*/?$' },
   ]
   const functionConfig: Record<string, FunctionConfig> = {
     'func-1': {
@@ -118,14 +117,9 @@ test('Includes failure modes in manifest', () => {
     },
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, functionConfig })
-
-  const expectedRoutes = [
-    { function: 'func-1', name: 'Display Name', pattern: '^/f1/.*/?$', on_error: '/custom-error' },
-    { function: 'func-1', name: 'Display Name', pattern: '^/f1/critical/.*/?$', on_error: 'fail' },
-    { function: 'func-2', pattern: '^/f2/.*/?$' },
-  ]
-
-  expect(manifest.routes).toEqual(expectedRoutes)
+  expect(manifest.function_config).toEqual({
+    'func-1': { excluded_patterns: [], on_error: '/custom-error' },
+  })
 })
 
 test('Excludes functions for which there are function files but no matching config declarations', () => {
