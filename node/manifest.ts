@@ -82,7 +82,7 @@ const generateManifest = ({
 
       manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
     }
-    
+
     if (onError) {
       manifestFunctionConfig[name].on_error = onError
     }
