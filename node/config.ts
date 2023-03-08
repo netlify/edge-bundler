@@ -112,7 +112,7 @@ export const getFunctionConfig = async (
   if (!isValidOnError(collectorData.onError)) {
     throw new BundleError(
       new Error(
-        `The 'onError' config in edge function at '${func.path}' must be one of 'fail', 'bypass', or a path starting with '/', got '${collectorData.onError}'. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+        `The 'onError' configuration property in edge function at '${func.path}' must be one of 'fail', 'bypass', or a path starting with '/'. Got '${collectorData.onError}'. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
       ),
     )
   }
