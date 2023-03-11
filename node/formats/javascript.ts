@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import { env } from 'process'
 import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
@@ -58,7 +57,7 @@ const getLocalEntryPoint = (
     formatImportError = defaultFormatImpoortError,
   }: GetLocalEntryPointOptions,
 ) => {
-  const bootImport = `import { boot } from "${env.NETLIFY_EDGE_BOOTSTRAP ?? bootstrapURL}";`
+  const bootImport = `import { boot } from "${bootstrapURL}";`
   const declaration = `const functions = {}; const metadata = { functions: {} };`
   const imports = functions.map((func) => {
     const url = pathToFileURL(func.path)
