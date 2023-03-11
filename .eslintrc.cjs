@@ -17,6 +17,7 @@ module.exports = {
     'no-shadow': 'off',
     'no-use-before-define': 'off',
     'unicorn/prefer-json-parse-buffer': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
   },
   overrides: [
     ...overrides,

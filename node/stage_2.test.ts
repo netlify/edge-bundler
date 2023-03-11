@@ -44,7 +44,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
 
   const stage2 = getLocalEntryPoint(
     functions.map(({ name, path }) => ({ name, path })),
-    {},
+    { bootstrapURL: 'https://640b5b066a2b9b0008e88cb0--edge.netlify.com/bootstrap/index-combined.ts' },
   )
   const stage2Path = join(tmpDir, 'stage2.mjs')
 

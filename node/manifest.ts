@@ -18,6 +18,8 @@ interface Route {
   pattern: string
   generator?: string
 }
+
+/* eslint-disable camelcase */
 interface EdgeFunctionConfig {
   excluded_patterns: string[]
   on_error?: string
@@ -31,6 +33,7 @@ interface Manifest {
   post_cache_routes: Route[]
   function_config: Record<string, EdgeFunctionConfig>
 }
+/* eslint-enable camelcase */
 
 interface GenerateManifestOptions {
   bundles?: Bundle[]

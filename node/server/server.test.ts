@@ -17,6 +17,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   const port = await getPort()
   const importMapPaths = [join(paths.internal, 'import_map.json'), join(paths.user, 'import-map.json')]
   const server = await serve({
+    bootstrapURL: 'https://640b5b066a2b9b0008e88cb0--edge.netlify.com/bootstrap/index-combined.ts',
     importMapPaths,
     port,
   })

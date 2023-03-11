@@ -6,12 +6,14 @@ import type { Layer } from './layer.js'
 import type { Logger } from './logger.js'
 import { isFileNotFoundError } from './utils/error.js'
 
+/* eslint-disable camelcase */
 interface DeployConfigFile {
   functions?: Declaration[]
   import_map?: string
   layers?: Layer[]
   version: number
 }
+/* eslint-enable camelcase */
 
 export interface DeployConfig {
   declarations: Declaration[]
