@@ -26,6 +26,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
     }
   `
   const printerPath = join(tmpDir, 'printer.mjs')
+  const bootstrapURL = pathToFileURL(printerPath).toString()
 
   await fs.writeFile(printerPath, printer)
 
@@ -42,7 +43,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
 
   const stage2 = getLocalEntryPoint(
     functions.map(({ name, path }) => ({ name, path })),
-    { bootstrapURL: pathToFileURL(printerPath).toString() },
+    { bootstrapURL },
   )
   const stage2Path = join(tmpDir, 'stage2.mjs')
 
