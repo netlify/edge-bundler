@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import process from 'process'
 import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
@@ -29,7 +28,6 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
   const printerPath = join(tmpDir, 'printer.mjs')
 
   await fs.writeFile(printerPath, printer)
-  process.env.NETLIFY_EDGE_BOOTSTRAP = pathToFileURL(printerPath).toString()
 
   const functions = [
     { name: 'func1', path: join(tmpDir, 'func1.mjs'), response: 'Hello from function 1' },
@@ -44,7 +42,7 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
 
   const stage2 = getLocalEntryPoint(
     functions.map(({ name, path }) => ({ name, path })),
-    { bootstrapURL: 'https://640b5b066a2b9b0008e88cb0--edge.netlify.com/bootstrap/index-combined.ts' },
+    { bootstrapURL: pathToFileURL(printerPath).toString() },
   )
   const stage2Path = join(tmpDir, 'stage2.mjs')
 
@@ -62,5 +60,4 @@ test('`getLocalEntryPoint` returns a valid stage 2 file for local development', 
   }
 
   await deleteAsync(tmpDir, { force: true })
-  delete process.env.NETLIFY_EDGE_BOOTSTRAP
 })
