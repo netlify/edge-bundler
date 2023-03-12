@@ -9,12 +9,12 @@ interface BaseDeclaration {
   generator?: string
 }
 
-export type DeclarationWithPath = BaseDeclaration & {
+type DeclarationWithPath = BaseDeclaration & {
   path: string
   excludedPath?: string
 }
 
-export type DeclarationWithPattern = BaseDeclaration & {
+type DeclarationWithPattern = BaseDeclaration & {
   pattern: string
   excludedPattern?: string
 }
