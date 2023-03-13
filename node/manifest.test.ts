@@ -1,8 +1,9 @@
 import { env } from 'process'
 
-import { test, expect } from 'vitest'
+import { test, expect, vi } from 'vitest'
 
 import { BundleFormat } from './bundle.js'
+import { FunctionConfig } from './config.js'
 import { Declaration } from './declaration.js'
 import { generateManifest } from './manifest.js'
 
@@ -52,6 +53,31 @@ test('Generates a manifest with display names', () => {
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 })
 
+test('Generates a manifest with a generator field', () => {
+  const functions = [
+    { name: 'func-1', path: '/path/to/func-1.ts' },
+    { name: 'func-2', path: '/path/to/func-2.ts' },
+    { name: 'func-3', path: '/path/to/func-3.ts' },
+  ]
+
+  const declarations = [
+    { function: 'func-1', generator: '@netlify/fake-plugin@1.0.0', path: '/f1/*' },
+    { function: 'func-2', path: '/f2/*' },
+    { function: 'func-3', generator: '@netlify/fake-plugin@1.0.0', cache: 'manual', path: '/f3' },
+  ]
+  const manifest = generateManifest({ bundles: [], declarations, functions })
+
+  const expectedRoutes = [
+    { function: 'func-1', generator: '@netlify/fake-plugin@1.0.0', pattern: '^/f1/.*/?$' },
+    { function: 'func-2', pattern: '^/f2/.*/?$' },
+  ]
+  const expectedPostCacheRoutes = [{ function: 'func-3', generator: '@netlify/fake-plugin@1.0.0', pattern: '^/f3/?$' }]
+
+  expect(manifest.routes).toEqual(expectedRoutes)
+  expect(manifest.post_cache_routes).toEqual(expectedPostCacheRoutes)
+  expect(manifest.bundler_version).toBe(env.npm_package_version as string)
+})
+
 test('Generates a manifest with excluded paths and patterns', () => {
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
@@ -74,6 +100,26 @@ test('Generates a manifest with excluded paths and patterns', () => {
     'func-2': { excluded_patterns: ['^/f2/exclude$'] },
   })
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
+})
+
+test('Includes failure modes in manifest', () => {
+  const functions = [
+    { name: 'func-1', path: '/path/to/func-1.ts' },
+    { name: 'func-2', path: '/path/to/func-2.ts' },
+  ]
+  const declarations: Declaration[] = [
+    { function: 'func-1', name: 'Display Name', path: '/f1/*' },
+    { function: 'func-2', pattern: '^/f2/.*/?$' },
+  ]
+  const functionConfig: Record<string, FunctionConfig> = {
+    'func-1': {
+      onError: '/custom-error',
+    },
+  }
+  const manifest = generateManifest({ bundles: [], declarations, functions, functionConfig })
+  expect(manifest.function_config).toEqual({
+    'func-1': { excluded_patterns: [], on_error: '/custom-error' },
+  })
 })
 
 test('Excludes functions for which there are function files but no matching config declarations', () => {
@@ -190,4 +236,51 @@ test('Generates a manifest with layers', () => {
 
   expect(manifest2.routes).toEqual(expectedRoutes)
   expect(manifest2.layers).toEqual(layers)
+})
+
+test('Shows a warning if the regular expression contains a negative lookahead', () => {
+  const mockConsoleWarn = vi.fn()
+  const consoleWarn = console.warn
+
+  console.warn = mockConsoleWarn
+
+  const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
+  const declarations = [{ function: 'func-1', pattern: '^/\\w+(?=\\d)$' }]
+  const manifest = generateManifest({
+    bundles: [],
+    declarations,
+    functions,
+  })
+
+  console.warn = consoleWarn
+
+  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/\\w+(?=\\d)$' }])
+  expect(mockConsoleWarn).toHaveBeenCalledOnce()
+  expect(mockConsoleWarn).toHaveBeenCalledWith(
+    "Function 'func-1' uses an unsupported regular expression and will not be invoked: Regular expressions with lookaheads are not supported",
+  )
+})
+
+test('Throws an error if the regular expression contains a negative lookahead and the `edge_functions_fail_unsupported_regex` flag is set', () => {
+  const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
+  const declarations = [{ function: 'func-1', pattern: '^/\\w+(?=\\d)$' }]
+
+  expect(() =>
+    generateManifest({
+      bundles: [],
+      declarations,
+      featureFlags: { edge_functions_fail_unsupported_regex: true },
+      functions,
+    }),
+  ).toThrowError(
+    /^Could not parse path declaration of function 'func-1': Regular expressions with lookaheads are not supported$/,
+  )
+})
+
+test('Converts named capture groups to unnamed capture groups in regular expressions', () => {
+  const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
+  const declarations = [{ function: 'func-1', pattern: '^/(?<name>\\w+)$' }]
+  const manifest = generateManifest({ bundles: [], declarations, functions })
+
+  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/(\\w+)$' }])
 })

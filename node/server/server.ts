@@ -13,6 +13,7 @@ import { killProcess, waitForServer } from './util.js'
 type FormatFunction = (name: string) => string
 
 interface PrepareServerOptions {
+  bootstrapURL: string
   deno: DenoBridge
   distDirectory: string
   entryPoint?: string
@@ -29,6 +30,7 @@ interface StartServerOptions {
 }
 
 const prepareServer = ({
+  bootstrapURL,
   deno,
   distDirectory,
   flags: denoFlags,
@@ -51,6 +53,7 @@ const prepareServer = ({
     let graph
 
     const stage2Path = await generateStage2({
+      bootstrapURL,
       distDirectory,
       fileName: 'dev.js',
       functions,
@@ -84,7 +87,7 @@ const prepareServer = ({
     let functionsConfig: FunctionConfig[] = []
 
     if (options.getFunctionsConfig) {
-      functionsConfig = await Promise.all(functions.map((func) => getFunctionConfig(func, importMap, deno, logger)))
+      functionsConfig = await Promise.all(functions.map((func) => getFunctionConfig(func, importMap, deno, logger, {})))
     }
 
     const success = await waitForServer(port, processRef.ps)
@@ -110,6 +113,7 @@ interface InspectSettings {
   address?: string
 }
 interface ServeOptions {
+  bootstrapURL: string
   certificatePath?: string
   debug?: boolean
   distImportMapPath?: string
@@ -124,6 +128,7 @@ interface ServeOptions {
 }
 
 const serve = async ({
+  bootstrapURL,
   certificatePath,
   debug,
   distImportMapPath,
@@ -158,7 +163,7 @@ const serve = async ({
 
   await importMap.addFiles(importMapPaths, logger)
 
-  const flags = ['--allow-all', '--unstable', `--import-map=${importMap.toDataURL()}`, '--no-config']
+  const flags = ['--allow-all', `--import-map=${importMap.toDataURL()}`, '--no-config']
 
   if (certificatePath) {
     flags.push(`--cert=${certificatePath}`)
@@ -179,6 +184,7 @@ const serve = async ({
   }
 
   const server = prepareServer({
+    bootstrapURL,
     deno,
     distDirectory,
     flags,

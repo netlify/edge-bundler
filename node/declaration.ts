@@ -1,10 +1,12 @@
+import regexpAST from 'regexp-tree'
+
 import { FunctionConfig } from './config.js'
-import type { DeployConfig } from './deploy_config.js'
 
 interface BaseDeclaration {
   cache?: string
   function: string
   name?: string
+  generator?: string
 }
 
 type DeclarationWithPath = BaseDeclaration & {
@@ -17,12 +19,12 @@ type DeclarationWithPattern = BaseDeclaration & {
   excludedPattern?: string
 }
 
-type Declaration = DeclarationWithPath | DeclarationWithPattern
+export type Declaration = DeclarationWithPath | DeclarationWithPattern
 
-export const getDeclarationsFromConfig = (
+export const mergeDeclarations = (
   tomlDeclarations: Declaration[],
   functionsConfig: Record<string, FunctionConfig>,
-  deployConfig: DeployConfig,
+  deployConfigDeclarations: Declaration[],
 ) => {
   const declarations: Declaration[] = []
   const functionsVisited: Set<string> = new Set()
@@ -31,26 +33,24 @@ export const getDeclarationsFromConfig = (
   // the deploy configuration file. For any declaration for which we also have
   // a function configuration object, we replace the path because that object
   // takes precedence.
-  for (const declaration of [...tomlDeclarations, ...deployConfig.declarations]) {
+  for (const declaration of [...tomlDeclarations, ...deployConfigDeclarations]) {
     const config = functionsConfig[declaration.function]
 
-    // If no config is found, add the declaration as is
     if (!config) {
+      // If no config is found, add the declaration as is.
       declarations.push(declaration)
-
-      // If we have a path specified as either a string or non-empty array
-      // create a declaration for each path
     } else if (config.path?.length) {
+      // If we have a path specified as either a string or non-empty array,
+      // create a declaration for each path.
       const paths = Array.isArray(config.path) ? config.path : [config.path]
 
       paths.forEach((path) => {
         declarations.push({ ...declaration, cache: config.cache, path })
       })
-
-      // With an in-source config without a path, add the config to the declaration
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // With an in-source config without a path, add the config to the declaration.
       const { path, excludedPath, ...rest } = config
+
       declarations.push({ ...declaration, ...rest })
     }
 
@@ -62,7 +62,7 @@ export const getDeclarationsFromConfig = (
   for (const name in functionsConfig) {
     const { cache, path } = functionsConfig[name]
 
-    // If we have path specified create a declaration for each path
+    // If we have a path specified, create a declaration for each path.
     if (!functionsVisited.has(name) && path) {
       const paths = Array.isArray(path) ? path : [path]
 
@@ -75,4 +75,33 @@ export const getDeclarationsFromConfig = (
   return declarations
 }
 
-export { Declaration, DeclarationWithPath, DeclarationWithPattern }
+// Validates and normalizes a pattern so that it's a valid regular expression
+// in Go, which is the engine used by our edge nodes.
+export const parsePattern = (pattern: string) => {
+  // Escaping forward slashes with back slashes.
+  const normalizedPattern = pattern.replace(/\//g, '\\/')
+  const regex = regexpAST.transform(`/${normalizedPattern}/`, {
+    Assertion(path) {
+      // Lookaheads are not supported. If we find one, throw an error.
+      if (path.node.kind === 'Lookahead') {
+        throw new Error('Regular expressions with lookaheads are not supported')
+      }
+    },
+
+    Group(path) {
+      // Named captured groups in JavaScript use a different syntax than in Go.
+      // If we find one, convert it to an unnamed capture group, which is valid
+      // in both engines.
+      if ('name' in path.node && path.node.name !== undefined) {
+        path.replace({
+          ...path.node,
+          name: undefined,
+          nameRaw: undefined,
+        })
+      }
+    },
+  })
+
+  // Strip leading and forward slashes.
+  return regex.toString().slice(1, -1)
+}

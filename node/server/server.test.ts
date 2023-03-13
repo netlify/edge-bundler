@@ -17,6 +17,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   const port = await getPort()
   const importMapPaths = [join(paths.internal, 'import_map.json'), join(paths.user, 'import-map.json')]
   const server = await serve({
+    bootstrapURL: 'https://edge.netlify.com/bootstrap/index-combined.ts',
     importMapPaths,
     port,
   })
@@ -56,8 +57,8 @@ test('Starts a server and serves requests for edge functions', async () => {
 
   const response1 = await fetch(`http://0.0.0.0:${port}/foo`, {
     headers: {
-      'x-deno-functions': 'echo_env',
-      'x-deno-pass': 'passthrough',
+      'x-nf-edge-functions': 'echo_env',
+      'x-ef-passthrough': 'passthrough',
       'X-NF-Request-ID': uuidv4(),
     },
   })
@@ -66,8 +67,8 @@ test('Starts a server and serves requests for edge functions', async () => {
 
   const response2 = await fetch(`http://0.0.0.0:${port}/greet`, {
     headers: {
-      'x-deno-functions': 'greet',
-      'x-deno-pass': 'passthrough',
+      'x-nf-edge-functions': 'greet',
+      'x-ef-passthrough': 'passthrough',
       'X-NF-Request-ID': uuidv4(),
     },
   })

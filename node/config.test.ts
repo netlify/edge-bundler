@@ -4,7 +4,7 @@ import { pathToFileURL } from 'url'
 
 import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
-import { test, expect, vi } from 'vitest'
+import { test, expect, vi, describe } from 'vitest'
 
 import { fixturesDir, useFixture } from '../test/util.js'
 
@@ -24,68 +24,117 @@ const importMapFile = {
 const invalidDefaultExportErr = (path: string) =>
   `Default export in '${path}' must be a function. More on the Edge Functions API at https://ntl.fyi/edge-api.`
 
-test('`getFunctionConfig` extracts configuration properties from function file', async () => {
-  const { path: tmpDir } = await tmp.dir()
-  const deno = new DenoBridge({
-    cacheDirectory: tmpDir,
-  })
-
-  const functions = [
-    // No config
-    {
-      expectedConfig: {},
-      name: 'func1',
-      source: `export default async () => new Response("Hello from function one")`,
-    },
-
-    // Empty config
-    {
-      expectedConfig: {},
-      name: 'func2',
-      source: `
+const functions = [
+  {
+    testName: 'no config',
+    expectedConfig: {},
+    name: 'func1',
+    source: `export default async () => new Response("Hello from function one")`,
+  },
+  {
+    testName: 'empty config',
+    expectedConfig: {},
+    name: 'func2',
+    source: `
         export default async () => new Response("Hello from function two")
 
         export const config = {}
       `,
-    },
-
-    // Config with the wrong type
-    {
-      expectedConfig: {},
-      name: 'func3',
-      source: `
+  },
+  {
+    testName: 'config with wrong type (throw)',
+    expectedConfig: {},
+    name: 'func3',
+    source: `
       export default async () => new Response("Hello from function two")
 
       export const config = () => ({})
     `,
-      userLog: /^'config' export in edge function at '(.*)' must be an object$/,
+    error:
+      /^The 'config' export in edge function at '(.*)' must be an object\. More on the Edge Functions API at https:\/\/ntl\.fyi\/edge-api\.$/,
+    featureFlags: {
+      edge_functions_invalid_config_throw: true,
     },
+  },
+  {
+    testName: 'config with wrong type (log)',
+    expectedConfig: {},
+    name: 'func3',
+    source: `
+      export default async () => new Response("Hello from function two")
 
-    // Config with a syntax error
-    {
-      expectedConfig: {},
-      name: 'func4',
-      source: `
+      export const config = () => ({})
+    `,
+    userLog: /^'config' export in edge function at '(.*)' must be an object$/,
+    featureFlags: {
+      edge_functions_invalid_config_throw: false,
+    },
+  },
+  {
+    testName: 'config with syntax error (throw)',
+    expectedConfig: {},
+    name: 'func4',
+    source: `
       export default async () => new Response("Hello from function two")
 
       export const config
     `,
-      userLog: /^Could not load edge function at '(.*)'$/,
+    error:
+      /^Could not load edge function at '(.*)'\. More on the Edge Functions API at https:\/\/ntl\.fyi\/edge-api\.$/,
+    featureFlags: {
+      edge_functions_invalid_config_throw: true,
     },
+  },
+  {
+    testName: 'config with syntax error (log)',
+    expectedConfig: {},
+    name: 'func4',
+    source: `
+      export default async () => new Response("Hello from function two")
 
-    // Config with `path`
-    {
-      expectedConfig: { path: '/home' },
-      name: 'func6',
-      source: `
+      export const config
+    `,
+    userLog: /^Could not load edge function at '(.*)'$/,
+    featureFlags: {
+      edge_functions_invalid_config_throw: false,
+    },
+  },
+  {
+    testName: 'config with correct onError',
+    expectedConfig: { onError: 'bypass' },
+    name: 'func5',
+    source: `
+      export default async () => new Response("Hello from function two")
+      export const config = { onError: "bypass" }
+    `,
+  },
+  {
+    testName: 'config with wrong onError',
+    name: 'func7',
+    source: `
+      export default async () => new Response("Hello from function two")
+      export const config = { onError: "foo" }
+    `,
+    error: /The 'onError' configuration property in edge function at .*/,
+  },
+  {
+    testName: 'config with `path`',
+    expectedConfig: { path: '/home' },
+    name: 'func6',
+    source: `
         export default async () => new Response("Hello from function three")
 
         export const config = { path: "/home" }
       `,
-    },
-  ]
+  },
+]
+describe('`getFunctionConfig` extracts configuration properties from function file', () => {
+  test.each(functions)('$testName', async (func) => {
+    const { path: tmpDir } = await tmp.dir()
+    const deno = new DenoBridge({
+      cacheDirectory: tmpDir,
+    })
 
-  for (const func of functions) {
     const logger = {
       user: vi.fn().mockResolvedValue(null),
       system: vi.fn().mockResolvedValue(null),
@@ -94,52 +143,31 @@ test('`getFunctionConfig` extracts configuration properties from function file',
 
     await fs.writeFile(path, func.source)
 
-    const config = await getFunctionConfig(
-      {
-        name: func.name,
-        path,
-      },
-      new ImportMap([importMapFile]),
-      deno,
-      logger,
-    )
+    const funcCall = () =>
+      getFunctionConfig(
+        {
+          name: func.name,
+          path,
+        },
+        new ImportMap([importMapFile]),
+        deno,
+        logger,
+        func.featureFlags || {},
+      )
 
-    expect(config).toEqual(func.expectedConfig)
-
-    if (func.userLog) {
-      expect(logger.user).toHaveBeenNthCalledWith(1, expect.stringMatching(func.userLog))
+    if (func.error) {
+      await expect(funcCall()).rejects.toThrowError(func.error)
+    } else if (func.userLog) {
+      await expect(funcCall()).resolves.not.toThrowError()
+      expect(logger.user).toHaveBeenCalledWith(expect.stringMatching(func.userLog))
     } else {
+      const config = await funcCall()
+      expect(config).toEqual(func.expectedConfig)
       expect(logger.user).not.toHaveBeenCalled()
     }
-  }
 
-  await deleteAsync(tmpDir, { force: true })
-})
-
-test('Ignores function paths from the in-source `config` function if the feature flag is off', async () => {
-  const { basePath, cleanup, distPath } = await useFixture('with_config')
-  const userDirectory = resolve(basePath, 'netlify', 'edge-functions')
-  const internalDirectory = resolve(basePath, '.netlify', 'edge-functions')
-  const declarations: Declaration[] = []
-  const result = await bundle([internalDirectory, userDirectory], distPath, declarations, {
-    basePath,
-    configPath: join(internalDirectory, 'config.json'),
+    await deleteAsync(tmpDir, { force: true })
   })
-  const generatedFiles = await fs.readdir(distPath)
-
-  expect(result.functions.length).toBe(7)
-  expect(generatedFiles.length).toBe(2)
-
-  const manifestFile = await fs.readFile(resolve(distPath, 'manifest.json'), 'utf8')
-  const manifest = JSON.parse(manifestFile)
-  const { bundles, routes } = manifest
-
-  expect(bundles.length).toBe(1)
-  expect(bundles[0].format).toBe('eszip2')
-  expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
-  expect(routes.length).toBe(0)
-
-  await cleanup()
 })
 
 test('Loads function paths from the in-source `config` function', async () => {
@@ -159,9 +187,6 @@ test('Loads function paths from the in-source `config` function', async () => {
   const result = await bundle([internalDirectory, userDirectory], distPath, declarations, {
     basePath,
     configPath: join(internalDirectory, 'config.json'),
-    featureFlags: {
-      edge_functions_config_export: true,
-    },
   })
   const generatedFiles = await fs.readdir(distPath)
 
@@ -217,8 +242,8 @@ test('Passes validation if default export exists and is a function', async () =>
 
   await fs.writeFile(path, func.source)
 
-  expect(async () => {
-    await getFunctionConfig(
+  await expect(
+    getFunctionConfig(
       {
         name: func.name,
         path,
@@ -226,8 +251,9 @@ test('Passes validation if default export exists and is a function', async () =>
       new ImportMap([importMapFile]),
       deno,
       logger,
-    )
-  }).not.toThrow()
+      {},
+    ),
+  ).resolves.not.toThrow()
 
   await deleteAsync(tmpDir, { force: true })
 })
@@ -262,6 +288,7 @@ test('Fails validation if default export is not function', async () => {
     new ImportMap([importMapFile]),
     deno,
     logger,
+    {},
   )
 
   await expect(config).rejects.toThrowError(invalidDefaultExportErr(path))
@@ -298,6 +325,7 @@ test('Fails validation if default export is not present', async () => {
     new ImportMap([importMapFile]),
     deno,
     logger,
+    {},
   )
 
   await expect(config).rejects.toThrowError(invalidDefaultExportErr(path))

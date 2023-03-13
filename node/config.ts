@@ -7,6 +7,7 @@ import tmp from 'tmp-promise'
 import { DenoBridge } from './bridge.js'
 import { BundleError } from './bundle_error.js'
 import { EdgeFunction } from './edge_function.js'
+import { FeatureFlags } from './feature_flags.js'
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
 import { getPackagePath } from './package_json.js'
@@ -26,10 +27,19 @@ export const enum Cache {
   Manual = 'manual',
 }
 
+export type OnError = 'fail' | 'bypass' | `/${string}`
+
+export const isValidOnError = (value: unknown): value is OnError => {
+  if (typeof value === 'undefined') return true
+  if (typeof value !== 'string') return false
+  return value === 'fail' || value === 'bypass' || value.startsWith('/')
+}
+
 export interface FunctionConfig {
   cache?: Cache
   path?: string | string[]
   excludedPath?: string | string[]
+  onError?: OnError
 }
 
 const getConfigExtractor = () => {
@@ -39,7 +49,14 @@ const getConfigExtractor = () => {
   return configExtractorPath
 }
 
-export const getFunctionConfig = async (func: EdgeFunction, importMap: ImportMap, deno: DenoBridge, log: Logger) => {
+export const getFunctionConfig = async (
+  func: EdgeFunction,
+  importMap: ImportMap,
+  deno: DenoBridge,
+  log: Logger,
+  featureFlags: FeatureFlags,
+  // eslint-disable-next-line max-params
+) => {
   // The extractor is a Deno script that will import the function and run its
   // `config` export, if one exists.
   const extractorPath = getConfigExtractor()
@@ -72,7 +89,7 @@ export const getFunctionConfig = async (func: EdgeFunction, importMap: ImportMap
   )
 
   if (exitCode !== ConfigExitCode.Success) {
-    logConfigError(func, exitCode, stderr, log)
+    handleConfigError(func, exitCode, stderr, log, featureFlags)
 
     return {}
   }
@@ -81,25 +98,48 @@ export const getFunctionConfig = async (func: EdgeFunction, importMap: ImportMap
     log.user(stdout)
   }
 
+  let collectorData: FunctionConfig = {}
+
   try {
-    const collectorData = await fs.readFile(collector.path, 'utf8')
-
-    return JSON.parse(collectorData) as FunctionConfig
+    const collectorDataJSON = await fs.readFile(collector.path, 'utf8')
+    collectorData = JSON.parse(collectorDataJSON) as FunctionConfig
   } catch {
-    logConfigError(func, ConfigExitCode.UnhandledError, stderr, log)
-
-    return {}
+    handleConfigError(func, ConfigExitCode.UnhandledError, stderr, log, featureFlags)
   } finally {
     await collector.cleanup()
   }
+
+  if (!isValidOnError(collectorData.onError)) {
+    throw new BundleError(
+      new Error(
+        `The 'onError' configuration property in edge function at '${func.path}' must be one of 'fail', 'bypass', or a path starting with '/'. Got '${collectorData.onError}'. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+      ),
+    )
+  }
+
+  return collectorData
 }
 
-const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, log: Logger) => {
+const handleConfigError = (
+  func: EdgeFunction,
+  exitCode: number,
+  stderr: string,
+  log: Logger,
+  featureFlags: FeatureFlags,
+  // eslint-disable-next-line max-params
+) => {
   switch (exitCode) {
     case ConfigExitCode.ImportError:
-      log.user(`Could not load edge function at '${func.path}'`)
       log.user(stderr)
-
+      if (featureFlags.edge_functions_invalid_config_throw) {
+        throw new BundleError(
+          new Error(
+            `Could not load edge function at '${func.path}'. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+          ),
+        )
+      } else {
+        log.user(`Could not load edge function at '${func.path}'`)
+      }
       break
 
     case ConfigExitCode.NoConfig:
@@ -108,13 +148,27 @@ const logConfigError = (func: EdgeFunction, exitCode: number, stderr: string, lo
       break
 
     case ConfigExitCode.InvalidExport:
-      log.user(`'config' export in edge function at '${func.path}' must be an object`)
-
+      if (featureFlags.edge_functions_invalid_config_throw) {
+        throw new BundleError(
+          new Error(
+            `The 'config' export in edge function at '${func.path}' must be an object. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+          ),
+        )
+      } else {
+        log.user(`'config' export in edge function at '${func.path}' must be an object`)
+      }
       break
 
     case ConfigExitCode.SerializationError:
-      log.user(`'config' object in edge function at '${func.path}' must contain primitive values only`)
-
+      if (featureFlags.edge_functions_invalid_config_throw) {
+        throw new BundleError(
+          new Error(
+            `The 'config' object in the edge function at '${func.path}' must contain primitive values only. More on the Edge Functions API at https://ntl.fyi/edge-api.`,
+          ),
+        )
+      } else {
+        log.user(`'config' object in edge function at '${func.path}' must contain primitive values only`)
+      }
       break
 
     case ConfigExitCode.InvalidDefaultExport:

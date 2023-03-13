@@ -5,20 +5,23 @@ import globToRegExp from 'glob-to-regexp'
 
 import type { Bundle } from './bundle.js'
 import { Cache, FunctionConfig } from './config.js'
-import type { Declaration } from './declaration.js'
+import { Declaration, parsePattern } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
+import { FeatureFlags } from './feature_flags.js'
 import { Layer } from './layer.js'
 import { getPackageVersion } from './package_json.js'
 import { nonNullable } from './utils/non_nullable.js'
 
-/* eslint-disable camelcase */
 interface Route {
   function: string
   name?: string
   pattern: string
+  generator?: string
 }
+
 interface EdgeFunctionConfig {
   excluded_patterns: string[]
+  on_error?: string
 }
 interface Manifest {
   bundler_version: string
@@ -30,30 +33,27 @@ interface Manifest {
   function_config: Record<string, EdgeFunctionConfig>
 }
 
-/* eslint-enable camelcase */
-
 interface GenerateManifestOptions {
   bundles?: Bundle[]
   declarations?: Declaration[]
+  featureFlags?: FeatureFlags
   functions: EdgeFunction[]
   functionConfig?: Record<string, FunctionConfig>
   importMap?: string
   layers?: Layer[]
 }
 
-interface Route {
-  function: string
-  name?: string
-  pattern: string
-}
-
-const serializePattern = (regex: RegExp) => regex.source.replace(/\\\//g, '/')
+// JavaScript regular expressions are converted to strings with leading and
+// trailing slashes, so any slashes inside the expression itself are escaped
+// as `//`. This function deserializes that back into a single slash, which
+// is the format we want to use in the manifest.
+const serializePattern = (pattern: string) => pattern.replace(/\\\//g, '/')
 
 const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>): Record<string, EdgeFunctionConfig> => {
   const newConfig: Record<string, EdgeFunctionConfig> = {}
 
   for (const [name, functionConfig] of Object.entries(config)) {
-    if (functionConfig.excluded_patterns.length !== 0) {
+    if (functionConfig.excluded_patterns.length !== 0 || functionConfig.on_error) {
       newConfig[name] = functionConfig
     }
   }
@@ -64,6 +64,7 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
 const generateManifest = ({
   bundles = [],
   declarations = [],
+  featureFlags,
   functions,
   functionConfig = {},
   importMap,
@@ -75,11 +76,16 @@ const generateManifest = ({
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
 
-  for (const [name, { excludedPath }] of Object.entries(functionConfig)) {
+  for (const [name, { excludedPath, onError }] of Object.entries(functionConfig)) {
     if (excludedPath) {
       const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
       const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
+
       manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+    }
+
+    if (onError) {
+      manifestFunctionConfig[name].on_error = onError
     }
   }
 
@@ -90,13 +96,18 @@ const generateManifest = ({
       return
     }
 
-    const pattern = getRegularExpression(declaration)
+    const pattern = getRegularExpression(declaration, featureFlags?.edge_functions_fail_unsupported_regex)
     const route: Route = {
       function: func.name,
       name: declaration.name,
       pattern: serializePattern(pattern),
+      generator: declaration.generator,
     }
-    const excludedPattern = getExcludedRegularExpression(declaration)
+    const excludedPattern = getExcludedRegularExpression(
+      declaration,
+      featureFlags?.edge_functions_fail_unsupported_regex,
+    )
+
     if (excludedPattern) {
       manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
     }
@@ -134,20 +145,54 @@ const pathToRegularExpression = (path: string) => {
   // for both `/foo` and `/foo/`.
   const normalizedSource = `^${regularExpression.source}\\/?$`
 
-  return new RegExp(normalizedSource)
+  return normalizedSource
 }
 
-const getRegularExpression = (declaration: Declaration) => {
+const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = false) => {
   if ('pattern' in declaration) {
-    return new RegExp(declaration.pattern)
+    try {
+      return parsePattern(declaration.pattern)
+    } catch (error: unknown) {
+      // eslint-disable-next-line max-depth
+      if (failUnsupportedRegex) {
+        throw new Error(
+          `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+        )
+      }
+
+      console.warn(
+        `Function '${declaration.function}' uses an unsupported regular expression and will not be invoked: ${
+          (error as Error).message
+        }`,
+      )
+
+      return declaration.pattern
+    }
   }
 
   return pathToRegularExpression(declaration.path)
 }
 
-const getExcludedRegularExpression = (declaration: Declaration) => {
-  if ('pattern' in declaration && declaration.excludedPattern) {
-    return new RegExp(declaration.excludedPattern)
+const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedRegex = false) => {
+  if ('excludedPattern' in declaration && declaration.excludedPattern) {
+    try {
+      return parsePattern(declaration.excludedPattern)
+    } catch (error: unknown) {
+      // eslint-disable-next-line max-depth
+      if (failUnsupportedRegex) {
+        throw new Error(
+          `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+        )
+      }
+
+      console.warn(
+        `Function '${declaration.function}' uses an unsupported regular expression and will therefore not be invoked: ${
+          (error as Error).message
+        }`,
+      )
+
+      return declaration.excludedPattern
+    }
   }
 
   if ('path' in declaration && declaration.excludedPath) {

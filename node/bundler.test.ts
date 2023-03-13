@@ -173,8 +173,8 @@ test('Does not add a custom error property to system errors during bundling', as
   }
 })
 
-test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_cache_deno_dir` feature flag is set', async () => {
-  expect.assertions(6)
+test('Uses the cache directory as the `DENO_DIR` value', async () => {
+  expect.assertions(3)
 
   const { basePath, cleanup, distPath } = await useFixture('with_import_maps')
   const sourceDirectory = join(basePath, 'functions')
@@ -191,34 +191,15 @@ test('Uses the cache directory as the `DENO_DIR` value if the `edge_functions_ca
     configPath: join(sourceDirectory, 'config.json'),
   }
 
-  // Run #1, feature flag off: The directory should not be populated.
-  const result1 = await bundle([sourceDirectory], distPath, declarations, options)
-  const outFiles1 = await fs.readdir(distPath)
+  const result = await bundle([sourceDirectory], distPath, declarations, options)
+  const outFiles = await fs.readdir(distPath)
 
-  expect(result1.functions.length).toBe(1)
-  expect(outFiles1.length).toBe(2)
+  expect(result.functions.length).toBe(1)
+  expect(outFiles.length).toBe(2)
 
-  try {
-    await fs.readdir(join(cacheDir.path, 'deno_dir'))
-  } catch (error) {
-    expect(error).toBeInstanceOf(Error)
-  }
+  const denoDir = await fs.readdir(join(cacheDir.path, 'deno_dir'))
 
-  // Run #2, feature flag on: The directory should be populated.
-  const result2 = await bundle([sourceDirectory], distPath, declarations, {
-    ...options,
-    featureFlags: {
-      edge_functions_cache_deno_dir: true,
-    },
-  })
-  const outFiles2 = await fs.readdir(distPath)
-
-  expect(result2.functions.length).toBe(1)
-  expect(outFiles2.length).toBe(2)
-
-  const denoDir2 = await fs.readdir(join(cacheDir.path, 'deno_dir'))
-
-  expect(denoDir2.includes('gen')).toBe(true)
+  expect(denoDir.includes('gen')).toBe(true)
 
   await cleanup()
 })
@@ -316,7 +297,7 @@ test('Processes a function that imports a custom layer', async () => {
       path: '/func1',
     },
   ]
-  const layer = { name: 'layer:test', flag: 'edge-functions-layer-test' }
+  const layer = { name: 'https://edge-function-layer-template.netlify.app/mod.ts', flag: 'edge-functions-layer-test' }
   const result = await bundle([sourceDirectory], distPath, declarations, {
     basePath,
     configPath: join(sourceDirectory, 'config.json'),
@@ -350,20 +331,25 @@ test('Loads declarations and import maps from the deploy configuration', async (
   const directories = [join(basePath, 'netlify', 'edge-functions'), join(basePath, '.netlify', 'edge-functions')]
   const result = await bundle(directories, distPath, declarations, {
     basePath,
-    configPath: join(basePath, '.netlify', 'edge-functions', 'config.json'),
+    configPath: join(basePath, '.netlify', 'edge-functions', 'manifest.json'),
+    internalSrcFolder: directories[1],
   })
   const generatedFiles = await fs.readdir(distPath)
 
-  expect(result.functions.length).toBe(2)
+  expect(result.functions.length).toBe(3)
   expect(generatedFiles.length).toBe(2)
 
   const manifestFile = await fs.readFile(resolve(distPath, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)
-  const { bundles, function_config: functionConfig } = manifest
+  const { routes, bundles, function_config: functionConfig } = manifest
 
   expect(bundles.length).toBe(1)
   expect(bundles[0].format).toBe('eszip2')
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
+  expect(routes[0].generator).toBeUndefined()
+  expect(routes[1].name).toBe('Function two')
+  expect(routes[1].generator).toBe('@netlify/fake-plugin@1.0.0')
+  expect(routes[2].generator).toBe('internalFunc')
 
   // respects excludedPath from deploy config
   expect(functionConfig.func2).toEqual({ excluded_patterns: ['^/func2/skip/?$'] })
@@ -383,7 +369,7 @@ test("Ignores entries in `importMapPaths` that don't point to an existing import
       helper: pathToFileURL(join(basePath, 'helper.ts')).toString(),
     },
     scopes: {
-      [pathToFileURL(join(sourceDirectory, 'func3')).toString()]: {
+      [pathToFileURL(join(sourceDirectory, 'func3/func3.ts')).toString()]: {
         helper: pathToFileURL(join(basePath, 'helper2.ts')).toString(),
       },
     },

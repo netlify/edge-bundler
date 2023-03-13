@@ -20,6 +20,7 @@ const routesSchema = {
       errorMessage:
         'pattern needs to be a regex that starts with ^ and ends with $ without any additional slashes before and afterwards',
     },
+    generator: { type: 'string' },
   },
   additionalProperties: false,
 }
@@ -37,6 +38,7 @@ const functionConfigSchema = {
           'excluded_patterns needs to be an array of regex that starts with ^ and ends with $ without any additional slashes before and afterwards',
       },
     },
+    on_error: { type: 'string' },
   },
 }
 
@@ -73,7 +75,7 @@ const edgeManifestSchema = {
     },
     import_map: { type: 'string' },
     bundler_version: { type: 'string' },
-    function_config: { type: 'object', items: functionConfigSchema },
+    function_config: { type: 'object', additionalProperties: functionConfigSchema },
   },
   additionalProperties: false,
 }

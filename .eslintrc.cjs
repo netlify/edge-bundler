@@ -15,7 +15,10 @@ module.exports = {
     'max-statements': 'off',
     'node/no-missing-import': 'off',
     'no-shadow': 'off',
+    'no-use-before-define': 'off',
     'unicorn/prefer-json-parse-buffer': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
   },
   overrides: [
     ...overrides,

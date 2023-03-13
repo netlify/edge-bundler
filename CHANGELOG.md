@@ -1,5 +1,128 @@
 # Changelog
 
+## [8.12.0](https://github.com/netlify/edge-bundler/compare/v8.11.1...v8.12.0) (2023-03-13)
+
+
+### Features
+
+* export `mergeDeclarations` function ([#334](https://github.com/netlify/edge-bundler/issues/334)) ([a3b01c0](https://github.com/netlify/edge-bundler/commit/a3b01c08c5bcb734d7b66eedcdf45598abd87640))
+
+## [8.11.1](https://github.com/netlify/edge-bundler/compare/v8.11.0...v8.11.1) (2023-03-10)
+
+
+### Bug Fixes
+
+* Updated bootstrap to the latest version ([#332](https://github.com/netlify/edge-bundler/issues/332)) ([614102d](https://github.com/netlify/edge-bundler/commit/614102d3e4d30b2c9e1cb83fdb894e14c5f334c4))
+
+## [8.11.0](https://github.com/netlify/edge-bundler/compare/v8.10.0...v8.11.0) (2023-03-08)
+
+
+### Features
+
+* propagate onError config property to manifest ([#328](https://github.com/netlify/edge-bundler/issues/328)) ([bd804b2](https://github.com/netlify/edge-bundler/commit/bd804b214b0aa4cb44437a4b87e6a21b3bad602b))
+
+## [8.10.0](https://github.com/netlify/edge-bundler/compare/v8.9.0...v8.10.0) (2023-03-08)
+
+
+### Features
+
+* populate generator field if edge function is from a config file ([#312](https://github.com/netlify/edge-bundler/issues/312)) ([0ee2e1d](https://github.com/netlify/edge-bundler/commit/0ee2e1d79596d0f3b71c455c329cf81c9da84f92))
+* update bootstrap URL ([#329](https://github.com/netlify/edge-bundler/issues/329)) ([8b5dc3b](https://github.com/netlify/edge-bundler/commit/8b5dc3ba7a322bac53f820f4fbff82180af5337f))
+
+
+### Bug Fixes
+
+* throw errors when function or isc-config cannot be loaded ([#327](https://github.com/netlify/edge-bundler/issues/327)) ([cdac30d](https://github.com/netlify/edge-bundler/commit/cdac30d861b3bedd371c95e2914bee944777779d))
+
+## [8.9.0](https://github.com/netlify/edge-bundler/compare/v8.8.1...v8.9.0) (2023-03-03)
+
+
+### Features
+
+* update bootstrap version ([#321](https://github.com/netlify/edge-bundler/issues/321)) ([88928c7](https://github.com/netlify/edge-bundler/commit/88928c7214012a6fd4ecf7641fb52fad8fa20d44))
+
+## [8.8.1](https://github.com/netlify/edge-bundler/compare/v8.8.0...v8.8.1) (2023-03-02)
+
+
+### Bug Fixes
+
+* update std and eszip deps ([#316](https://github.com/netlify/edge-bundler/issues/316)) ([90a8a1d](https://github.com/netlify/edge-bundler/commit/90a8a1d2d34b31c48ad87dbf3f85da954f906289))
+
+## [8.8.0](https://github.com/netlify/edge-bundler/compare/v8.7.0...v8.8.0) (2023-03-01)
+
+
+### Features
+
+* update bootstrap ([#303](https://github.com/netlify/edge-bundler/issues/303)) ([05feca7](https://github.com/netlify/edge-bundler/commit/05feca7100f9e80c3437df3ff313b81f23308886))
+
+## [8.7.0](https://github.com/netlify/edge-bundler/compare/v8.6.0...v8.7.0) (2023-02-17)
+
+
+### Features
+
+* add generator field to edge function manifest ([#304](https://github.com/netlify/edge-bundler/issues/304)) ([5a59fcc](https://github.com/netlify/edge-bundler/commit/5a59fcca588ec77a9613047943601a2641b4fc88))
+
+## [8.6.0](https://github.com/netlify/edge-bundler/compare/v8.5.0...v8.6.0) (2023-02-14)
+
+
+### Features
+
+* wrap regex validation in feature flag ([#302](https://github.com/netlify/edge-bundler/issues/302)) ([862994b](https://github.com/netlify/edge-bundler/commit/862994b3e6047b5a80d3fdc4c2663566a965cf5c))
+
+
+### Bug Fixes
+
+* migrate to Github Action's output files ([#300](https://github.com/netlify/edge-bundler/issues/300)) ([bf54378](https://github.com/netlify/edge-bundler/commit/bf54378dd05fd9ef4f3eda4a796a0b6cafc7fb4b))
+
+## [8.5.0](https://github.com/netlify/edge-bundler/compare/v8.4.0...v8.5.0) (2023-02-10)
+
+
+### Features
+
+* validate pattern declarations ([#298](https://github.com/netlify/edge-bundler/issues/298)) ([d8c44a3](https://github.com/netlify/edge-bundler/commit/d8c44a363a6794950bf4d50cb691f0d6e6808a53))
+
+## [8.4.0](https://github.com/netlify/edge-bundler/compare/v8.3.0...v8.4.0) (2023-01-18)
+
+
+### Features
+
+* update bootstrap version ([#296](https://github.com/netlify/edge-bundler/issues/296)) ([3bab80b](https://github.com/netlify/edge-bundler/commit/3bab80bc8b932c2e906d25c19874b5a11fa8a271))
+
+## [8.3.0](https://github.com/netlify/edge-bundler/compare/v8.2.1...v8.3.0) (2023-01-18)
+
+
+### Features
+
+* remove `--unstable` flag from `serve` flags ([#294](https://github.com/netlify/edge-bundler/issues/294)) ([cb4c75d](https://github.com/netlify/edge-bundler/commit/cb4c75d27303fcec207ade5fb51c740940b574f5))
+
+## [8.2.1](https://github.com/netlify/edge-bundler/compare/v8.2.0...v8.2.1) (2023-01-17)
+
+
+### Bug Fixes
+
+* trigger another release, 8.2.0 didnt work ([#292](https://github.com/netlify/edge-bundler/issues/292)) ([1fcb47a](https://github.com/netlify/edge-bundler/commit/1fcb47ad95b2448f1a79b6f580e90fe4cb71b37d))
+
+## [8.2.0](https://github.com/netlify/edge-bundler/compare/v8.1.2...v8.2.0) (2023-01-17)
+
+
+### Features
+
+* rename x-deno- to x-nf- headers ([#290](https://github.com/netlify/edge-bundler/issues/290)) ([c6d8ae0](https://github.com/netlify/edge-bundler/commit/c6d8ae03e7773f16543935685ef32f9105071119))
+
+## [8.1.2](https://github.com/netlify/edge-bundler/compare/v8.1.1...v8.1.2) (2023-01-11)
+
+
+### Bug Fixes
+
+* replace "items" with "additionalProperties" ([#284](https://github.com/netlify/edge-bundler/issues/284)) ([0fc76b7](https://github.com/netlify/edge-bundler/commit/0fc76b78ef9faf0b5c99ecdec4b7ef6910949a38))
+
+## [8.1.1](https://github.com/netlify/edge-bundler/compare/v8.1.0...v8.1.1) (2023-01-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency ajv to v8.12.0 ([#282](https://github.com/netlify/edge-bundler/issues/282)) ([2b7c766](https://github.com/netlify/edge-bundler/commit/2b7c7667dc84df47002c055ad8a30b5a5c2acdf6))
+
 ## [8.1.0](https://github.com/netlify/edge-bundler/compare/v8.0.0...v8.1.0) (2023-01-06)
 
 
