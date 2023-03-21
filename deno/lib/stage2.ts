@@ -6,6 +6,7 @@ import type { InputFunction, WriteStage2Options } from '../../shared/stage2.ts'
 import { importMapSpecifier, virtualRoot } from '../../shared/consts.ts'
 import { PUBLIC_SPECIFIER, STAGE2_SPECIFIER } from './consts.ts'
 import { inlineModule, loadFromVirtualRoot, loadWithRetry } from './common.ts'
+import { OLD_PUBLIC_SPECIFIER } from './consts'
 
 interface FunctionReference {
   exportLine: string
@@ -75,7 +76,7 @@ const stage2Loader = (basePath: string, functions: InputFunction[], externals: S
       return inlineModule(specifier, importMapData)
     }
 
-    if (specifier === PUBLIC_SPECIFIER || externals.has(specifier)) {
+    if (specifier === PUBLIC_SPECIFIER || specifier === OLD_PUBLIC_SPECIFIER || externals.has(specifier)) {
       return {
         kind: 'external',
         specifier,

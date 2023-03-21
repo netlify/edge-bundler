@@ -27,6 +27,7 @@ test('Handles import maps with full URLs without specifying a base URL', () => {
   const { imports } = map.getContents()
 
   expect(imports['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports['@netlify/edge-functions']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports['alias:jamstack']).toBe('https://jamstack.org/')
   expect(imports['alias:pets']).toBe('https://petsofnetlify.com/')
 })
@@ -45,6 +46,7 @@ test('Resolves relative paths to absolute paths if a base path is not provided',
   const expectedPath = join(cwd(), 'my-cool-site', 'heart', 'pets')
 
   expect(imports['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports['@netlify/edge-functions']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports['alias:pets']).toBe(`${pathToFileURL(expectedPath).toString()}/`)
 })
 
@@ -62,6 +64,7 @@ test('Transforms relative paths so that they become relative to the base path', 
   const { imports: imports1 } = map1.getContents(cwd())
 
   expect(imports1['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports1['@netlify/edge-functions']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports1['alias:pets']).toBe('file:///my-cool-site/heart/pets/')
 
   // With a prefix.
@@ -69,6 +72,7 @@ test('Transforms relative paths so that they become relative to the base path', 
   const { imports: imports2 } = map2.getContents(cwd(), 'file:///root/')
 
   expect(imports2['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports2['@netlify/edge-functions']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports2['alias:pets']).toBe('file:///root/my-cool-site/heart/pets/')
 })
 
@@ -109,5 +113,6 @@ test('Writes import map file to disk', async () => {
   await file.cleanup()
 
   expect(imports['netlify:edge']).toBe('https://edge.netlify.com/v1/index.ts')
+  expect(imports['@netlify/edge-functions']).toBe('https://edge.netlify.com/v1/index.ts')
   expect(imports['alias:pets']).toBe(pathToFileURL(expectedPath).toString())
 })
