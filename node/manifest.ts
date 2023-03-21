@@ -14,9 +14,7 @@ import { nonNullable } from './utils/non_nullable.js'
 
 interface Route {
   function: string
-  name?: string
   pattern: string
-  generator?: string
 }
 
 interface EdgeFunctionConfig {
@@ -115,9 +113,7 @@ const generateManifest = ({
     const pattern = getRegularExpression(declaration, featureFlags?.edge_functions_fail_unsupported_regex)
     const route: Route = {
       function: func.name,
-      name: declaration.name,
       pattern: serializePattern(pattern),
-      generator: declaration.generator,
     }
     const excludedPattern = getExcludedRegularExpression(
       declaration,
