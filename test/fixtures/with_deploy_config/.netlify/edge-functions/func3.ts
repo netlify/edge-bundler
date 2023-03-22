@@ -6,4 +6,6 @@ export default async () => {
 
 export const config: IntegrationsConfig = {
   path: '/func-3',
+  name: 'in-config-function',
+  onError: 'bypass',
 }

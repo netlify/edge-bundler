@@ -356,7 +356,6 @@ test('Loads declarations and import maps from the deploy configuration and in-so
 
   // respects in-source-config
   expect(functionConfig.func3).toEqual({
-    excluded_patterns: [],
     name: 'in-config-function',
     on_error: 'bypass',
     generator: 'internalFunc',

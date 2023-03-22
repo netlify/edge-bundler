@@ -44,6 +44,17 @@ interface GenerateManifestOptions {
   userFunctionConfig?: Record<string, FunctionConfig>
 }
 
+const removeEmptyConfigValues = (functionConfig: EdgeFunctionConfig) =>
+  Object.entries(functionConfig).reduce((acc, [key, value]) => {
+    if (value && !(Array.isArray(value) && value.length === 0)) {
+      return { ...acc, [key]: value }
+    }
+    return acc
+  }, {} as EdgeFunctionConfig)
+
+const hasAnyConfigValues = (functionConfig: EdgeFunctionConfig) =>
+  functionConfig.excluded_patterns || functionConfig.on_error || functionConfig.generator || functionConfig.name
+
 // JavaScript regular expressions are converted to strings with leading and
 // trailing slashes, so any slashes inside the expression itself are escaped
 // as `//`. This function deserializes that back into a single slash, which
@@ -54,13 +65,10 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
   const newConfig: Record<string, EdgeFunctionConfig> = {}
 
   for (const [name, functionConfig] of Object.entries(config)) {
-    if (
-      functionConfig.excluded_patterns.length !== 0 ||
-      functionConfig.on_error ||
-      functionConfig.generator ||
-      functionConfig.name
-    ) {
-      newConfig[name] = functionConfig
+    const newFunctionConfig = removeEmptyConfigValues(functionConfig)
+
+    if (hasAnyConfigValues(newFunctionConfig)) {
+      newConfig[name] = newFunctionConfig
     }
   }
 
@@ -83,7 +91,7 @@ const generateManifest = ({
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
 
-  for (const [name, { excludedPath, onError, name: displayName, generator }] of Object.entries({
+  for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries({
     ...internalFunctionConfig,
     ...userFunctionConfig,
   })) {
@@ -98,9 +106,7 @@ const generateManifest = ({
       manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
     }
 
-    manifestFunctionConfig[name].on_error = onError
-    manifestFunctionConfig[name].name = displayName
-    manifestFunctionConfig[name].generator = generator
+    manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError, ...rest }
   }
 
   declarations.forEach((declaration) => {
