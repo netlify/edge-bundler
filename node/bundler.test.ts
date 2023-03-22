@@ -321,7 +321,7 @@ test('Processes a function that imports a custom layer', async () => {
   await cleanup()
 })
 
-test('Loads declarations and import maps from the deploy configuration and in-source-config', async () => {
+test('Loads declarations and import maps from the deploy configuration and in-source config', async () => {
   const { basePath, cleanup, distPath } = await useFixture('with_deploy_config')
   const declarations: Declaration[] = [
     {
@@ -354,7 +354,7 @@ test('Loads declarations and import maps from the deploy configuration and in-so
     generator: '@netlify/fake-plugin@1.0.0',
   })
 
-  // respects in-source-config
+  // respects in-source config
   expect(functionConfig.func3).toEqual({
     name: 'in-config-function',
     on_error: 'bypass',
