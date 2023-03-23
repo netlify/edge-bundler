@@ -9,7 +9,7 @@ import { importMapSpecifier } from '../shared/consts.js'
 
 import { DenoBridge, DenoOptions, OnAfterDownloadHook, OnBeforeDownloadHook } from './bridge.js'
 import type { Bundle } from './bundle.js'
-import { FunctionConfig, getFunctionConfig } from './config.js'
+import { getFunctionConfig } from './config.js'
 import { Declaration, mergeDeclarations } from './declaration.js'
 import { load as loadDeployConfig } from './deploy_config.js'
 import { EdgeFunction } from './edge_function.js'
@@ -113,15 +113,18 @@ const bundle = async (
   await createFinalBundles([functionBundle], distDirectory, buildID)
 
   // Creating a hash of function names to configuration objects.
-  const internalFunctionsWithConfig: Record<string, FunctionConfig> = {}
-  for (const func of internalFunctions) {
-    internalFunctionsWithConfig[func.name] = await getFunctionConfig(func, importMap, deno, logger, featureFlags)
-  }
 
-  const userFunctionsWithConfig: Record<string, FunctionConfig> = {}
-  for (const func of userFunctions) {
-    userFunctionsWithConfig[func.name] = await getFunctionConfig(func, importMap, deno, logger, featureFlags)
-  }
+  // Run `getFunctionConfig` in parallel as it is a non-trivial operation
+  const internalConfigPromises = internalFunctions.map(
+    async (func) => [func.name, await getFunctionConfig(func, importMap, deno, logger, featureFlags)] as const,
+  )
+
+  const userConfigPromises = userFunctions.map(
+    async (func) => [func.name, await getFunctionConfig(func, importMap, deno, logger, featureFlags)] as const,
+  )
+
+  const internalFunctionsWithConfig = Object.fromEntries(await Promise.all(internalConfigPromises))
+  const userFunctionsWithConfig = Object.fromEntries(await Promise.all(userConfigPromises))
 
   // Creating a final declarations array by combining the TOML file with the
   // deploy configuration API and the in-source configuration.
