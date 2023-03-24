@@ -189,7 +189,9 @@ interface MergeWithDeclarationConfigOptions {
   declarations: Declaration[]
 }
 
-// Merged any old-style non-in-source configs from declaration.
+// We used to allow the `name` and `generator` fields to be defined at the
+// declaration level. We want these properties to live at the function level
+// in their config object, so we translate that for backwards-compatibility.
 const mergeWithDeclarationConfig = ({ functionName, config, declarations }: MergeWithDeclarationConfigOptions) => {
   const declaration = declarations?.find((decl) => decl.function === functionName)
 
