@@ -52,9 +52,6 @@ const removeEmptyConfigValues = (functionConfig: EdgeFunctionConfig) =>
     return acc
   }, {} as EdgeFunctionConfig)
 
-const hasAnyConfigValues = (functionConfig: EdgeFunctionConfig) =>
-  functionConfig.excluded_patterns || functionConfig.on_error || functionConfig.generator || functionConfig.name
-
 // JavaScript regular expressions are converted to strings with leading and
 // trailing slashes, so any slashes inside the expression itself are escaped
 // as `//`. This function deserializes that back into a single slash, which
@@ -67,7 +64,7 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
   for (const [name, functionConfig] of Object.entries(config)) {
     const newFunctionConfig = removeEmptyConfigValues(functionConfig)
 
-    if (hasAnyConfigValues(newFunctionConfig)) {
+    if (Object.keys(functionConfig).length !== 0) {
       newConfig[name] = newFunctionConfig
     }
   }
@@ -116,7 +113,6 @@ const generateManifest = ({
 
   for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries(internalFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
-    console.log({ rest })
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
