@@ -3,7 +3,7 @@ import { env } from 'process'
 import { test, expect, vi } from 'vitest'
 
 import { BundleFormat } from './bundle.js'
-import { FunctionConfig } from './config.js'
+import { Cache, FunctionConfig } from './config.js'
 import { Declaration } from './declaration.js'
 import { generateManifest } from './manifest.js'
 
@@ -93,6 +93,57 @@ test('Generates a manifest with excluded paths and patterns', () => {
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 })
 
+test('Filters out internal in-source configurations in user created functions', () => {
+  const functions = [
+    { name: 'func-1', path: '/path/to/func-1.ts' },
+    { name: 'func-2', path: '/path/to/func-2.ts' },
+  ]
+  const declarations: Declaration[] = [
+    { function: 'func-1', path: '/f1/*' },
+    { function: 'func-2', pattern: '^/f2/.*/?$' },
+  ]
+  const userFunctionConfig: Record<string, FunctionConfig> = {
+    'func-1': {
+      onError: '/custom-error',
+      cache: Cache.Manual,
+      excludedPath: '/f1/exclude',
+      path: '/path/to/func-1.ts',
+      name: 'User function',
+      generator: 'fake-generator',
+    },
+  }
+  const internalFunctionConfig: Record<string, FunctionConfig> = {
+    'func-2': {
+      onError: 'bypass',
+      cache: Cache.Off,
+      excludedPath: '/f2/exclude',
+      path: '/path/to/func-2.ts',
+      name: 'Internal function',
+      generator: 'internal-generator',
+    },
+  }
+  const manifest = generateManifest({
+    bundles: [],
+    declarations,
+    functions,
+    userFunctionConfig,
+    internalFunctionConfig,
+  })
+  expect(manifest.function_config).toEqual({
+    'func-1': {
+      on_error: '/custom-error',
+      excluded_patterns: ['^/f1/exclude/?$'],
+    },
+    'func-2': {
+      on_error: 'bypass',
+      cache: Cache.Off,
+      name: 'Internal function',
+      generator: 'internal-generator',
+      excluded_patterns: ['^/f2/exclude/?$'],
+    },
+  })
+})
+
 test('Includes failure modes in manifest', () => {
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
@@ -105,12 +156,11 @@ test('Includes failure modes in manifest', () => {
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': {
       onError: '/custom-error',
-      name: 'Display Name',
     },
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, userFunctionConfig })
   expect(manifest.function_config).toEqual({
-    'func-1': { on_error: '/custom-error', name: 'Display Name' },
+    'func-1': { on_error: '/custom-error' },
   })
 })
 

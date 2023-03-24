@@ -4,7 +4,7 @@ import { join } from 'path'
 import globToRegExp from 'glob-to-regexp'
 
 import type { Bundle } from './bundle.js'
-import { Cache, FunctionConfig } from './config.js'
+import { Cache, FunctionConfig, Path } from './config.js'
 import { Declaration, parsePattern } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags } from './feature_flags.js'
@@ -75,6 +75,19 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
   return newConfig
 }
 
+const addExcludedPatterns = (
+  name: string,
+  manifestFunctionConfig: Record<string, EdgeFunctionConfig>,
+  excludedPath?: Path | Path[],
+) => {
+  if (excludedPath) {
+    const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
+    const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
+
+    manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+  }
+}
+
 const generateManifest = ({
   bundles = [],
   declarations = [],
@@ -91,20 +104,23 @@ const generateManifest = ({
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
 
-  for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries({
-    ...internalFunctionConfig,
-    ...userFunctionConfig,
-  })) {
+  for (const [name, { excludedPath, onError }] of Object.entries(userFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
-    if (excludedPath) {
-      const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
-      const excludedPatterns = paths.map(pathToRegularExpression).map(serializePattern)
+    addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
-      manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
+    manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError }
+  }
+
+  for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries(internalFunctionConfig)) {
+    // If the config block is for a function that is not defined, discard it.
+    console.log({ rest })
+    if (manifestFunctionConfig[name] === undefined) {
+      continue
     }
+    addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError, ...rest }
   }
