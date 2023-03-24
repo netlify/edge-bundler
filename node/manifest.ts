@@ -64,7 +64,7 @@ const sanitizeEdgeFunctionConfig = (config: Record<string, EdgeFunctionConfig>):
   for (const [name, functionConfig] of Object.entries(config)) {
     const newFunctionConfig = removeEmptyConfigValues(functionConfig)
 
-    if (Object.keys(functionConfig).length !== 0) {
+    if (Object.keys(newFunctionConfig).length !== 0) {
       newConfig[name] = newFunctionConfig
     }
   }
