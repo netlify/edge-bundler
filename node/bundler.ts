@@ -184,14 +184,14 @@ const getBasePath = (sourceDirectories: string[], inputBasePath?: string) => {
 }
 
 interface MergeWithDeclarationConfigOptions {
-  name: string
+  functionName: string
   config: FunctionConfig
   declarations: Declaration[]
 }
 
 // Merged any old-style non-in-source configs from declaration.
-const mergeWithDeclarationConfig = ({ name, config, declarations }: MergeWithDeclarationConfigOptions) => {
-  const declaration = declarations?.find((decl) => decl.function === name)
+const mergeWithDeclarationConfig = ({ functionName, config, declarations }: MergeWithDeclarationConfigOptions) => {
+  const declaration = declarations?.find((decl) => decl.function === functionName)
 
   return {
     ...config,
@@ -211,12 +211,12 @@ interface CreateFunctionConfigOptions {
 }
 
 const createFunctionConfig = ({ internalFunctionsWithConfig, declarations }: CreateFunctionConfigOptions) =>
-  Object.entries(internalFunctionsWithConfig).reduce((acc, [name, config]) => {
-    const mergedConfigFields = mergeWithDeclarationConfig({ name, config, declarations })
+  Object.entries(internalFunctionsWithConfig).reduce((acc, [functionName, config]) => {
+    const mergedConfigFields = mergeWithDeclarationConfig({ functionName, config, declarations })
 
     return {
       ...acc,
-      [name]: addGeneratorFallback(mergedConfigFields),
+      [functionName]: addGeneratorFallback(mergedConfigFields),
     }
   }, {} as Record<string, FunctionConfig>)
 
