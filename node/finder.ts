@@ -4,19 +4,25 @@ import { basename, extname, join } from 'path'
 import { EdgeFunction } from './edge_function.js'
 import { nonNullable } from './utils/non_nullable.js'
 
+// the order of the allowed extensions is also the order we remove duplicates
+// with a lower index meaning a higher precedence over the others
 const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx'])
 
-const removeDuplicateFunctions = (functions: EdgeFunction[]) =>
-  functions.reduce((acc, { name, path }) => {
-    const ext = extname(path)
+const removeDuplicatesByExtension = (functions: EdgeFunction[]) => {
+  const seen = new Map()
 
-    // .js files with the same name take precedence over .ts
-    if (acc.some((func) => func.name === name) && ext === '.ts') {
-      return acc
+  return functions.reduce((acc, { name, path }) => {
+    const ext = extname(path)
+    const extIndex = [...ALLOWED_EXTENSIONS].indexOf(ext)
+
+    if (!seen.has(name) || seen.get(name) > extIndex) {
+      seen.set(name, extIndex)
+      return [...acc, { name, path }]
     }
 
-    return [...acc, { name, path }]
+    return acc
   }, [] as EdgeFunction[])
+}
 
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
@@ -82,7 +88,7 @@ const findFunctionsInDirectory = async (baseDirectory: string) => {
 const findFunctions = async (directories: string[]) => {
   const functions = await Promise.all(directories.map(findFunctionsInDirectory))
 
-  return removeDuplicateFunctions(functions.flat())
+  return removeDuplicatesByExtension(functions.flat())
 }
 
 export { findFunctions }
