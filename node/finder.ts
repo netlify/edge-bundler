@@ -26,6 +26,18 @@ export const removeDuplicatesByExtension = (functions: string[]) => {
   ) as string[]
 }
 
+const removeDuplicateFunctions = (functions: EdgeFunction[]) =>
+  functions.reduce((acc, { name, path }) => {
+    const ext = extname(path)
+
+    // .js files with the same name take precedence over .ts
+    if (acc.some((func) => func.name === name) && ext === '.ts') {
+      return acc
+    }
+
+    return [...acc, { name, path }]
+  }, [] as EdgeFunction[])
+
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
   const candidatePaths = ALLOWED_EXTENSIONS.flatMap((extension) => [`${name}${extension}`, `index${extension}`]).map(
@@ -90,7 +102,7 @@ const findFunctionsInDirectory = async (baseDirectory: string) => {
 const findFunctions = async (directories: string[]) => {
   const functions = await Promise.all(directories.map(findFunctionsInDirectory))
 
-  return functions.flat()
+  return removeDuplicateFunctions(functions.flat())
 }
 
 export { findFunctions }
