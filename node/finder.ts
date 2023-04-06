@@ -8,27 +8,29 @@ import { nonNullable } from './utils/non_nullable.js'
 // with a lower index meaning a higher precedence over the others
 const ALLOWED_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx']
 
-const removeDuplicatesByExtension = (functions: string[]) => {
+export const removeDuplicatesByExtension = (functions: string[]) => {
   const seen = new Map()
 
-  return functions.reduce((acc, path) => {
-    const { ext, name } = parse(path)
-    const extIndex = [...ALLOWED_EXTENSIONS].indexOf(ext)
+  return Object.values(
+    functions.reduce((acc, path) => {
+      const { ext, name } = parse(path)
+      const extIndex = ALLOWED_EXTENSIONS.indexOf(ext)
 
-    if (!seen.has(name) || seen.get(name) > extIndex) {
-      seen.set(name, extIndex)
-      return [...acc, path]
-    }
+      if (!seen.has(name) || seen.get(name) > extIndex) {
+        seen.set(name, extIndex)
+        return { ...acc, [name]: path }
+      }
 
-    return acc
-  }, [] as string[])
+      return acc
+    }, {}),
+  ) as string[]
 }
 
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
-  const candidatePaths = [...ALLOWED_EXTENSIONS]
-    .flatMap((extension) => [`${name}${extension}`, `index${extension}`])
-    .map((filename) => join(directory, filename))
+  const candidatePaths = ALLOWED_EXTENSIONS.flatMap((extension) => [`${name}${extension}`, `index${extension}`]).map(
+    (filename) => join(directory, filename),
+  )
 
   let functionPath
 
