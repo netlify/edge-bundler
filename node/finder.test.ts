@@ -1,20 +1,23 @@
-import { test, expect } from 'vitest'
+import { test, expect, describe } from 'vitest'
 
-import { removeDuplicatesByExtension } from './finder.js'
+import { hasPrecedingDuplicate } from './finder.js'
 
-test('filters out any duplicate files based on the extension', () => {
-  const functions = [
-    'file1.js',
-    'file1.ts',
-    'file2.tsx',
-    'file2.jsx',
-    'file3.tsx',
-    'file3.js',
-    'file4.ts',
-    'file5.ts',
-    'file5.tsx',
-  ]
-  const expected = ['file1.js', 'file2.jsx', 'file3.js', 'file4.ts', 'file5.ts']
+describe('hasPrecedingDuplicate: ', () => {
+  test('returns true when there is a function with the same name and a preceding extension', () => {
+    const functionMap = new Map(Object.entries({ file1: 0, file2: 2, file3: 3, file4: 1 }))
 
-  expect(removeDuplicatesByExtension(functions)).toStrictEqual(expected)
+    expect(hasPrecedingDuplicate('file1.ts', functionMap)).toBe(true)
+  })
+
+  test('returns false when there is no function with the same name or a preceding extension', () => {
+    const functionMap = new Map(Object.entries({ file1: 0, file2: 2, file3: 3, file4: 1 }))
+
+    expect(hasPrecedingDuplicate('file2.js', functionMap)).toBe(false)
+  })
+
+  test('returns false when the functionMap is empty', () => {
+    const functionMap = new Map()
+
+    expect(hasPrecedingDuplicate('file2.js', functionMap)).toBe(false)
+  })
 })

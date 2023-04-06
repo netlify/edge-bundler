@@ -8,25 +8,21 @@ import { nonNullable } from './utils/non_nullable.js'
 // with a lower index meaning a higher precedence over the others
 const ALLOWED_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx']
 
-export const removeDuplicatesByExtension = (functions: string[]) => {
-  const seen = new Map()
-
-  return Object.values(
-    functions.reduce((acc, path) => {
-      const { ext, name } = parse(path)
-      const extIndex = ALLOWED_EXTENSIONS.indexOf(ext)
-
-      if (!seen.has(name) || seen.get(name) > extIndex) {
-        seen.set(name, extIndex)
-        return { ...acc, [name]: path }
-      }
-
-      return acc
-    }, {}),
-  ) as string[]
+export const hasPrecedingDuplicate = (path: string, functionExtensions: Map<string, number>) => {
+  const { ext, name } = parse(path)
+  const extIndex = ALLOWED_EXTENSIONS.indexOf(ext)
+  // @ts-expect-error functionExtensions might be empty
+  if (!functionExtensions.has(name) || functionExtensions.get(name) > extIndex) {
+    functionExtensions.set(name, extIndex)
+    return false
+  }
+  return true
 }
 
-const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
+const findFunctionInDirectory = async (
+  directory: string,
+  functionExtensions: Map<string, number>,
+): Promise<EdgeFunction | undefined> => {
   const name = basename(directory)
   const candidatePaths = ALLOWED_EXTENSIONS.flatMap((extension) => [`${name}${extension}`, `index${extension}`]).map(
     (filename) => join(directory, filename),
@@ -53,18 +49,25 @@ const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction 
     return
   }
 
+  if (hasPrecedingDuplicate(functionPath, functionExtensions)) return
+
   return {
     name,
     path: functionPath,
   }
 }
 
-const findFunctionInPath = async (path: string): Promise<EdgeFunction | undefined> => {
+const findFunctionInPath = async (
+  path: string,
+  functionExtensions: Map<string, number>,
+): Promise<EdgeFunction | undefined> => {
   const stats = await fs.stat(path)
 
   if (stats.isDirectory()) {
-    return findFunctionInDirectory(path)
+    return findFunctionInDirectory(path, functionExtensions)
   }
+
+  if (hasPrecedingDuplicate(path, functionExtensions)) return
 
   const extension = extname(path)
 
@@ -75,14 +78,17 @@ const findFunctionInPath = async (path: string): Promise<EdgeFunction | undefine
 
 const findFunctionsInDirectory = async (baseDirectory: string) => {
   let items: string[] = []
+  const functionExtensions = new Map()
 
   try {
-    items = await fs.readdir(baseDirectory).then(removeDuplicatesByExtension)
+    items = await fs.readdir(baseDirectory)
   } catch {
     // no-op
   }
 
-  const functions = await Promise.all(items.map((item) => findFunctionInPath(join(baseDirectory, item))))
+  const functions = await Promise.all(
+    items.map((item) => findFunctionInPath(join(baseDirectory, item), functionExtensions)),
+  )
 
   return functions.filter(nonNullable)
 }
