@@ -1,27 +1,27 @@
 import { promises as fs } from 'fs'
-import { basename, extname, join } from 'path'
+import { basename, extname, join, parse } from 'path'
 
 import { EdgeFunction } from './edge_function.js'
 import { nonNullable } from './utils/non_nullable.js'
 
 // the order of the allowed extensions is also the order we remove duplicates
 // with a lower index meaning a higher precedence over the others
-const ALLOWED_EXTENSIONS = new Set(['.js', '.jsx', '.ts', '.tsx'])
+const ALLOWED_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx']
 
-const removeDuplicatesByExtension = (functions: EdgeFunction[]) => {
+const removeDuplicatesByExtension = (functions: string[]) => {
   const seen = new Map()
 
-  return functions.reduce((acc, { name, path }) => {
-    const ext = extname(path)
+  return functions.reduce((acc, path) => {
+    const {ext, name } = parse(path)
     const extIndex = [...ALLOWED_EXTENSIONS].indexOf(ext)
 
     if (!seen.has(name) || seen.get(name) > extIndex) {
       seen.set(name, extIndex)
-      return [...acc, { name, path }]
+      return [...acc, path]
     }
 
     return acc
-  }, [] as EdgeFunction[])
+  }, [] as string[])
 }
 
 const findFunctionInDirectory = async (directory: string): Promise<EdgeFunction | undefined> => {
@@ -66,7 +66,7 @@ const findFunctionInPath = async (path: string): Promise<EdgeFunction | undefine
 
   const extension = extname(path)
 
-  if (ALLOWED_EXTENSIONS.has(extension)) {
+  if (ALLOWED_EXTENSIONS.includes(extension)) {
     return { name: basename(path, extension), path }
   }
 }
@@ -75,7 +75,7 @@ const findFunctionsInDirectory = async (baseDirectory: string) => {
   let items: string[] = []
 
   try {
-    items = await fs.readdir(baseDirectory)
+    items = await fs.readdir(baseDirectory).then(removeDuplicatesByExtension)
   } catch {
     // no-op
   }
@@ -88,7 +88,7 @@ const findFunctionsInDirectory = async (baseDirectory: string) => {
 const findFunctions = async (directories: string[]) => {
   const functions = await Promise.all(directories.map(findFunctionsInDirectory))
 
-  return removeDuplicatesByExtension(functions.flat())
+  return functions.flat()
 }
 
 export { findFunctions }
