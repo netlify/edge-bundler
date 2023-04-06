@@ -12,7 +12,7 @@ const removeDuplicatesByExtension = (functions: string[]) => {
   const seen = new Map()
 
   return functions.reduce((acc, path) => {
-    const {ext, name } = parse(path)
+    const { ext, name } = parse(path)
     const extIndex = [...ALLOWED_EXTENSIONS].indexOf(ext)
 
     if (!seen.has(name) || seen.get(name) > extIndex) {
