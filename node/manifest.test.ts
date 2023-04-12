@@ -96,7 +96,7 @@ test('Generates a manifest with excluded paths and patterns', () => {
 test('TOML-defined paths can be combined with ISC-defined excluded paths', () => {
   const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1/*' }]
-  const userFunctionConfig = {
+  const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': { excludedPath: '/f1/exclude' },
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, userFunctionConfig })
