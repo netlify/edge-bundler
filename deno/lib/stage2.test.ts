@@ -1,7 +1,7 @@
-import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.182.0/testing/asserts.ts'
+import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.177.0/testing/asserts.ts'
 
-import { join } from 'https://deno.land/std@0.182.0/path/mod.ts'
-import { pathToFileURL } from 'https://deno.land/std@0.182.0/node/url.ts'
+import { join } from 'https://deno.land/std@0.177.0/path/mod.ts'
+import { pathToFileURL } from 'node:url'
 
 import { getStage2Entry } from './stage2.ts'
 import { virtualRoot } from './consts.ts'
