@@ -201,6 +201,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     {
       function: 'user-func2',
       path: '/user-func2',
+      excludedPath: '/user-func2/excluded',
     },
   ]
   const result = await bundle([internalDirectory, userDirectory], distPath, declarations, {
@@ -231,9 +232,60 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(postCacheRoutes.length).toBe(1)
   expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$' })
 
-  expect(Object.keys(functionConfig)).toHaveLength(1)
+  expect(Object.keys(functionConfig)).toHaveLength(2)
   expect(functionConfig['user-func5']).toEqual({
     excluded_patterns: ['^/user-func5/excluded/?$'],
+  })
+  expect(functionConfig['user-func2']).toEqual({
+    excluded_patterns: ['^/user-func2/excluded/?$'],
+  })
+
+  await cleanup()
+})
+
+test('Stores excludedPath in `routes` (flagged)', async () => {
+  const { basePath, cleanup, distPath } = await useFixture('with_config')
+  const userDirectory = resolve(basePath, 'netlify', 'edge-functions')
+  const internalDirectory = resolve(basePath, '.netlify', 'edge-functions')
+  const declarations: Declaration[] = [
+    {
+      function: 'framework-func2',
+      path: '/framework-func2',
+    },
+    {
+      function: 'user-func2',
+      path: '/user-func2',
+      excludedPath: '/user-func2/excluded',
+    },
+  ]
+  await bundle([internalDirectory, userDirectory], distPath, declarations, {
+    basePath,
+    configPath: join(internalDirectory, 'config.json'),
+    featureFlags: { edge_functions_excluded_patterns_on_route: true },
+  })
+
+  const manifestFile = await fs.readFile(resolve(distPath, 'manifest.json'), 'utf8')
+  const { routes, post_cache_routes: postCacheRoutes, function_config: functionConfig } = JSON.parse(manifestFile)
+
+  expect(routes).toEqual([
+    { function: 'framework-func2', pattern: '^/framework-func2/?$' },
+    {
+      function: 'user-func2',
+      pattern: '^/user-func2/?$',
+      excluded_patterns: ['^/user-func2/excluded/?$'],
+    },
+    { function: 'framework-func1', pattern: '^/framework-func1/?$' },
+    { function: 'user-func1', pattern: '^/user-func1/?$' },
+    { function: 'user-func3', pattern: '^/user-func3/?$' },
+    { function: 'user-func5', pattern: '^/user-func5/.*/?$' },
+  ])
+
+  expect(postCacheRoutes).toEqual([{ function: 'user-func4', pattern: '^/user-func4/?$' }])
+
+  expect(functionConfig).toEqual({
+    'user-func5': {
+      excluded_patterns: ['^/user-func5/excluded/?$'],
+    },
   })
 
   await cleanup()
