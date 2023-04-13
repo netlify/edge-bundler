@@ -136,16 +136,16 @@ const generateManifest = ({
       function: func.name,
       pattern: serializePattern(pattern),
     }
-    const excludedPattern = getExcludedRegularExpression(
+    const excludedPatterns = getExcludedRegularExpressions(
       declaration,
       featureFlags?.edge_functions_fail_unsupported_regex,
     )
 
-    if (excludedPattern) {
+    if (excludedPatterns) {
       if (featureFlags?.edge_functions_excluded_patterns_on_route) {
-        route.excluded_patterns = [serializePattern(excludedPattern)]
+        route.excluded_patterns = excludedPatterns.map(serializePattern)
       } else {
-        manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+        manifestFunctionConfig[func.name].excluded_patterns.push(...excludedPatterns.map(serializePattern))
       }
     }
 
@@ -210,10 +210,14 @@ const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = f
   return pathToRegularExpression(declaration.path)
 }
 
-const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedRegex = false) => {
+const getExcludedRegularExpressions = (declaration: Declaration, failUnsupportedRegex = false) => {
   if ('excludedPattern' in declaration && declaration.excludedPattern) {
+    const excludedPatterns = Array.isArray(declaration.excludedPattern)
+      ? declaration.excludedPattern
+      : [declaration.excludedPattern]
     try {
-      return parsePattern(declaration.excludedPattern)
+      excludedPatterns.forEach(parsePattern)
+      return excludedPatterns
     } catch (error: unknown) {
       // eslint-disable-next-line max-depth
       if (failUnsupportedRegex) {
@@ -228,12 +232,15 @@ const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedR
         }`,
       )
 
-      return declaration.excludedPattern
+      return excludedPatterns
     }
   }
 
   if ('path' in declaration && declaration.excludedPath) {
-    return pathToRegularExpression(declaration.excludedPath)
+    const excludedPaths = Array.isArray(declaration.excludedPath)
+      ? declaration.excludedPath
+      : [declaration.excludedPath]
+    return excludedPaths.map(pathToRegularExpression)
   }
 }
 

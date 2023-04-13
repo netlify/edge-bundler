@@ -75,8 +75,8 @@ test('Generates a manifest with excluded paths and patterns', () => {
     { name: 'func-2', path: '/path/to/func-2.ts' },
   ]
   const declarations: Declaration[] = [
-    { function: 'func-1', path: '/f1/*', excludedPath: '/f1/exclude' },
-    { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
+    { function: 'func-1', path: '/f1/*', excludedPath: ['/f1/exclude', '/f1/exclude2'] },
+    { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: ['^/f2/exclude$', '^/f2/exclude2$'] },
   ]
   const manifest = generateManifest({ bundles: [], declarations, functions })
 
@@ -87,8 +87,8 @@ test('Generates a manifest with excluded paths and patterns', () => {
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual({
-    'func-1': { excluded_patterns: ['^/f1/exclude/?$'] },
-    'func-2': { excluded_patterns: ['^/f2/exclude$'] },
+    'func-1': { excluded_patterns: ['^/f1/exclude/?$', '^/f1/exclude2/?$'] },
+    'func-2': { excluded_patterns: ['^/f2/exclude$', '^/f2/exclude2$'] },
   })
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 })
