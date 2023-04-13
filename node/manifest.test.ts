@@ -103,7 +103,7 @@ test('Excluded Paths are written to manifest.routes', () => {
     { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
-    'func-1': { excludedPath: '/*.css' },
+    'func-1': { path: '/f1/include/*', excludedPath: '/*.css' },
   }
   const internalFunctionConfig: Record<string, FunctionConfig> = {
     'func-2': { excludedPath: '/*.json' },
@@ -120,6 +120,9 @@ test('Excluded Paths are written to manifest.routes', () => {
   expect(manifest.routes).toEqual([
     { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
     { function: 'func-2', pattern: '^/f2/.*/?$', excluded_patterns: ['^/f2/exclude$'] },
+    // isc-defined routes are after TOML-defined
+    // doesn't need excluded_patterns, because that lives in function_config
+    { function: 'func-1', pattern: '^/f1/include/.*/?$' },
   ])
   expect(manifest.function_config).toEqual({
     'func-1': { excluded_patterns: ['^/.*\\.css/?$'] },
