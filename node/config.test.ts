@@ -272,11 +272,13 @@ test('Stores excludedPath in `routes` (flagged)', async () => {
     {
       function: 'user-func2',
       pattern: '^/user-func2/?$',
+      // excludedPath is defined in TOML, so it's stored in `routes`
       excluded_patterns: ['^/user-func2/excluded/?$'],
     },
     { function: 'framework-func1', pattern: '^/framework-func1/?$' },
     { function: 'user-func1', pattern: '^/user-func1/?$' },
     { function: 'user-func3', pattern: '^/user-func3/?$' },
+    // excludedPath is defined in ISC, so it's not here but in in `function_config`
     { function: 'user-func5', pattern: '^/user-func5/.*/?$' },
   ])
 
