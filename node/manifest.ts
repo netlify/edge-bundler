@@ -112,7 +112,9 @@ const generateManifest = ({
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError }
   }
 
-  for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries(internalFunctionConfig)) {
+  for (const [name, { excludedPath, cache: _cache, path: _path, onError, ...rest }] of Object.entries(
+    internalFunctionConfig,
+  )) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue

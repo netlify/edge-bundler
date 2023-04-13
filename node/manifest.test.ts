@@ -190,7 +190,6 @@ test('Filters out internal in-source configurations in user created functions', 
     },
     'func-2': {
       on_error: 'bypass',
-      cache: Cache.Off,
       name: 'Internal function',
       generator: 'internal-generator',
       excluded_patterns: ['^/f2/exclude/?$'],
