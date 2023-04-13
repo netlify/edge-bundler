@@ -15,6 +15,7 @@ import { nonNullable } from './utils/non_nullable.js'
 interface Route {
   function: string
   pattern: string
+  excluded_patterns?: string[]
 }
 
 interface EdgeFunctionConfig {
@@ -139,7 +140,11 @@ const generateManifest = ({
     )
 
     if (excludedPattern) {
-      manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+      if (featureFlags?.edge_functions_excluded_patterns_on_route) {
+        route.excluded_patterns = [serializePattern(excludedPattern)]
+      } else {
+        manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+      }
     }
 
     if (declaration.cache === Cache.Manual) {

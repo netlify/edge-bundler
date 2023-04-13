@@ -2,6 +2,7 @@ const defaultFlags = {
   edge_functions_correct_order: false,
   edge_functions_fail_unsupported_regex: false,
   edge_functions_invalid_config_throw: false,
+  edge_functions_excluded_patterns_on_route: false,
 }
 
 type FeatureFlag = keyof typeof defaultFlags

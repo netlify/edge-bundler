@@ -93,6 +93,29 @@ test('Generates a manifest with excluded paths and patterns', () => {
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 })
 
+test('Excluded Paths are written to manifest.routes', () => {
+  const functions = [
+    { name: 'func-1', path: '/path/to/func-1.ts' },
+    { name: 'func-2', path: '/path/to/func-2.ts' },
+  ]
+  const declarations: Declaration[] = [
+    { function: 'func-1', path: '/f1/*', excludedPath: '/f1/exclude' },
+    { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
+  ]
+  const userFunctionConfig: Record<string, FunctionConfig> = {
+    'func-1': { excludedPath: '/*.css' }
+  }
+  const manifest = generateManifest({ bundles: [], declarations, functions, userFunctionConfig, featureFlags: { edge_functions_excluded_patterns_on_route: true } })
+
+  expect(manifest.routes).toEqual([
+    { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+    { function: 'func-2', pattern: '^/f2/.*/?$', excluded_patterns: ['^/f2/exclude$'] },
+  ])
+  expect(manifest.function_config).toEqual({
+    'func-1': { excluded_patterns: ['^/.*\\.css/?$'] },
+  })
+})
+
 test('TOML-defined paths can be combined with ISC-defined excluded paths', () => {
   const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1/*' }]
