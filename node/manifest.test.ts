@@ -101,6 +101,7 @@ test('Excluded Paths are written to manifest.routes', () => {
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1/*', excludedPath: '/f1/exclude' },
     { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
+    { function: 'func-1', pattern: '^/f1/include/.*/?$' },
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': { path: '/f1/include/*', excludedPath: '/*.css' },
