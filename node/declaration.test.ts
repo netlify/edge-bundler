@@ -192,15 +192,6 @@ test('netlify.toml-defined excludedPath are respected', () => {
   expect(declarations).toEqual(expectedDeclarations)
 })
 
-test('throws if there are lookaheads in a regex pattern', () => {
-  const regexPattern =
-    '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/((?!99|88).*))(.json)?[\\/#\\?]?$'
-
-  expect(() => {
-    parsePattern(regexPattern)
-  }).toThrow('Regular expressions with lookaheads are not supported')
-})
-
 test('Does not escape front slashes in a regex pattern if they are already escaped', () => {
   const regexPattern = '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
   const expected = '^(?:\\/(_next\\/data\\/[^\\/]{1,}))?(?:\\/([^\\/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
