@@ -201,7 +201,7 @@ test('throws if there are lookaheads in a regex pattern', () => {
   }).toThrow('Regular expressions with lookaheads are not supported')
 })
 
-test('does not escape front slashes in a regex pattern if they are already escaped', () => {
+test('Does not escape front slashes in a regex pattern if they are already escaped', () => {
   const regexPattern = '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
   const expected = '^(?:\\/(_next\\/data\\/[^\\/]{1,}))?(?:\\/([^\\/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
   const actual = parsePattern(regexPattern)
