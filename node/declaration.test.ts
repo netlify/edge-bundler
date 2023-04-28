@@ -209,7 +209,7 @@ test('does not escape front slashes in a regex pattern if they are already escap
   expect(actual).toEqual(expected)
 })
 
-test('escapes front slashes in a regex pattern', () => {
+test('Escapes front slashes in a regex pattern', () => {
   const regexPattern = '^(?:/(_next/data/[^/]{1,}))?(?:/([^/.]{1,}))/shows(?:/(.*))(.json)?[/#\\?]?$'
   const expected = '^(?:\\/(_next\\/data\\/[^\\/]{1,}))?(?:\\/([^\\/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
   const actual = parsePattern(regexPattern)
