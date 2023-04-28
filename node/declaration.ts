@@ -130,7 +130,7 @@ const createDeclarationsFromFunctionConfigs = (
 // Validates and normalizes a pattern so that it's a valid regular expression
 // in Go, which is the engine used by our edge nodes.
 export const parsePattern = (pattern: string) => {
-  // only escape front slashes if they haven't been escaped already
+  // Only escape front slashes if they haven't been escaped already.
   const normalizedPattern = pattern.replace(/(?<!\\)\//g, '\\/')
 
   const regex = regexpAST.transform(`/${normalizedPattern}/`, {
