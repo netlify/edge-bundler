@@ -198,7 +198,7 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(routes[2]).toEqual({ function: 'framework-func1', pattern: '^/framework-func1/?$' })
   expect(routes[3]).toEqual({ function: 'user-func1', pattern: '^/user-func1/?$' })
   expect(routes[4]).toEqual({ function: 'user-func3', pattern: '^/user-func3/?$' })
-  expect(routes[5]).toEqual({ function: 'user-func5', pattern: '^/user-func5/.*/?$' })
+  expect(routes[5]).toEqual({ function: 'user-func5', pattern: '^/user-func5(?:/(.*))/?$' })
 
   expect(postCacheRoutes.length).toBe(1)
   expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$' })

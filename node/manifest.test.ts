@@ -46,7 +46,7 @@ test('Generates a manifest with display names', () => {
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, internalFunctionConfig })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/.*/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
   expect(manifest.function_config).toEqual({
     'func-1': { name: 'Display Name' },
   })
@@ -65,7 +65,7 @@ test('Generates a manifest with a generator field', () => {
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, internalFunctionConfig })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/.*/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
   const expectedFunctionConfig = { 'func-1': { generator: '@netlify/fake-plugin@1.0.0' } }
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual(expectedFunctionConfig)
@@ -79,13 +79,13 @@ test('Generates a manifest with excluded paths and patterns', () => {
   ]
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1/*', excludedPath: '/f1/exclude' },
-    { function: 'func-2', pattern: '^/f2/.*/?$', excludedPattern: '^/f2/exclude$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excludedPattern: '^/f2/exclude$' },
     { function: 'func-3', path: '/*', excludedPath: '/**/*.html' },
   ]
   const manifest = generateManifest({ bundles: [], declarations, functions })
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1/.*/?$' },
-    { function: 'func-2', pattern: '^/f2/.*/?$' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
     { function: 'func-3', pattern: '^/.*/?$' },
   ]
 
@@ -127,7 +127,7 @@ test('Filters out internal in-source configurations in user created functions', 
   ]
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1/*' },
-    { function: 'func-2', pattern: '^/f2/.*/?$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': {
@@ -178,7 +178,7 @@ test('Includes failure modes in manifest', () => {
   ]
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1/*' },
-    { function: 'func-2', pattern: '^/f2/.*/?$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': {
@@ -288,8 +288,8 @@ test('Generates a manifest with layers', () => {
     { function: 'func-2', path: '/f2/*' },
   ]
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1/.*/?$' },
-    { function: 'func-2', pattern: '^/f2/.*/?$' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
   ]
   const layers = [
     {
