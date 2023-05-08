@@ -86,14 +86,14 @@ test('Generates a manifest with excluded paths and patterns', () => {
   const expectedRoutes = [
     { function: 'func-1', pattern: '^/f1(?:/(.*))/?$' },
     { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
-    { function: 'func-3', pattern: '^/.*/?$' },
+    { function: 'func-3', pattern: '^(?:/(.*))/?$' },
   ]
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual({
     'func-1': { excluded_patterns: ['^/f1/exclude/?$'] },
     'func-2': { excluded_patterns: ['^/f2/exclude$'] },
-    'func-3': { excluded_patterns: ['^/.*/.*\\.html/?$'] },
+    'func-3': { excluded_patterns: ['^(?:/((?:.*)(?:/(?:.*))*))?(?:/(.*))\\.html/?$'] },
   })
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 
@@ -110,8 +110,7 @@ test('TOML-defined paths can be combined with ISC-defined excluded paths', () =>
     'func-1': { excludedPath: '/f1/exclude' },
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, userFunctionConfig })
-
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/.*/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual({
