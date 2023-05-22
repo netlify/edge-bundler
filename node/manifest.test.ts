@@ -167,6 +167,52 @@ test('Filters out internal in-source configurations in user created functions', 
   })
 })
 
+test('excludedPath from ISC goes into function_config, TOML goes into routes', () => {
+  const functions = [{ name: 'customisation', path: '/path/to/customisation.ts' }]
+  const declarations: Declaration[] = [
+    { function: 'customisation', path: '/showcases/*' },
+    { function: 'customisation', path: '/checkout/*', excludedPath: ['*/terms-and-conditions'] },
+  ]
+  const userFunctionConfig: Record<string, FunctionConfig> = {
+    customisation: {
+      excludedPath: ['*.css', '*.jpg'],
+    },
+  }
+  const internalFunctionConfig: Record<string, FunctionConfig> = {}
+  const manifest = generateManifest({
+    bundles: [],
+    declarations,
+    functions,
+    userFunctionConfig,
+    internalFunctionConfig,
+  })
+  expect(manifest.routes).toEqual([
+    {
+      function: 'customisation',
+      pattern: '^/showcases/.*/?$',
+      excluded_patterns: [],
+    },
+    {
+      function: 'customisation',
+      pattern: '^/checkout/.*/?$',
+      excluded_patterns: ['^.*/terms-and-conditions/?$'],
+    },
+  ])
+  expect(manifest.function_config).toEqual({
+    customisation: {
+      excluded_patterns: ['^.*\\.css/?$', '^.*\\.jpg/?$'],
+    },
+  })
+
+  const matcher = getRouteMatcher(manifest)
+
+  expect(matcher('/showcases/boho-style')).toBeDefined()
+  expect(matcher('/checkout/address')).toBeDefined()
+  expect(matcher('/checkout/terms-and-conditions')).toBeUndefined()
+  expect(matcher('/checkout/scrooge-mc-duck-animation.css')).toBeUndefined()
+  expect(matcher('/showcases/boho-style/expensive-chair.jpg')).toBeUndefined()
+})
+
 test('Includes failure modes in manifest', () => {
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
