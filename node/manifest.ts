@@ -139,7 +139,7 @@ const generateManifest = ({
     )
 
     if (excludedPattern) {
-      manifestFunctionConfig[func.name].excluded_patterns.push(serializePattern(excludedPattern))
+      manifestFunctionConfig[func.name].excluded_patterns.push(...excludedPattern.map(serializePattern))
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -165,7 +165,7 @@ const generateManifest = ({
   return manifest
 }
 
-const pathToRegularExpression = (path: string) => {
+const pathToRegularExpression = (path: string | string[]) => {
   // We use the global flag so that `globToRegExp` will not wrap the expression
   // with `^` and `$`. We'll do that ourselves.
   const regularExpression = globToRegExp(path, { flags: 'g' })
@@ -178,7 +178,7 @@ const pathToRegularExpression = (path: string) => {
   return normalizedSource
 }
 
-const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = false) => {
+const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = false): string => {
   if ('pattern' in declaration) {
     try {
       return parsePattern(declaration.pattern)
@@ -203,31 +203,38 @@ const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = f
   return pathToRegularExpression(declaration.path)
 }
 
-const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedRegex = false) => {
+const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedRegex = false): string[] => {
   if ('excludedPattern' in declaration && declaration.excludedPattern) {
-    try {
-      return parsePattern(declaration.excludedPattern)
-    } catch (error: unknown) {
-      // eslint-disable-next-line max-depth
-      if (failUnsupportedRegex) {
-        throw new Error(
-          `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+    const excludedPatterns: string[] = Array.isArray(declaration.excludedPattern)
+      ? declaration.excludedPattern
+      : [declaration.excludedPattern]
+    return excludedPatterns.map((excludedPattern) => {
+      try {
+        return parsePattern(excludedPattern)
+      } catch (error: unknown) {
+        if (failUnsupportedRegex) {
+          throw new Error(
+            `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+          )
+        }
+
+        console.warn(
+          `Function '${
+            declaration.function
+          }' uses an unsupported regular expression and will therefore not be invoked: ${(error as Error).message}`,
         )
+
+        return excludedPattern
       }
-
-      console.warn(
-        `Function '${declaration.function}' uses an unsupported regular expression and will therefore not be invoked: ${
-          (error as Error).message
-        }`,
-      )
-
-      return declaration.excludedPattern
-    }
+    })
   }
 
   if ('path' in declaration && declaration.excludedPath) {
-    return pathToRegularExpression(declaration.excludedPath)
+    const paths = Array.isArray(declaration.excludedPath) ? declaration.excludedPath : [declaration.excludedPath]
+    return paths.map(pathToRegularExpression)
   }
+
+  return []
 }
 
 interface WriteManifestOptions extends GenerateManifestOptions {

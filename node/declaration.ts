@@ -13,7 +13,7 @@ interface BaseDeclaration {
 
 type DeclarationWithPath = BaseDeclaration & {
   path: Path
-  excludedPath?: Path
+  excludedPath?: Path | Path[]
 }
 
 type DeclarationWithPattern = BaseDeclaration & {
