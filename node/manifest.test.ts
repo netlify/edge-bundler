@@ -84,17 +84,13 @@ test('Generates a manifest with excluded paths and patterns', () => {
   ]
   const manifest = generateManifest({ bundles: [], declarations, functions })
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: [] },
-    { function: 'func-2', pattern: '^/f2/.*/?$', excluded_patterns: [] },
-    { function: 'func-3', pattern: '^/.*/?$', excluded_patterns: [] },
+    { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+    { function: 'func-2', pattern: '^/f2/.*/?$', excluded_patterns: ['^/f2/exclude$'] },
+    { function: 'func-3', pattern: '^/.*/?$', excluded_patterns: ['^/.*/.*\\.html/?$'] },
   ]
 
   expect(manifest.routes).toEqual(expectedRoutes)
-  expect(manifest.function_config).toEqual({
-    'func-1': { excluded_patterns: ['^/f1/exclude/?$'] },
-    'func-2': { excluded_patterns: ['^/f2/exclude$'] },
-    'func-3': { excluded_patterns: ['^/.*/.*\\.html/?$'] },
-  })
+  expect(manifest.function_config).toEqual({})
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 
   const matcher = getRouteMatcher(manifest)

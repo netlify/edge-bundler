@@ -130,18 +130,15 @@ const generateManifest = ({
     }
 
     const pattern = getRegularExpression(declaration, featureFlags?.edge_functions_fail_unsupported_regex)
-    const route: Route = {
-      function: func.name,
-      pattern: serializePattern(pattern),
-      excluded_patterns: [],
-    }
     const excludedPattern = getExcludedRegularExpression(
       declaration,
       featureFlags?.edge_functions_fail_unsupported_regex,
     )
 
-    if (excludedPattern) {
-      manifestFunctionConfig[func.name].excluded_patterns.push(...excludedPattern.map(serializePattern))
+    const route: Route = {
+      function: func.name,
+      pattern: serializePattern(pattern),
+      excluded_patterns: excludedPattern.map(serializePattern),
     }
 
     if (declaration.cache === Cache.Manual) {
