@@ -171,7 +171,7 @@ test('excludedPath from ISC goes into function_config, TOML goes into routes', (
   const functions = [{ name: 'customisation', path: '/path/to/customisation.ts' }]
   const declarations: Declaration[] = [
     { function: 'customisation', path: '/showcases/*' },
-    { function: 'customisation', path: '/checkout/*', excludedPath: ['*/terms-and-conditions'] },
+    { function: 'customisation', path: '/checkout/*', excludedPath: ['/*/terms-and-conditions'] },
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
     customisation: {
@@ -195,7 +195,7 @@ test('excludedPath from ISC goes into function_config, TOML goes into routes', (
     {
       function: 'customisation',
       pattern: '^/checkout/.*/?$',
-      excluded_patterns: ['^.*/terms-and-conditions/?$'],
+      excluded_patterns: ['^/.*/terms-and-conditions/?$'],
     },
   ])
   expect(manifest.function_config).toEqual({
