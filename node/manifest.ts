@@ -130,7 +130,7 @@ const generateManifest = ({
     }
 
     const pattern = getRegularExpression(declaration, featureFlags?.edge_functions_fail_unsupported_regex)
-    const excludedPattern = getExcludedRegularExpression(
+    const excludedPattern = getExcludedRegularExpressions(
       declaration,
       featureFlags?.edge_functions_fail_unsupported_regex,
     )
@@ -202,7 +202,7 @@ const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = f
   return pathToRegularExpression(declaration.path)
 }
 
-const getExcludedRegularExpression = (declaration: Declaration, failUnsupportedRegex = false): string[] => {
+const getExcludedRegularExpressions = (declaration: Declaration, failUnsupportedRegex = false): string[] => {
   if ('excludedPattern' in declaration && declaration.excludedPattern) {
     const excludedPatterns: string[] = Array.isArray(declaration.excludedPattern)
       ? declaration.excludedPattern
