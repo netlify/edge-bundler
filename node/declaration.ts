@@ -18,7 +18,7 @@ type DeclarationWithPath = BaseDeclaration & {
 
 type DeclarationWithPattern = BaseDeclaration & {
   pattern: string
-  excludedPattern?: string
+  excludedPattern?: string | string[]
 }
 
 export type Declaration = DeclarationWithPath | DeclarationWithPattern
