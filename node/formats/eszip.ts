@@ -3,13 +3,14 @@ import { join } from 'path'
 import { virtualRoot } from '../../shared/consts.js'
 import type { WriteStage2Options } from '../../shared/stage2.js'
 import { DenoBridge } from '../bridge.js'
-import { Bundle, BundleFormat } from '../bundle.js'
+import { BundleFormat } from '../bundle.js'
 import { wrapBundleError } from '../bundle_error.js'
 import { EdgeFunction } from '../edge_function.js'
 import { FeatureFlags } from '../feature_flags.js'
 import { ImportMap } from '../import_map.js'
 import { wrapNpmImportError } from '../npm_import_error.js'
 import { getPackagePath } from '../package_json.js'
+import { cleanPreBundleDirectory, preBundle } from '../pre_bundle.js'
 import { getFileHash } from '../utils/sha256.js'
 
 interface BundleESZIPOptions {
@@ -22,6 +23,7 @@ interface BundleESZIPOptions {
   featureFlags: FeatureFlags
   functions: EdgeFunction[]
   importMap: ImportMap
+  preBundlePath: string
 }
 
 const bundleESZIP = async ({
@@ -31,19 +33,27 @@ const bundleESZIP = async ({
   deno,
   distDirectory,
   externals,
-  functions,
+  featureFlags,
+  functions: rawFunctions,
   importMap,
-}: BundleESZIPOptions): Promise<Bundle> => {
+  preBundlePath,
+}: BundleESZIPOptions) => {
+  const { functions, mappings } = await preBundle({
+    featureFlags,
+    functions: rawFunctions,
+    importMap,
+    preBundlePath,
+  })
   const extension = '.eszip'
   const destPath = join(distDirectory, `${buildID}${extension}`)
   const { bundler, importMap: bundlerImportMap } = getESZIPPaths()
-  const importMapData = JSON.stringify(importMap.getContents(basePath, virtualRoot))
+  const importMapData = importMap.getContents(basePath, virtualRoot)
   const payload: WriteStage2Options = {
     basePath,
     destPath,
     externals,
     functions,
-    importMapData,
+    importMapData: JSON.stringify(importMapData),
   }
   const flags = ['--allow-all', '--no-config', `--import-map=${bundlerImportMap}`]
 
@@ -59,7 +69,13 @@ const bundleESZIP = async ({
 
   const hash = await getFileHash(destPath)
 
-  return { extension, format: BundleFormat.ESZIP2, hash }
+  return {
+    cleanup: () => cleanPreBundleDirectory(preBundlePath, featureFlags),
+    extension,
+    format: BundleFormat.ESZIP2,
+    hash,
+    mappings,
+  }
 }
 
 const getESZIPPaths = () => {

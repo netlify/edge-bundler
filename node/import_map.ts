@@ -156,6 +156,23 @@ class ImportMap {
     }
   }
 
+  resolve(specifier: string, basePath: string) {
+    const { imports: rootImports, scopes } = this.getContents()
+    const matchingScope = Object.keys(scopes).find((scope) => {
+      const path = fileURLToPath(scope)
+
+      return basePath.startsWith(path)
+    })
+    const imports = matchingScope ? scopes[matchingScope] : rootImports
+    const match = Object.keys(imports).find((key) => specifier.startsWith(key))
+
+    if (!match) {
+      return null
+    }
+
+    return specifier.replace(match, imports[match])
+  }
+
   toDataURL() {
     const data = JSON.stringify(this.getContents())
     const encodedImportMap = Buffer.from(data).toString('base64')

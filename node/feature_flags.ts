@@ -1,4 +1,5 @@
 const defaultFlags = {
+  edge_functions_bundle_esbuild: false,
   edge_functions_fail_unsupported_regex: false,
 }
 

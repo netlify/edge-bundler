@@ -31,6 +31,7 @@ interface BundleOptions {
   onBeforeDownload?: OnBeforeDownloadHook
   systemLogger?: LogFunction
   internalSrcFolder?: string
+  preBundlePath?: string
 }
 
 const bundle = async (
@@ -49,6 +50,7 @@ const bundle = async (
     onBeforeDownload,
     systemLogger,
     internalSrcFolder,
+    preBundlePath: inputPreBundlePath,
   }: BundleOptions = {},
 ) => {
   const logger = getLogger(systemLogger, debug)
@@ -67,6 +69,7 @@ const bundle = async (
 
   const deno = new DenoBridge(options)
   const basePath = getBasePath(sourceDirectories, inputBasePath)
+  const preBundlePath = inputPreBundlePath ?? join(basePath, '.netlify', 'edge-functions-pre-bundled')
 
   await ensureLatestTypes(deno, logger)
 
@@ -103,6 +106,7 @@ const bundle = async (
     functions,
     featureFlags,
     importMap,
+    preBundlePath,
   })
 
   // The final file name of the bundles contains a SHA256 hash of the contents,
@@ -112,13 +116,23 @@ const bundle = async (
 
   // Retrieving a configuration object for each function.
   // Run `getFunctionConfig` in parallel as it is a non-trivial operation and spins up deno
-  const internalConfigPromises = internalFunctions.map(
-    async (func) => [func.name, await getFunctionConfig(func, importMap, deno, logger)] as const,
-  )
+  const internalConfigPromises = internalFunctions.map(async (func) => {
+    const preBundledFunc = {
+      name: func.name,
+      path: functionBundle.mappings.get(func.path) ?? func.path,
+    }
 
-  const userConfigPromises = userFunctions.map(
-    async (func) => [func.name, await getFunctionConfig(func, importMap, deno, logger)] as const,
-  )
+    return [func.name, await getFunctionConfig(preBundledFunc, importMap, deno, logger)] as const
+  })
+
+  const userConfigPromises = userFunctions.map(async (func) => {
+    const preBundledFunc = {
+      name: func.name,
+      path: functionBundle.mappings.get(func.path) ?? func.path,
+    }
+
+    return [func.name, await getFunctionConfig(preBundledFunc, importMap, deno, logger)] as const
+  })
 
   // Creating a hash of function names to configuration objects.
   const internalFunctionsWithConfig = Object.fromEntries(await Promise.all(internalConfigPromises))
@@ -154,6 +168,8 @@ const bundle = async (
   if (distImportMapPath) {
     await importMap.writeToFile(distImportMapPath)
   }
+
+  await functionBundle.cleanup()
 
   return { functions, manifest }
 }

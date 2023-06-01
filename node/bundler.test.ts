@@ -131,7 +131,7 @@ test('Prints a nice error message when user tries importing NPM module', async (
   } catch (error) {
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).message).toEqual(
-      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/p-retry"'?`,
+      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/say-hi"'?`,
     )
   } finally {
     await cleanup()
@@ -160,6 +160,44 @@ test('Prints a nice error message when user tries importing NPM module with npm:
   } finally {
     await cleanup()
   }
+})
+
+test('Supports loading npm modules with bare specifiers', async () => {
+  const { basePath, cleanup, distPath } = await useFixture('imports_npm_module')
+  const sourceDirectory = join(basePath, 'functions')
+  const declarations: Declaration[] = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+
+  const result = await bundle([sourceDirectory], distPath, declarations, {
+    basePath,
+    featureFlags: { edge_functions_bundle_esbuild: true },
+  })
+
+  expect(result.functions.length).toBe(1)
+
+  const manifestFile = await readFile(resolve(distPath, 'manifest.json'), 'utf8')
+  const manifest = JSON.parse(manifestFile)
+
+  expect(() => validateManifest(manifest)).not.toThrowError()
+
+  const { bundles, routes } = manifest
+
+  expect(bundles.length).toBe(1)
+  expect(bundles[0].format).toBe('eszip2')
+  expect(routes.length).toBe(1)
+  expect(routes[0].function).toBe('func1')
+  expect(routes[0].pattern).toBe('^/func1/?$')
+
+  const bundlePath = join(distPath, bundles[0].asset)
+  const { func1 } = await runESZIP(bundlePath)
+
+  expect(func1).toBe('Hi, Jane!')
+
+  await cleanup()
 })
 
 test('Does not add a custom error property to system errors during bundling', async () => {
