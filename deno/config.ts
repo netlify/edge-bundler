@@ -1,8 +1,8 @@
-const [functionURL, collectorURL, rawExitCodes] = Deno.args
+const [functionURL, collectorURL, bootstrapURL, rawExitCodes] = Deno.args
 const exitCodes = JSON.parse(rawExitCodes)
 
-// TODO: naïve, should this be imported from https://edge.netlify.com/bootstrap/globals.ts instead?
-globalThis.Netlify = { env: Deno.env }
+const { env } = await import(new URL('./globals.ts', bootstrapURL).toString())
+globalThis.Netlify = { env }
 
 let func
 
