@@ -397,12 +397,20 @@ test('Converts named capture groups to unnamed capture groups in regular express
 })
 
 test('TOML declarations can contain multiple paths', () => {
-  const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
-  const declarations: Declaration[] = [{ function: 'func-1', path: ['/f1/*', '/f1.1/*'], excludedPath: '/f1/exclude' }]
+  const functions = [
+    { name: 'func-1', path: '/path/to/func-1.ts' },
+    { name: 'func-2', path: '/path/to/func-2.ts' },
+  ]
+  const declarations: Declaration[] = [
+    { function: 'func-1', path: ['/f1/*', '/f1.1/*'], excludedPath: '/f1/exclude' },
+    { function: 'func-2', pattern: ['^/f2/?$', '^/f2-2/?$'], excludedPattern: '^/f2/excluded/?$' },
+  ]
   const manifest = generateManifest({ bundles: [], declarations, functions })
   const expectedRoutes = [
     { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
     { function: 'func-1', pattern: '^/f1\\.1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+    { function: 'func-2', pattern: '^/f2/?$', excluded_patterns: ['^/f2/excluded/?$'] },
+    { function: 'func-2', pattern: '^/f2-2/?$', excluded_patterns: ['^/f2/excluded/?$'] },
   ]
 
   expect(manifest.routes).toEqual(expectedRoutes)
