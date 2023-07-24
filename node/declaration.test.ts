@@ -41,8 +41,7 @@ test('In-source config takes precedence over netlify.toml config', () => {
   } as Record<string, FunctionConfig>
 
   const expectedDeclarations = [
-    { function: 'geolocation', path: '/geo-isc', cache: 'manual' },
-    { function: 'geolocation', path: '/*', cache: 'manual' },
+    { function: 'geolocation', path: ['/geo-isc', '/*'], cache: 'manual' },
     { function: 'json', path: '/json', cache: 'off' },
   ]
 
@@ -63,7 +62,7 @@ test("Declarations don't break if no in-source config is provided", () => {
   } as Record<string, FunctionConfig>
 
   const expectedDeclarations = [
-    { function: 'geolocation', path: '/geo-isc', cache: 'manual' },
+    { function: 'geolocation', path: ['/geo-isc'], cache: 'manual' },
     { function: 'json', path: '/json', cache: 'manual' },
   ]
 

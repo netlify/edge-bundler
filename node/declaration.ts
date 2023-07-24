@@ -12,12 +12,12 @@ interface BaseDeclaration {
 }
 
 type DeclarationWithPath = BaseDeclaration & {
-  path: Path
+  path: Path | Path[]
   excludedPath?: Path | Path[]
 }
 
 type DeclarationWithPattern = BaseDeclaration & {
-  pattern: string
+  pattern: string | string[]
   excludedPattern?: string | string[]
 }
 
@@ -66,13 +66,7 @@ const getDeclarationsFromInput = (
       // If no config is found, add the declaration as is.
       declarations.push(declaration)
     } else if (config.path?.length) {
-      // If we have a path specified as either a string or non-empty array,
-      // create a declaration for each path.
-      const paths = Array.isArray(config.path) ? config.path : [config.path]
-
-      paths.forEach((path) => {
-        declarations.push({ ...declaration, cache: config.cache, path })
-      })
+      declarations.push({ ...declaration, cache: config.cache, path: config.path })
     } else {
       // With an in-source config without a path, add the config to the declaration.
       const { path, excludedPath, ...rest } = config

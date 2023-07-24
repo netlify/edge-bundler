@@ -129,22 +129,23 @@ const generateManifest = ({
       return
     }
 
-    const pattern = getRegularExpression(declaration, featureFlags?.edge_functions_fail_unsupported_regex)
-    const excludedPattern = getExcludedRegularExpressions(
-      declaration,
-      featureFlags?.edge_functions_fail_unsupported_regex,
-    )
+    for (const pattern of getRegularExpressions(declaration, featureFlags?.edge_functions_fail_unsupported_regex)) {
+      const excludedPattern = getExcludedRegularExpressions(
+        declaration,
+        featureFlags?.edge_functions_fail_unsupported_regex,
+      )
 
-    const route: Route = {
-      function: func.name,
-      pattern: serializePattern(pattern),
-      excluded_patterns: excludedPattern.map(serializePattern),
-    }
+      const route: Route = {
+        function: func.name,
+        pattern: serializePattern(pattern),
+        excluded_patterns: excludedPattern.map(serializePattern),
+      }
 
-    if (declaration.cache === Cache.Manual) {
-      postCacheRoutes.push(route)
-    } else {
-      preCacheRoutes.push(route)
+      if (declaration.cache === Cache.Manual) {
+        postCacheRoutes.push(route)
+      } else {
+        preCacheRoutes.push(route)
+      }
     }
   })
   const manifestBundles = bundles.map(({ extension, format, hash }) => ({
@@ -177,10 +178,12 @@ const pathToRegularExpression = (path: string) => {
   return normalizedSource
 }
 
-const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = false): string => {
+const getRegularExpressions = (declaration: Declaration, failUnsupportedRegex = false): string[] => {
   if ('pattern' in declaration) {
+    const patterns = Array.isArray(declaration.pattern) ? declaration.pattern : [declaration.pattern]
+
     try {
-      return parsePattern(declaration.pattern)
+      return patterns.map(parsePattern)
     } catch (error: unknown) {
       // eslint-disable-next-line max-depth
       if (failUnsupportedRegex) {
@@ -195,11 +198,12 @@ const getRegularExpression = (declaration: Declaration, failUnsupportedRegex = f
         }`,
       )
 
-      return declaration.pattern
+      return patterns
     }
   }
 
-  return pathToRegularExpression(declaration.path)
+  const paths = Array.isArray(declaration.path) ? declaration.path : [declaration.path]
+  return paths.map(pathToRegularExpression)
 }
 
 const getExcludedRegularExpressions = (declaration: Declaration, failUnsupportedRegex = false): string[] => {
