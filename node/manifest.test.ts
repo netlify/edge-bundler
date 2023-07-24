@@ -395,3 +395,15 @@ test('Converts named capture groups to unnamed capture groups in regular express
 
   expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/(\\w+)$', excluded_patterns: [] }])
 })
+
+test('TOML declarations can contain multiple paths', () => {
+  const functions = [{ name: 'func-1', path: '/path/to/func-1.ts' }]
+  const declarations: Declaration[] = [{ function: 'func-1', path: ['/f1/*', '/f1.1/*'], excludedPath: '/f1/exclude' }]
+  const manifest = generateManifest({ bundles: [], declarations, functions })
+  const expectedRoutes = [
+    { function: 'func-1', pattern: '^/f1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+    { function: 'func-1', pattern: '^/f1\\.1/.*/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+  ]
+
+  expect(manifest.routes).toEqual(expectedRoutes)
+})
