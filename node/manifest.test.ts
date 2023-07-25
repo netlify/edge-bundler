@@ -179,7 +179,7 @@ test('excludedPath from ISC goes into function_config, TOML goes into routes', (
   ]
   const userFunctionConfig: Record<string, FunctionConfig> = {
     customisation: {
-      excludedPath: ['/*.css', '/*.jpg'],
+      excludedPath: ['/**/*.css', '/**/*.jpg'],
     },
   }
   const internalFunctionConfig: Record<string, FunctionConfig> = {}
@@ -204,7 +204,7 @@ test('excludedPath from ISC goes into function_config, TOML goes into routes', (
   ])
   expect(manifest.function_config).toEqual({
     customisation: {
-      excluded_patterns: ['^/([^/]*)\\.css/?$', '^/([^/]*)\\.jpg/?$'],
+      excluded_patterns: ['^/((?:[^/]*(?:/|$))*)([^/]*)\\.css/?$', '^/((?:[^/]*(?:/|$))*)([^/]*)\\.jpg/?$'],
     },
   })
 
