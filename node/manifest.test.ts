@@ -97,6 +97,10 @@ test('Generates a manifest with excluded paths and patterns', () => {
 
   expect(matcher('/f1/hello')?.function).toBe('func-1')
   expect(matcher('/grandparent/parent/child/grandchild.html')?.function).toBeUndefined()
+
+  expect(matcher('/test.jpg')?.function).toBe('func-3')
+  expect(matcher('/test.html')?.function).toBeUndefined()
+  expect(matcher('/sub/test.html')?.function).toBeUndefined()
 })
 
 test('TOML-defined paths can be combined with ISC-defined excluded paths', () => {
