@@ -28,7 +28,7 @@ test('Generates a manifest with different bundles', () => {
     { asset: bundle1.hash + bundle1.extension, format: bundle1.format },
     { asset: bundle2.hash + bundle2.extension, format: bundle2.format },
   ]
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [] }]
 
   expect(manifest.bundles).toEqual(expectedBundles)
   expect(manifest.routes).toEqual(expectedRoutes)
@@ -46,7 +46,7 @@ test('Generates a manifest with display names', () => {
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, internalFunctionConfig })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [] }]
   expect(manifest.function_config).toEqual({
     'func-1': { name: 'Display Name' },
   })
@@ -65,7 +65,7 @@ test('Generates a manifest with a generator field', () => {
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, internalFunctionConfig })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [] }]
   const expectedFunctionConfig = { 'func-1': { generator: '@netlify/fake-plugin@1.0.0' } }
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual(expectedFunctionConfig)
@@ -79,22 +79,22 @@ test('Generates a manifest with excluded paths and patterns', () => {
   ]
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1/*', excludedPath: '/f1/exclude' },
-    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excludedPattern: '^/f2/exclude$' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excludedPattern: ['^/f2/exclude$', '^/f2/exclude-as-well$'] },
     { function: 'func-3', path: '/*', excludedPath: '/**/*.html' },
   ]
   const manifest = generateManifest({ bundles: [], declarations, functions })
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$' },
-    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
-    { function: 'func-3', pattern: '^(?:/(.*))/?$' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: ['^/f1/exclude/?$'] },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excluded_patterns: ['^/f2/exclude$', '^/f2/exclude-as-well$'] },
+    {
+      function: 'func-3',
+      pattern: '^(?:/(.*))/?$',
+      excluded_patterns: ['^(?:/((?:.*)(?:/(?:.*))*))?(?:/(.*))\\.html/?$'],
+    },
   ]
 
   expect(manifest.routes).toEqual(expectedRoutes)
-  expect(manifest.function_config).toEqual({
-    'func-1': { excluded_patterns: ['^/f1/exclude/?$'] },
-    'func-2': { excluded_patterns: ['^/f2/exclude$'] },
-    'func-3': { excluded_patterns: ['^(?:/((?:.*)(?:/(?:.*))*))?(?:/(.*))\\.html/?$'] },
-  })
+  expect(manifest.function_config).toEqual({})
   expect(manifest.bundler_version).toBe(env.npm_package_version as string)
 
   const matcher = getRouteMatcher(manifest)
@@ -110,7 +110,7 @@ test('TOML-defined paths can be combined with ISC-defined excluded paths', () =>
     'func-1': { excludedPath: '/f1/exclude' },
   }
   const manifest = generateManifest({ bundles: [], declarations, functions, userFunctionConfig })
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [] }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual({
@@ -170,6 +170,52 @@ test('Filters out internal in-source configurations in user created functions', 
   })
 })
 
+test('excludedPath from ISC goes into function_config, TOML goes into routes', () => {
+  const functions = [{ name: 'customisation', path: '/path/to/customisation.ts' }]
+  const declarations: Declaration[] = [
+    { function: 'customisation', path: '/showcases/*' },
+    { function: 'customisation', path: '/checkout/*', excludedPath: ['/*/terms-and-conditions'] },
+  ]
+  const userFunctionConfig: Record<string, FunctionConfig> = {
+    customisation: {
+      excludedPath: ['/*.css', '/*.jpg'],
+    },
+  }
+  const internalFunctionConfig: Record<string, FunctionConfig> = {}
+  const manifest = generateManifest({
+    bundles: [],
+    declarations,
+    functions,
+    userFunctionConfig,
+    internalFunctionConfig,
+  })
+  expect(manifest.routes).toEqual([
+    {
+      function: 'customisation',
+      pattern: '^/showcases(?:/(.*))/?$',
+      excluded_patterns: [],
+    },
+    {
+      function: 'customisation',
+      pattern: '^/checkout(?:/(.*))/?$',
+      excluded_patterns: ['^(?:/(.*))/terms-and-conditions/?$'],
+    },
+  ])
+  expect(manifest.function_config).toEqual({
+    customisation: {
+      excluded_patterns: ['^(?:/(.*))\\.css/?$', '^(?:/(.*))\\.jpg/?$'],
+    },
+  })
+
+  const matcher = getRouteMatcher(manifest)
+
+  expect(matcher('/showcases/boho-style')).toBeDefined()
+  expect(matcher('/checkout/address')).toBeDefined()
+  expect(matcher('/checkout/terms-and-conditions')).toBeUndefined()
+  expect(matcher('/checkout/scrooge-mc-duck-animation.css')).toBeUndefined()
+  expect(matcher('/showcases/boho-style/expensive-chair.jpg')).toBeUndefined()
+})
+
 test('Includes failure modes in manifest', () => {
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
@@ -203,7 +249,7 @@ test('Excludes functions for which there are function files but no matching conf
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1' }]
   const manifest = generateManifest({ bundles: [bundle1], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [] }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
 })
@@ -221,7 +267,7 @@ test('Excludes functions for which there are config declarations but no matching
   ]
   const manifest = generateManifest({ bundles: [bundle1], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-2', pattern: '^/f2/?$' }]
+  const expectedRoutes = [{ function: 'func-2', pattern: '^/f2/?$', excluded_patterns: [] }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
 })
@@ -231,7 +277,7 @@ test('Generates a manifest without bundles', () => {
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1' }]
   const manifest = generateManifest({ bundles: [], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [] }]
 
   expect(manifest.bundles).toEqual([])
   expect(manifest.routes).toEqual(expectedRoutes)
@@ -266,10 +312,10 @@ test('Generates a manifest with pre and post-cache routes', () => {
     { asset: bundle2.hash + bundle2.extension, format: bundle2.format },
   ]
   const expectedPreCacheRoutes = [
-    { function: 'func-1', name: undefined, pattern: '^/f1/?$' },
-    { function: 'func-2', name: undefined, pattern: '^/f2/?$' },
+    { function: 'func-1', name: undefined, pattern: '^/f1/?$', excluded_patterns: [] },
+    { function: 'func-2', name: undefined, pattern: '^/f2/?$', excluded_patterns: [] },
   ]
-  const expectedPostCacheRoutes = [{ function: 'func-3', name: undefined, pattern: '^/f3/?$' }]
+  const expectedPostCacheRoutes = [{ function: 'func-3', name: undefined, pattern: '^/f3/?$', excluded_patterns: [] }]
 
   expect(manifest.bundles).toEqual(expectedBundles)
   expect(manifest.routes).toEqual(expectedPreCacheRoutes)
@@ -287,8 +333,8 @@ test('Generates a manifest with layers', () => {
     { function: 'func-2', path: '/f2/*' },
   ]
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$' },
-    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [] },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excluded_patterns: [] },
   ]
   const layers = [
     {
@@ -322,7 +368,7 @@ test('Shows a warning if the regular expression contains a negative lookahead', 
 
   console.warn = consoleWarn
 
-  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/\\w+(?=\\d)$' }])
+  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/\\w+(?=\\d)$', excluded_patterns: [] }])
   expect(mockConsoleWarn).toHaveBeenCalledOnce()
   expect(mockConsoleWarn).toHaveBeenCalledWith(
     "Function 'func-1' uses an unsupported regular expression and will not be invoked: Regular expressions with lookaheads are not supported",
@@ -350,5 +396,5 @@ test('Converts named capture groups to unnamed capture groups in regular express
   const declarations = [{ function: 'func-1', pattern: '^/(?<name>\\w+)$' }]
   const manifest = generateManifest({ bundles: [], declarations, functions })
 
-  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/(\\w+)$' }])
+  expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/(\\w+)$', excluded_patterns: [] }])
 })

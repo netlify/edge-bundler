@@ -1,5 +1,60 @@
 # Changelog
 
+## [8.16.4](https://github.com/netlify/edge-bundler/compare/v8.16.3...v8.16.4) (2023-07-12)
+
+
+### Bug Fixes
+
+* set minimum deno version to `1.32.5` to support latest features in netlify bootstrap ([140b46d](https://github.com/netlify/edge-bundler/commit/140b46d4868a76645017264e3e1b74c646abe0d6))
+
+## [8.16.3](https://github.com/netlify/edge-bundler/compare/v8.16.2...v8.16.3) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency semver to v7.5.3 ([#424](https://github.com/netlify/edge-bundler/issues/424)) ([364eefe](https://github.com/netlify/edge-bundler/commit/364eefeb7eff5dd76e613d553c4cb6e0b1410489))
+* **deps:** update dependency semver to v7.5.4 ([#430](https://github.com/netlify/edge-bundler/issues/430)) ([30bd647](https://github.com/netlify/edge-bundler/commit/30bd647fade7407adbcb80aa65741a5c159a4e07))
+
+## [8.16.2](https://github.com/netlify/edge-bundler/compare/v8.16.1...v8.16.2) (2023-06-07)
+
+
+### Bug Fixes
+
+* improvements to download process of deno ([#414](https://github.com/netlify/edge-bundler/issues/414)) ([8e1ecec](https://github.com/netlify/edge-bundler/commit/8e1ecec398f6588d6e6ede042168fc4df62cf0fd))
+
+## [8.16.1](https://github.com/netlify/edge-bundler/compare/v8.16.0...v8.16.1) (2023-06-05)
+
+
+### Bug Fixes
+
+* update minimum version of semver to be ESM compatible ([#412](https://github.com/netlify/edge-bundler/issues/412)) ([f5f2695](https://github.com/netlify/edge-bundler/commit/f5f269552804b07754b1cb97d0f348d2a334f614))
+
+## [8.16.0](https://github.com/netlify/edge-bundler/compare/v8.15.0...v8.16.0) (2023-05-30)
+
+
+### Features
+
+* support `node:` prefix ([#406](https://github.com/netlify/edge-bundler/issues/406)) ([0f7413f](https://github.com/netlify/edge-bundler/commit/0f7413f3e4921922ba82d1331cfb6d50ccafc2a6))
+
+## [8.15.0](https://github.com/netlify/edge-bundler/compare/v8.14.2...v8.15.0) (2023-05-24)
+
+
+### Features
+
+* add support for excludedPattern ([#403](https://github.com/netlify/edge-bundler/issues/403)) ([39b29d5](https://github.com/netlify/edge-bundler/commit/39b29d5676432786dd83971fcc8e7cff00bea649))
+
+
+### Bug Fixes
+
+* **deps:** update dependency semver to v7.5.1 ([#397](https://github.com/netlify/edge-bundler/issues/397)) ([0858b14](https://github.com/netlify/edge-bundler/commit/0858b14c49fa958935e20284dda46f4f0c3fc795))
+
+## [8.14.2](https://github.com/netlify/edge-bundler/compare/v8.14.1...v8.14.2) (2023-05-12)
+
+
+### Bug Fixes
+
+* remove del package ([e913e46](https://github.com/netlify/edge-bundler/commit/e913e4602cc3fa8d6931159280a24bf6986b782c))
+
 ## [8.14.1](https://github.com/netlify/edge-bundler/compare/v8.14.0...v8.14.1) (2023-05-05)
 
 

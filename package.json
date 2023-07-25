@@ -1,6 +1,6 @@
 {
   "name": "@netlify/edge-bundler",
-  "version": "8.14.1",
+  "version": "8.16.4",
   "description": "Intelligently prepare Netlify Edge Functions for deployment",
   "type": "module",
   "main": "./dist/node/index.js",
@@ -32,7 +32,7 @@
     "test:dev:vitest": "vitest run",
     "test:dev:vitest:watch": "vitest watch",
     "test:dev:deno": "deno test --allow-all deno",
-    "test:ci:vitest": "vitest run",
+    "test:ci:vitest": "vitest run --coverage",
     "test:ci:deno": "deno test --allow-all deno",
     "test:integration": "node --experimental-modules test/integration/test.js"
   },
@@ -57,7 +57,7 @@
     "@types/node": "^14.18.32",
     "@types/semver": "^7.3.9",
     "@types/uuid": "^9.0.0",
-    "@vitest/coverage-c8": "^0.31.0",
+    "@vitest/coverage-v8": "^0.33.0",
     "archiver": "^5.3.1",
     "chalk": "^4.1.2",
     "cpy": "^9.0.1",
@@ -66,7 +66,7 @@
     "nock": "^13.2.4",
     "tar": "^6.1.11",
     "typescript": "^5.0.0",
-    "vitest": "^0.31.0"
+    "vitest": "^0.33.0"
   },
   "engines": {
     "node": "^14.16.0 || >=16.0.0"
@@ -77,7 +77,6 @@
     "ajv-errors": "^3.0.0",
     "better-ajv-errors": "^1.2.0",
     "common-path-prefix": "^3.0.0",
-    "del": "^7.0.0",
     "env-paths": "^3.0.0",
     "execa": "^6.0.0",
     "find-up": "^6.3.0",
@@ -90,7 +89,7 @@
     "p-wait-for": "^4.1.0",
     "path-key": "^4.0.0",
     "regexp-tree": "^0.1.24",
-    "semver": "^7.3.5",
+    "semver": "^7.3.8",
     "tmp-promise": "^3.0.3",
     "urlpattern-polyfill": "8.0.2",
     "uuid": "^9.0.0"

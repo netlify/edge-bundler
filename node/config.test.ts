@@ -1,8 +1,8 @@
 import { promises as fs } from 'fs'
+import { rm } from 'fs/promises'
 import { join, resolve } from 'path'
 import { pathToFileURL } from 'url'
 
-import { deleteAsync } from 'del'
 import tmp from 'tmp-promise'
 import { test, expect, vi, describe } from 'vitest'
 
@@ -157,7 +157,7 @@ describe('`getFunctionConfig` extracts configuration properties from function fi
       expect(logger.user).not.toHaveBeenCalled()
     }
 
-    await deleteAsync(tmpDir, { force: true })
+    await rm(tmpDir, { force: true, recursive: true, maxRetries: 10 })
   })
 })
 
@@ -193,15 +193,15 @@ test('Loads function paths from the in-source `config` function', async () => {
   expect(generatedFiles.includes(bundles[0].asset)).toBe(true)
 
   expect(routes.length).toBe(6)
-  expect(routes[0]).toEqual({ function: 'framework-func2', pattern: '^/framework-func2/?$' })
-  expect(routes[1]).toEqual({ function: 'user-func2', pattern: '^/user-func2/?$' })
-  expect(routes[2]).toEqual({ function: 'framework-func1', pattern: '^/framework-func1/?$' })
-  expect(routes[3]).toEqual({ function: 'user-func1', pattern: '^/user-func1/?$' })
-  expect(routes[4]).toEqual({ function: 'user-func3', pattern: '^/user-func3/?$' })
-  expect(routes[5]).toEqual({ function: 'user-func5', pattern: '^/user-func5(?:/(.*))/?$' })
+  expect(routes[0]).toEqual({ function: 'framework-func2', pattern: '^/framework-func2/?$', excluded_patterns: [] })
+  expect(routes[1]).toEqual({ function: 'user-func2', pattern: '^/user-func2/?$', excluded_patterns: [] })
+  expect(routes[2]).toEqual({ function: 'framework-func1', pattern: '^/framework-func1/?$', excluded_patterns: [] })
+  expect(routes[3]).toEqual({ function: 'user-func1', pattern: '^/user-func1/?$', excluded_patterns: [] })
+  expect(routes[4]).toEqual({ function: 'user-func3', pattern: '^/user-func3/?$', excluded_patterns: [] })
+  expect(routes[5]).toEqual({ function: 'user-func5', pattern: '^/user-func5(?:/(.*))/?$', excluded_patterns: [] })
 
   expect(postCacheRoutes.length).toBe(1)
-  expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$' })
+  expect(postCacheRoutes[0]).toEqual({ function: 'user-func4', pattern: '^/user-func4/?$', excluded_patterns: [] })
 
   expect(Object.keys(functionConfig)).toHaveLength(1)
   expect(functionConfig['user-func5']).toEqual({
@@ -245,7 +245,7 @@ test('Passes validation if default export exists and is a function', async () =>
     ),
   ).resolves.not.toThrow()
 
-  await deleteAsync(tmpDir, { force: true })
+  await rm(tmpDir, { force: true, recursive: true, maxRetries: 10 })
 })
 
 test('Fails validation if default export is not function', async () => {
@@ -282,7 +282,7 @@ test('Fails validation if default export is not function', async () => {
 
   await expect(config).rejects.toThrowError(invalidDefaultExportErr(path))
 
-  await deleteAsync(tmpDir, { force: true })
+  await rm(tmpDir, { force: true, recursive: true, maxRetries: 10 })
 })
 
 test('Fails validation if default export is not present', async () => {
@@ -318,5 +318,5 @@ test('Fails validation if default export is not present', async () => {
 
   await expect(config).rejects.toThrowError(invalidDefaultExportErr(path))
 
-  await deleteAsync(tmpDir, { force: true })
+  await rm(tmpDir, { force: true, recursive: true, maxRetries: 10 })
 })
