@@ -167,7 +167,7 @@ const generateManifest = ({
 const pathToRegularExpression = (path: string) => {
   // We use the global flag so that `globToRegExp` will not wrap the expression
   // with `^` and `$`. We'll do that ourselves.
-  const regularExpression = globToRegExp(path, { flags: 'g' })
+  const regularExpression = globToRegExp(path, { flags: 'g', globstar: true })
 
   // Wrapping the expression source with `^` and `$`. Also, adding an optional
   // trailing slash, so that a declaration of `path: "/foo"` matches requests
