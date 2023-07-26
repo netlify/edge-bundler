@@ -163,7 +163,7 @@ const generateManifest = ({
   return manifest
 }
 
-const pathToRegularExpression = (path: string, featureFlags: FeatureFlags) => {
+const pathToRegularExpression = (path: string, featureFlags?: FeatureFlags) => {
   if (featureFlags?.edge_functions_path_urlpattern) {
     const pattern = new ExtendedURLPattern({ pathname: path })
 
