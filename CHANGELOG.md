@@ -1,5 +1,27 @@
 # Changelog
 
+## [8.17.0](https://github.com/netlify/edge-bundler/compare/v8.16.4...v8.17.0) (2023-07-26)
+
+
+### Features
+
+* replace `glob-to-regexp` with `URLPattern` ([#392](https://github.com/netlify/edge-bundler/issues/392)) ([ca6962d](https://github.com/netlify/edge-bundler/commit/ca6962daa37b2f2af44dd7d5f007efaec49dd8ba))
+
+## [8.16.4](https://github.com/netlify/edge-bundler/compare/v8.16.3...v8.16.4) (2023-07-12)
+
+
+### Bug Fixes
+
+* set minimum deno version to `1.32.5` to support latest features in netlify bootstrap ([140b46d](https://github.com/netlify/edge-bundler/commit/140b46d4868a76645017264e3e1b74c646abe0d6))
+
+## [8.16.3](https://github.com/netlify/edge-bundler/compare/v8.16.2...v8.16.3) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency semver to v7.5.3 ([#424](https://github.com/netlify/edge-bundler/issues/424)) ([364eefe](https://github.com/netlify/edge-bundler/commit/364eefeb7eff5dd76e613d553c4cb6e0b1410489))
+* **deps:** update dependency semver to v7.5.4 ([#430](https://github.com/netlify/edge-bundler/issues/430)) ([30bd647](https://github.com/netlify/edge-bundler/commit/30bd647fade7407adbcb80aa65741a5c159a4e07))
+
 ## [8.16.2](https://github.com/netlify/edge-bundler/compare/v8.16.1...v8.16.2) (2023-06-07)
 
 
