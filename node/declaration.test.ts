@@ -1,5 +1,7 @@
 import { test, expect } from 'vitest'
 
+import { getRouteMatcher } from '../test/util.js'
+
 import { FunctionConfig } from './config.js'
 import { Declaration, mergeDeclarations, parsePattern } from './declaration.js'
 
@@ -163,23 +165,43 @@ test('netlify.toml-defined excludedPath are respected', () => {
 test('Does not escape front slashes in a regex pattern if they are already escaped', () => {
   const regexPattern = '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
   const expected = '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/(.*))(.json)?[\\/#\\?]?$'
-  const actual = parsePattern(regexPattern)
 
-  expect(actual).toEqual(expected)
+  expect(parsePattern(regexPattern)).toEqual({
+    pattern: expected,
+    excludedPatterns: [],
+  })
 })
 
 test('Escapes front slashes in a regex pattern', () => {
   const regexPattern = '^(?:/(_next/data/[^/]{1,}))?(?:/([^/.]{1,}))/shows(?:/(.*))(.json)?[/#\\?]?$'
   const expected = '^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/([^/.]{1,}))\\/shows(?:\\/(.*))(.json)?[/#\\?]?$'
-  const actual = parsePattern(regexPattern)
 
-  expect(actual).toEqual(expected)
+  expect(parsePattern(regexPattern)).toEqual({
+    pattern: expected,
+    excludedPatterns: [],
+  })
 })
 
 test('Ensures pattern match on the whole path', () => {
   const regexPattern = '/foo/.*/bar'
   const expected = '^\\/foo\\/.*\\/bar$'
-  const actual = parsePattern(regexPattern)
 
-  expect(actual).toEqual(expected)
+  expect(parsePattern(regexPattern)).toEqual({
+    pattern: expected,
+    excludedPatterns: [],
+  })
+})
+
+test('Transforms negative lookaheads into two patterns', () => {
+  const { pattern, excludedPatterns } = parsePattern('/((?!_next/static).*)')
+  expect(pattern).toEqual('^\\/(.*)$')
+  expect(excludedPatterns).toEqual(['^\\/((?:_next\\/static).*)$'])
+
+  const matcher = getRouteMatcher({
+    routes: [{ pattern, excluded_patterns: excludedPatterns, function: 'foo' }],
+    function_config: {},
+  })
+
+  expect(matcher('/hello')).toBeTruthy()
+  expect(matcher('/_next/static/hello')).toBeFalsy()
 })

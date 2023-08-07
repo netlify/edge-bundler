@@ -131,13 +131,13 @@ const generateManifest = ({
       return
     }
 
-    const pattern = getRegularExpression(declaration, featureFlags)
+    const { pattern, negativeLookaheadExclusions } = getRegularExpression(declaration, featureFlags)
     const excludedPattern = getExcludedRegularExpressions(declaration, featureFlags)
 
     const route: Route = {
       function: func.name,
       pattern: serializePattern(pattern),
-      excluded_patterns: excludedPattern.map(serializePattern),
+      excluded_patterns: [...excludedPattern, ...negativeLookaheadExclusions].map(serializePattern),
     }
 
     if (declaration.cache === Cache.Manual) {
@@ -191,7 +191,10 @@ const pathToRegularExpression = (path: string, featureFlags?: FeatureFlags) => {
   return normalizedSource
 }
 
-const getRegularExpression = (declaration: Declaration, featureFlags?: FeatureFlags): string => {
+const getRegularExpression = (
+  declaration: Declaration,
+  featureFlags?: FeatureFlags,
+): { pattern: string; negativeLookaheadExclusions: string[] } => {
   if ('pattern' in declaration) {
     try {
       return parsePattern(declaration.pattern)
@@ -213,7 +216,7 @@ const getRegularExpression = (declaration: Declaration, featureFlags?: FeatureFl
     }
   }
 
-  return pathToRegularExpression(declaration.path, featureFlags)
+  return { pattern: pathToRegularExpression(declaration.path, featureFlags), negativeLookaheadExclusions: [] }
 }
 
 const getExcludedRegularExpressions = (declaration: Declaration, featureFlags?: FeatureFlags): string[] => {

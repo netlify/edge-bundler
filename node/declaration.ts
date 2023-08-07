@@ -112,9 +112,19 @@ const createDeclarationsFromFunctionConfigs = (
   return declarations
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getASTRoot = (path: any): any => {
+  if (path.parentPath) {
+    return getASTRoot(path.parentPath)
+  }
+  return path
+}
+
 // Validates and normalizes a pattern so that it's a valid regular expression
 // in Go, which is the engine used by our edge nodes.
-export const parsePattern = (pattern: string) => {
+export const parsePattern = (pattern: string): { pattern: string; negativeLookaheadExclusions: string[] } => {
+  const negativeLookaheadExclusions: string[] = []
+
   let enclosedPattern = pattern
   if (!pattern.startsWith('^')) enclosedPattern = `^${enclosedPattern}`
   if (!pattern.endsWith('$')) enclosedPattern = `${enclosedPattern}$`
@@ -124,6 +134,18 @@ export const parsePattern = (pattern: string) => {
     Assertion(path) {
       // Lookaheads are not supported. If we find one, throw an error.
       if (path.node.kind === 'Lookahead') {
+        if (path.node.negative) {
+          path.replace({
+            type: 'Group',
+            capturing: false,
+            expression: path.node.assertion,
+          })
+          negativeLookaheadExclusions.push(regexpAST.generate(getASTRoot(path).node))
+
+          path.remove()
+          return
+        }
+
         throw new Error('Regular expressions with lookaheads are not supported')
       }
     },
@@ -143,5 +165,8 @@ export const parsePattern = (pattern: string) => {
   })
 
   // Strip leading and forward slashes.
-  return newRegexp.toString().slice(1, -1)
+  return {
+    pattern: newRegexp.toString().slice(1, -1),
+    excludedPatterns: negativeLookaheadExclusions.map((regexp) => regexp.toString().slice(1, -1)),
+  }
 }
