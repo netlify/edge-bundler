@@ -4,7 +4,7 @@ import { join } from 'path'
 import globToRegExp from 'glob-to-regexp'
 
 import type { Bundle } from './bundle.js'
-import { wrapBundleError } from './bundle_error.ts'
+import { wrapBundleError } from './bundle_error.js'
 import { Cache, FunctionConfig, Path } from './config.js'
 import { Declaration, parsePattern } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'

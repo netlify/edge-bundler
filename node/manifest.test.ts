@@ -5,7 +5,7 @@ import { test, expect, vi } from 'vitest'
 import { getRouteMatcher } from '../test/util.js'
 
 import { BundleFormat } from './bundle.js'
-import { BundleError } from './bundle_error.ts'
+import { BundleError } from './bundle_error.js'
 import { Cache, FunctionConfig } from './config.js'
 import { Declaration } from './declaration.js'
 import { generateManifest } from './manifest.js'
