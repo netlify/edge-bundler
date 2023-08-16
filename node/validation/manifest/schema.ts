@@ -31,7 +31,7 @@ const routesSchema = {
     },
     excluded_patterns: excludedPatternsSchema,
     generator: { type: 'string' },
-    raw_pattern: { type: 'string' },
+    path: { type: 'string' },
   },
   additionalProperties: false,
 }

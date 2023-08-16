@@ -18,7 +18,7 @@ interface Route {
   function: string
   pattern: string
   excluded_patterns: string[]
-  raw_pattern?: string
+  path?: string
 }
 
 interface EdgeFunctionConfig {
@@ -143,7 +143,7 @@ const generateManifest = ({
     }
 
     if ('path' in declaration) {
-      route.raw_pattern = declaration.path
+      route.path = declaration.path
     }
 
     if (declaration.cache === Cache.Manual) {

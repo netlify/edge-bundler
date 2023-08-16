@@ -29,7 +29,7 @@ test('Generates a manifest with different bundles', () => {
     { asset: bundle1.hash + bundle1.extension, format: bundle1.format },
     { asset: bundle2.hash + bundle2.extension, format: bundle2.format },
   ]
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], raw_pattern: '/f1' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], path: '/f1' }]
 
   expect(manifest.bundles).toEqual(expectedBundles)
   expect(manifest.routes).toEqual(expectedRoutes)
@@ -53,9 +53,7 @@ test('Generates a manifest with display names', () => {
     featureFlags: { edge_functions_path_urlpattern: true },
   })
 
-  const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], raw_pattern: '/f1/*' },
-  ]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' }]
   expect(manifest.function_config).toEqual({
     'func-1': { name: 'Display Name' },
   })
@@ -80,9 +78,7 @@ test('Generates a manifest with a generator field', () => {
     featureFlags: { edge_functions_path_urlpattern: true },
   })
 
-  const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], raw_pattern: '/f1/*' },
-  ]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' }]
   const expectedFunctionConfig = { 'func-1': { generator: '@netlify/fake-plugin@1.0.0' } }
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual(expectedFunctionConfig)
@@ -106,7 +102,7 @@ test('Generates a manifest with excluded paths and patterns', () => {
     featureFlags: { edge_functions_path_urlpattern: true },
   })
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: ['^/f1/exclude/?$'], raw_pattern: '/f1/*' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: ['^/f1/exclude/?$'], path: '/f1/*' },
     {
       function: 'func-2',
       pattern: '^/f2(?:/(.*))/?$',
@@ -116,7 +112,7 @@ test('Generates a manifest with excluded paths and patterns', () => {
       function: 'func-3',
       pattern: '^(?:/(.*))/?$',
       excluded_patterns: ['^(?:/((?:.*)(?:/(?:.*))*))?(?:/(.*))\\.html/?$'],
-      raw_pattern: '/*',
+      path: '/*',
     },
   ]
 
@@ -143,9 +139,7 @@ test('TOML-defined paths can be combined with ISC-defined excluded paths', () =>
     userFunctionConfig,
     featureFlags: { edge_functions_path_urlpattern: true },
   })
-  const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], raw_pattern: '/f1/*' },
-  ]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(manifest.function_config).toEqual({
@@ -230,13 +224,13 @@ test('excludedPath from ISC goes into function_config, TOML goes into routes', (
       function: 'customisation',
       pattern: '^/showcases(?:/(.*))/?$',
       excluded_patterns: [],
-      raw_pattern: '/showcases/*',
+      path: '/showcases/*',
     },
     {
       function: 'customisation',
       pattern: '^/checkout(?:/(.*))/?$',
       excluded_patterns: ['^(?:/(.*))/terms-and-conditions/?$'],
-      raw_pattern: '/checkout/*',
+      path: '/checkout/*',
     },
   ])
   expect(manifest.function_config).toEqual({
@@ -272,7 +266,7 @@ test('URLPattern named groups are supported', () => {
       function: 'customisation',
       pattern: '^/products(?:/([^/]+?))/?$',
       excluded_patterns: [],
-      raw_pattern: '/products/:productId',
+      path: '/products/:productId',
     },
   ])
 
@@ -332,7 +326,7 @@ test('Excludes functions for which there are function files but no matching conf
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1' }]
   const manifest = generateManifest({ bundles: [bundle1], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], raw_pattern: '/f1' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], path: '/f1' }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
 })
@@ -350,7 +344,7 @@ test('Excludes functions for which there are config declarations but no matching
   ]
   const manifest = generateManifest({ bundles: [bundle1], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-2', pattern: '^/f2/?$', excluded_patterns: [], raw_pattern: '/f2' }]
+  const expectedRoutes = [{ function: 'func-2', pattern: '^/f2/?$', excluded_patterns: [], path: '/f2' }]
 
   expect(manifest.routes).toEqual(expectedRoutes)
 })
@@ -360,7 +354,7 @@ test('Generates a manifest without bundles', () => {
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1' }]
   const manifest = generateManifest({ bundles: [], declarations, functions })
 
-  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], raw_pattern: '/f1' }]
+  const expectedRoutes = [{ function: 'func-1', pattern: '^/f1/?$', excluded_patterns: [], path: '/f1' }]
 
   expect(manifest.bundles).toEqual([])
   expect(manifest.routes).toEqual(expectedRoutes)
@@ -395,11 +389,11 @@ test('Generates a manifest with pre and post-cache routes', () => {
     { asset: bundle2.hash + bundle2.extension, format: bundle2.format },
   ]
   const expectedPreCacheRoutes = [
-    { function: 'func-1', name: undefined, pattern: '^/f1/?$', excluded_patterns: [], raw_pattern: '/f1' },
-    { function: 'func-2', name: undefined, pattern: '^/f2/?$', excluded_patterns: [], raw_pattern: '/f2' },
+    { function: 'func-1', name: undefined, pattern: '^/f1/?$', excluded_patterns: [], path: '/f1' },
+    { function: 'func-2', name: undefined, pattern: '^/f2/?$', excluded_patterns: [], path: '/f2' },
   ]
   const expectedPostCacheRoutes = [
-    { function: 'func-3', name: undefined, pattern: '^/f3/?$', excluded_patterns: [], raw_pattern: '/f3' },
+    { function: 'func-3', name: undefined, pattern: '^/f3/?$', excluded_patterns: [], path: '/f3' },
   ]
 
   expect(manifest.bundles).toEqual(expectedBundles)
@@ -418,8 +412,8 @@ test('Generates a manifest with layers', () => {
     { function: 'func-2', path: '/f2/*' },
   ]
   const expectedRoutes = [
-    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], raw_pattern: '/f1/*' },
-    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excluded_patterns: [], raw_pattern: '/f2/*' },
+    { function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' },
+    { function: 'func-2', pattern: '^/f2(?:/(.*))/?$', excluded_patterns: [], path: '/f2/*' },
   ]
   const layers = [
     {

@@ -201,37 +201,37 @@ test('Loads function paths from the in-source `config` function', async () => {
     function: 'framework-func2',
     pattern: '^/framework-func2/?$',
     excluded_patterns: [],
-    raw_pattern: '/framework-func2',
+    path: '/framework-func2',
   })
   expect(routes[1]).toEqual({
     function: 'user-func2',
     pattern: '^/user-func2/?$',
     excluded_patterns: [],
-    raw_pattern: '/user-func2',
+    path: '/user-func2',
   })
   expect(routes[2]).toEqual({
     function: 'framework-func1',
     pattern: '^/framework-func1/?$',
     excluded_patterns: [],
-    raw_pattern: '/framework-func1',
+    path: '/framework-func1',
   })
   expect(routes[3]).toEqual({
     function: 'user-func1',
     pattern: '^/user-func1/?$',
     excluded_patterns: [],
-    raw_pattern: '/user-func1',
+    path: '/user-func1',
   })
   expect(routes[4]).toEqual({
     function: 'user-func3',
     pattern: '^/user-func3/?$',
     excluded_patterns: [],
-    raw_pattern: '/user-func3',
+    path: '/user-func3',
   })
   expect(routes[5]).toEqual({
     function: 'user-func5',
     pattern: '^/user-func5(?:/(.*))/?$',
     excluded_patterns: [],
-    raw_pattern: '/user-func5/*',
+    path: '/user-func5/*',
   })
 
   expect(postCacheRoutes.length).toBe(1)
@@ -239,7 +239,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     function: 'user-func4',
     pattern: '^/user-func4/?$',
     excluded_patterns: [],
-    raw_pattern: '/user-func4',
+    path: '/user-func4',
   })
 
   expect(Object.keys(functionConfig)).toHaveLength(1)
