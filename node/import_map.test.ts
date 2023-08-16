@@ -119,16 +119,16 @@ describe('Returns the fully resolved import map', () => {
 
 test('Throws when an import map uses a relative path to reference a file outside of the base path', () => {
   const inputFile1 = {
-    baseURL: new URL('file:///root/project/directory/import-map.json'),
+    baseURL: pathToFileURL(join(cwd(), 'import-map.json')),
     imports: {
-      'alias:file': '../../../file.js',
+      'alias:file': '../file.js',
     },
   }
 
-  const map = new ImportMap([inputFile1], 'file:///root')
+  const map = new ImportMap([inputFile1], pathToFileURL(cwd()).toString())
 
   expect(() => map.getContents()).toThrowError(
-    `Import map cannot reference '/file.js' as it's outside of the base directory '/root'`,
+    `Import map cannot reference '${join(cwd(), '..', 'file.js')}' as it's outside of the base directory '${cwd()}'`,
   )
 })
 
