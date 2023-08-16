@@ -13,6 +13,10 @@ export const getDependencyTrackerPlugin = (specifiers: Set<string>): Plugin => (
   name: 'dependency-tracker',
   setup(build) {
     build.onResolve({ filter: /^(.*)$/ }, (args) => {
+      if (args.kind !== 'import-statement') {
+        return
+      }
+
       // If the specifier has the `npm:` prefix, strip it and use the rest of
       // the specifier to resolve the module.
       if (args.path.startsWith(npmPrefix)) {
@@ -27,7 +31,7 @@ export const getDependencyTrackerPlugin = (specifiers: Set<string>): Plugin => (
       const isLocalImport = args.path.startsWith(path.sep) || args.path.startsWith('.')
 
       if (isLocalImport) {
-        return null
+        return
       }
 
       const isRemoteURLImport = args.path.startsWith('https://') || args.path.startsWith('http://')
