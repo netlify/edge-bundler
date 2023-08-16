@@ -13,15 +13,15 @@ export const getDependencyTrackerPlugin = (specifiers: Set<string>): Plugin => (
   name: 'dependency-tracker',
   setup(build) {
     build.onResolve({ filter: /^(.*)$/ }, (args) => {
-      // If the specifier has the `npm:` prefix, strip it so that we can use
-      // the Node.js resolution logic to resolve the right module.
+      // If the specifier has the `npm:` prefix, strip it and use the rest of
+      // the specifier to resolve the module.
       if (args.path.startsWith(npmPrefix)) {
-        const result = build.resolve(args.path.slice(npmPrefix.length), {
+        const canonicalPath = args.path.slice(npmPrefix.length)
+
+        return build.resolve(canonicalPath, {
           kind: args.kind,
           resolveDir: args.resolveDir,
         })
-
-        return result
       }
 
       const isLocalImport = args.path.startsWith(path.sep) || args.path.startsWith('.')
