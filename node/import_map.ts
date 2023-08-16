@@ -121,18 +121,24 @@ export class ImportMap {
     return filteredImports
   }
 
+  // Takes a `scopes` object and runs all imports through `filterImports`,
+  // omitting any scopes for which there are no imports.
   filterScopes(scopes?: ParsedImportMap['scopes']) {
-    if (scopes === undefined) {
-      return {}
+    const filteredScopes: Record<string, Imports> = {}
+
+    if (scopes !== undefined) {
+      Object.keys(scopes).forEach((url) => {
+        const imports = this.filterImports(scopes[url])
+
+        if (Object.keys(imports).length === 0) {
+          return
+        }
+
+        filteredScopes[url] = imports
+      })
     }
 
-    const resolvedScopes: Record<string, Imports> = {}
-
-    Object.keys(scopes || {}).forEach((url) => {
-      resolvedScopes[url] = this.filterImports(scopes[url])
-    })
-
-    return resolvedScopes
+    return filteredScopes
   }
 
   // Returns the import map as a plain object, with any relative paths resolved
