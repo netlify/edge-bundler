@@ -131,7 +131,7 @@ test('Prints a nice error message when user tries importing NPM module', async (
   } catch (error) {
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).message).toEqual(
-      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/p-retry"'?`,
+      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/parent-1"'?`,
     )
   } finally {
     await cleanup()
@@ -445,4 +445,33 @@ test('Handles imports with the `node:` prefix', async () => {
   expect(func1).toBe('ok')
 
   await cleanup()
+})
+
+test('Loads npm modules from bare specifiers with and without the `npm:` prefix', async () => {
+  const { basePath, cleanup, distPath } = await useFixture('imports_npm_module')
+  const sourceDirectory = join(basePath, 'functions')
+  const declarations: Declaration[] = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const vendorDirectory = await tmp.dir()
+
+  await bundle([sourceDirectory], distPath, declarations, {
+    basePath,
+    featureFlags: { edge_functions_npm_modules: true },
+    vendorTemporaryDirectory: vendorDirectory.path,
+  })
+  const manifestFile = await readFile(resolve(distPath, 'manifest.json'), 'utf8')
+  const manifest = JSON.parse(manifestFile)
+  const bundlePath = join(distPath, manifest.bundles[0].asset)
+  const { func1 } = await runESZIP(bundlePath, vendorDirectory.path)
+
+  expect(func1).toBe(
+    '<parent-1><child-1>JavaScript</child-1></parent-1>, <parent-2><child-2><grandchild-1>APIs</grandchild-1></child-2></parent-2>, <parent-3><child-2><grandchild-1>Markup</grandchild-1></child-2></parent-3>',
+  )
+
+  await cleanup()
+  await rm(vendorDirectory.path, { force: true, recursive: true })
 })
