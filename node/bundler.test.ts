@@ -469,7 +469,7 @@ test('Loads npm modules from bare specifiers with and without the `npm:` prefix'
   const { func1 } = await runESZIP(bundlePath, vendorDirectory.path)
 
   expect(func1).toBe(
-    '<parent-1><child-1>JavaScript</child-1></parent-1>, <parent-2><child-2><grandchild-1>APIs</grandchild-1></child-2></parent-2>, <parent-3><child-2><grandchild-1>Markup</grandchild-1></child-2></parent-3>',
+    `<parent-1><child-1>JavaScript</child-1></parent-1>, <parent-2><child-2><grandchild-1>APIs<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-2>, <parent-3><child-2><grandchild-1>Markup<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-3>`,
   )
 
   await cleanup()

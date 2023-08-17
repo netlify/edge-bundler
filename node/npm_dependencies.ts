@@ -6,6 +6,8 @@ import tmp from 'tmp-promise'
 
 import { npmPrefix } from '../shared/consts.js'
 
+import { builtInModules } from './node_builtins.js'
+
 // esbuild plugin that will traverse the code and look for imports of external
 // dependencies (i.e. Node modules). It stores the specifiers found in the Set
 // provided.
@@ -112,6 +114,17 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
     target: 'es2020',
   })
 
+  // Add all Node.js built-ins to the import map, so any unprefixed specifiers
+  // (e.g. `process`) resolve to the prefixed versions (e.g. `node:prefix`),
+  // which Deno can process.
+  const builtIns = builtInModules.reduce(
+    (acc, name) => ({
+      ...acc,
+      [name]: `node:${name}`,
+    }),
+    {} as Record<string, string>,
+  )
+
   // Creates an object that is compatible with the `imports` block of an import
   // map, mapping specifiers to the paths of their bundled files on disk. Each
   // specifier gets two entries in the import map, one with the `npm:` prefix
@@ -122,7 +135,7 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
       [op.specifier]: op.filePath,
       [npmPrefix + op.specifier]: op.filePath,
     }),
-    {} as Record<string, string>,
+    builtIns,
   )
 
   const cleanup = async () => {
