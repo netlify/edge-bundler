@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs'
 import path from 'path'
+import { pathToFileURL } from 'url'
 
 import { build, Plugin } from 'esbuild'
 import tmp from 'tmp-promise'
@@ -129,14 +130,15 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
   // map, mapping specifiers to the paths of their bundled files on disk. Each
   // specifier gets two entries in the import map, one with the `npm:` prefix
   // and one without, such that both options are supported.
-  const importMap = ops.reduce(
-    (acc, op) => ({
+  const importMap = ops.reduce((acc, op) => {
+    const url = pathToFileURL(op.filePath).toString()
+
+    return {
       ...acc,
-      [op.specifier]: op.filePath,
-      [npmPrefix + op.specifier]: op.filePath,
-    }),
-    builtIns,
-  )
+      [op.specifier]: url,
+      [npmPrefix + op.specifier]: url,
+    }
+  }, builtIns)
 
   const cleanup = async () => {
     // If a custom temporary directory was specified, we leave the cleanup job
