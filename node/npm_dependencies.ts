@@ -130,7 +130,7 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
   // map, mapping specifiers to the paths of their bundled files on disk. Each
   // specifier gets two entries in the import map, one with the `npm:` prefix
   // and one without, such that both options are supported.
-  const importMap = ops.reduce((acc, op) => {
+  const imports = ops.reduce((acc, op) => {
     const url = pathToFileURL(op.filePath).toString()
 
     return {
@@ -139,6 +139,10 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
       [npmPrefix + op.specifier]: url,
     }
   }, builtIns)
+  const importMap = {
+    baseURL: pathToFileURL(temporaryDirectory.path),
+    imports,
+  }
 
   const cleanup = async () => {
     // If a custom temporary directory was specified, we leave the cleanup job

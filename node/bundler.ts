@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import { pathToFileURL } from 'url'
 
 import commonPathPrefix from 'common-path-prefix'
 import { v4 as uuidv4 } from 'uuid'
@@ -12,12 +11,11 @@ import type { Bundle } from './bundle.js'
 import { FunctionConfig, getFunctionConfig } from './config.js'
 import { Declaration, mergeDeclarations } from './declaration.js'
 import { load as loadDeployConfig } from './deploy_config.js'
-import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { ImportMap } from './import_map.js'
-import { getLogger, LogFunction, Logger } from './logger.js'
+import { getLogger, LogFunction } from './logger.js'
 import { writeManifest } from './manifest.js'
 import { vendorNPMSpecifiers } from './npm_dependencies.js'
 import { ensureLatestTypes } from './types.js'
@@ -100,16 +98,16 @@ export const bundle = async (
   const internalFunctions = internalSrcFolder ? await findFunctions([internalSrcFolder]) : []
   const functions = [...internalFunctions, ...userFunctions]
 
-  const vendor = await vendorDependencies({
-    basePath,
-    directory: vendorTemporaryDirectory,
-    featureFlags,
-    functions,
-    logger,
-  })
+  const vendor =
+    featureFlags.edge_functions_npm_modules &&
+    (await vendorNPMSpecifiers(
+      basePath,
+      functions.map(({ path }) => path),
+      vendorTemporaryDirectory,
+    ))
 
-  if (vendor !== undefined) {
-    importMap.add(vendor.importMapFile)
+  if (vendor) {
+    importMap.add(vendor.importMap)
   }
 
   const functionBundle = await bundleESZIP({
@@ -122,7 +120,7 @@ export const bundle = async (
     functions,
     featureFlags,
     importMap,
-    vendorDirectory: vendor?.directory,
+    vendorDirectory: vendor ? vendor.directory : undefined,
   })
 
   // The final file name of the bundles contains a SHA256 hash of the contents,
@@ -170,7 +168,7 @@ export const bundle = async (
     layers: deployConfig.layers,
   })
 
-  if (vendor !== undefined) {
+  if (vendor) {
     await vendor.cleanup()
   }
 
@@ -245,48 +243,3 @@ const createFunctionConfig = ({ internalFunctionsWithConfig, declarations }: Cre
       [functionName]: addGeneratorFallback(mergedConfigFields),
     }
   }, {} as Record<string, FunctionConfig>)
-
-interface VendorDependenciesOptions {
-  basePath: string
-  directory?: string
-  featureFlags: FeatureFlags
-  functions: EdgeFunction[]
-  logger: Logger
-}
-
-const vendorDependencies = async ({
-  basePath,
-  directory,
-  featureFlags,
-  functions,
-  logger,
-}: VendorDependenciesOptions) => {
-  if (!featureFlags.edge_functions_npm_modules) {
-    return
-  }
-
-  try {
-    const vendor = await vendorNPMSpecifiers(
-      basePath,
-      functions.map(({ path }) => path),
-      directory,
-    )
-
-    if (vendor === undefined) {
-      return
-    }
-
-    const importMapFile = {
-      baseURL: pathToFileURL(vendor.directory),
-      imports: vendor.importMap,
-    }
-
-    return {
-      cleanup: vendor.cleanup,
-      directory: vendor.directory,
-      importMapFile,
-    }
-  } catch (error) {
-    logger.system('Failed to vendor npm specifiers:', error)
-  }
-}
