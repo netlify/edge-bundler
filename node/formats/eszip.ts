@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { pathToFileURL } from 'url'
 
-import { virtualRoot, virtualvendorDirectory } from '../../shared/consts.js'
+import { virtualRoot, virtualVendorRoot } from '../../shared/consts.js'
 import type { WriteStage2Options } from '../../shared/stage2.js'
 import { DenoBridge } from '../bridge.js'
 import { Bundle, BundleFormat } from '../bundle.js'
@@ -44,7 +44,7 @@ const bundleESZIP = async ({
   }
 
   if (vendorDirectory !== undefined) {
-    importMapPrefixes[`${pathToFileURL(vendorDirectory)}/`] = virtualvendorDirectory
+    importMapPrefixes[`${pathToFileURL(vendorDirectory)}/`] = virtualVendorRoot
   }
 
   const { bundler, importMap: bundlerImportMap } = getESZIPPaths()

@@ -3,7 +3,7 @@ import { build, LoadResponse } from 'https://deno.land/x/eszip@v0.40.0/mod.ts'
 import * as path from 'https://deno.land/std@0.177.0/path/mod.ts'
 
 import type { InputFunction, WriteStage2Options } from '../../shared/stage2.ts'
-import { importMapSpecifier, virtualRoot, virtualvendorDirectory } from '../../shared/consts.ts'
+import { importMapSpecifier, virtualRoot, virtualVendorRoot } from '../../shared/consts.ts'
 import { PUBLIC_SPECIFIER, STAGE2_SPECIFIER } from './consts.ts'
 import { inlineModule, loadFromVirtualRoot, loadWithRetry } from './common.ts'
 
@@ -92,8 +92,8 @@ const stage2Loader = (
       return loadFromVirtualRoot(specifier, virtualRoot, basePath)
     }
 
-    if (vendorDirectory !== undefined && specifier.startsWith(virtualvendorDirectory)) {
-      return loadFromVirtualRoot(specifier, virtualvendorDirectory, vendorDirectory)
+    if (vendorDirectory !== undefined && specifier.startsWith(virtualVendorRoot)) {
+      return loadFromVirtualRoot(specifier, virtualVendorRoot, vendorDirectory)
     }
 
     return await loadWithRetry(specifier)
