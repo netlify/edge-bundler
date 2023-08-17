@@ -17,7 +17,7 @@ import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { ImportMap } from './import_map.js'
-import { getLogger, LogFunction } from './logger.js'
+import { getLogger, LogFunction, Logger } from './logger.js'
 import { writeManifest } from './manifest.js'
 import { vendorNPMSpecifiers } from './npm_dependencies.js'
 import { ensureLatestTypes } from './types.js'
@@ -100,7 +100,13 @@ export const bundle = async (
   const internalFunctions = internalSrcFolder ? await findFunctions([internalSrcFolder]) : []
   const functions = [...internalFunctions, ...userFunctions]
 
-  const vendor = await vendorDependencies(basePath, functions, featureFlags, vendorTemporaryDirectory)
+  const vendor = await vendorDependencies({
+    basePath,
+    directory: vendorTemporaryDirectory,
+    featureFlags,
+    functions,
+    logger,
+  })
 
   if (vendor !== undefined) {
     importMap.add(vendor.importMapFile)
@@ -240,34 +246,47 @@ const createFunctionConfig = ({ internalFunctionsWithConfig, declarations }: Cre
     }
   }, {} as Record<string, FunctionConfig>)
 
-const vendorDependencies = async (
-  basePath: string,
-  functions: EdgeFunction[],
-  featureFlags: FeatureFlags,
-  directory?: string,
-) => {
+interface VendorDependenciesOptions {
+  basePath: string
+  directory?: string
+  featureFlags: FeatureFlags
+  functions: EdgeFunction[]
+  logger: Logger
+}
+
+const vendorDependencies = async ({
+  basePath,
+  directory,
+  featureFlags,
+  functions,
+  logger,
+}: VendorDependenciesOptions) => {
   if (!featureFlags.edge_functions_npm_modules) {
     return
   }
 
-  const vendor = await vendorNPMSpecifiers(
-    basePath,
-    functions.map(({ path }) => path),
-    directory,
-  )
+  try {
+    const vendor = await vendorNPMSpecifiers(
+      basePath,
+      functions.map(({ path }) => path),
+      directory,
+    )
 
-  if (vendor === undefined) {
-    return
-  }
+    if (vendor === undefined) {
+      return
+    }
 
-  const importMapFile = {
-    baseURL: pathToFileURL(vendor.directory),
-    imports: vendor.importMap,
-  }
+    const importMapFile = {
+      baseURL: pathToFileURL(vendor.directory),
+      imports: vendor.importMap,
+    }
 
-  return {
-    cleanup: vendor.cleanup,
-    directory: vendor.directory,
-    importMapFile,
+    return {
+      cleanup: vendor.cleanup,
+      directory: vendor.directory,
+      importMapFile,
+    }
+  } catch (error) {
+    logger.system('Failed to vendor npm specifiers:', error)
   }
 }
