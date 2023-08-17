@@ -461,7 +461,7 @@ test('Loads npm modules from bare specifiers with and without the `npm:` prefix'
   await bundle([sourceDirectory], distPath, declarations, {
     basePath,
     featureFlags: { edge_functions_npm_modules: true },
-    vendorTemporaryDirectory: vendorDirectory.path,
+    vendorDirectory: vendorDirectory.path,
   })
   const manifestFile = await readFile(resolve(distPath, 'manifest.json'), 'utf8')
   const manifest = JSON.parse(manifestFile)

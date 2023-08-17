@@ -33,7 +33,7 @@ export interface BundleOptions {
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   systemLogger?: LogFunction
-  vendorTemporaryDirectory?: string
+  vendorDirectory?: string
 }
 
 export const bundle = async (
@@ -53,7 +53,7 @@ export const bundle = async (
     onAfterDownload,
     onBeforeDownload,
     systemLogger,
-    vendorTemporaryDirectory,
+    vendorDirectory,
   }: BundleOptions = {},
 ) => {
   const logger = getLogger(systemLogger, debug)
@@ -103,7 +103,7 @@ export const bundle = async (
     (await vendorNPMSpecifiers(
       basePath,
       functions.map(({ path }) => path),
-      vendorTemporaryDirectory,
+      vendorDirectory,
     ))
 
   if (vendor) {
