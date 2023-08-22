@@ -95,7 +95,7 @@ const addExcludedPatterns = (
  * Normalizes method names into arrays of uppercase strings.
  * (e.g. "get" becomes ["GET"])
  */
-const normalizeMethods = (method: unknown, name: string): string[] => {
+const normalizeMethods = (method: unknown, name: string): string[] | undefined => {
   const methods = Array.isArray(method) ? method : [method]
   return methods.map((method) => {
     if (typeof method !== 'string') {
@@ -160,7 +160,7 @@ const generateManifest = ({
       excluded_patterns: excludedPattern.map(serializePattern),
     }
 
-    if ('method' in declaration) {
+    if (declaration.method !== undefined) {
       route.methods = normalizeMethods(declaration.method, func.name)
     }
 
