@@ -19,6 +19,7 @@ interface Route {
   pattern: string
   excluded_patterns: string[]
   path?: string
+  methods?: string[]
 }
 
 interface EdgeFunctionConfig {
@@ -90,6 +91,16 @@ const addExcludedPatterns = (
   }
 }
 
+/**
+ * Turns 'get' into ['GET']
+ */
+const normalizeMethods = (method: undefined | string | string[]) => {
+  if (!method) return
+
+  const methods = Array.isArray(method) ? method : [method]
+  return methods.map((method) => method.toUpperCase())
+}
+
 const generateManifest = ({
   bundles = [],
   declarations = [],
@@ -140,6 +151,10 @@ const generateManifest = ({
       function: func.name,
       pattern: serializePattern(pattern),
       excluded_patterns: excludedPattern.map(serializePattern),
+    }
+
+    if ('method' in declaration) {
+      route.methods = normalizeMethods(declaration.method)
     }
 
     if ('path' in declaration) {

@@ -176,6 +176,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     {
       function: 'user-func2',
       path: '/user-func2',
+      method: ['patch'],
     },
   ]
   const result = await bundle([internalDirectory, userDirectory], distPath, declarations, {
@@ -208,6 +209,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     pattern: '^/user-func2/?$',
     excluded_patterns: [],
     path: '/user-func2',
+    methods: ['PATCH'],
   })
   expect(routes[2]).toEqual({
     function: 'framework-func1',
@@ -232,6 +234,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     pattern: '^/user-func5(?:/(.*))/?$',
     excluded_patterns: [],
     path: '/user-func5/*',
+    methods: ['GET'],
   })
 
   expect(postCacheRoutes.length).toBe(1)
@@ -240,6 +243,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     pattern: '^/user-func4/?$',
     excluded_patterns: [],
     path: '/user-func4',
+    methods: ['POST', 'PUT'],
   })
 
   expect(Object.keys(functionConfig)).toHaveLength(1)
