@@ -160,7 +160,7 @@ const generateManifest = ({
       excluded_patterns: excludedPattern.map(serializePattern),
     }
 
-    if (declaration.method !== undefined) {
+    if ('method' in declaration) {
       route.methods = normalizeMethods(declaration.method, func.name)
     }
 
