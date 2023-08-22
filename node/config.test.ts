@@ -176,7 +176,7 @@ test('Loads function paths from the in-source `config` function', async () => {
     {
       function: 'user-func2',
       path: '/user-func2',
-      method: ['patch'],
+      method: ['PATCH'],
     },
   ]
   const result = await bundle([internalDirectory, userDirectory], distPath, declarations, {
