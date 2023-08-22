@@ -95,11 +95,17 @@ const addExcludedPatterns = (
  * Normalizes method names into arrays of uppercase strings.
  * (e.g. "get" becomes ["GET"])
  */
-const normalizeMethods = (method: undefined | string | string[]) => {
-  if (!method) return
-
+const normalizeMethods = (method: unknown, name: string): string[] => {
   const methods = Array.isArray(method) ? method : [method]
-  return methods.map((method) => method.toUpperCase())
+  return methods.map((method) => {
+    if (typeof method !== 'string') {
+      throw new TypeError(
+        `Could not parse method declaration of function '${name}'. Expecting HTTP Method, got ${method}`,
+      )
+    }
+
+    return method.toUpperCase()
+  })
 }
 
 const generateManifest = ({
@@ -155,7 +161,7 @@ const generateManifest = ({
     }
 
     if ('method' in declaration) {
-      route.methods = normalizeMethods(declaration.method)
+      route.methods = normalizeMethods(declaration.method, func.name)
     }
 
     if ('path' in declaration) {
