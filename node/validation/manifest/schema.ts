@@ -34,7 +34,7 @@ const routesSchema = {
     path: { type: 'string' },
     methods: {
       type: 'array',
-      items: { type: 'string', enum: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] },
+      items: { type: 'string', enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] },
     },
   },
   additionalProperties: false,
