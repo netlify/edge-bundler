@@ -92,7 +92,8 @@ const addExcludedPatterns = (
 }
 
 /**
- * Turns 'get' into ['GET']
+ * Normalizes method names into arrays of uppercase strings.
+ * (e.g. "get" becomes ["GET"])
  */
 const normalizeMethods = (method: undefined | string | string[]) => {
   if (!method) return
