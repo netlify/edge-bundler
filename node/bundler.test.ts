@@ -102,7 +102,8 @@ test('Adds a custom error property to user errors during bundling', async () => 
   try {
     await bundle([sourceDirectory], distPath, declarations, { basePath })
   } catch (error) {
-    expect(error.message).toMatchInlineSnapshot(`
+    expect(error).toBeInstanceOf(BundleError)
+    expect((error as BundleError).message).toMatchInlineSnapshot(`
       "error: Uncaught (in promise) Error: The module's source code could not be parsed: Unexpected eof at file:///root/functions/func1.ts:1:27
 
         export default async () => 
@@ -111,7 +112,6 @@ test('Adds a custom error property to user errors during bundling', async () => 
                         ^
           at <anonymous> (file:///Users/skn0tt/dev/netlify/edge-bundler/deno/vendor/deno.land/x/eszip@v0.40.0/eszip_wasm.generated.js:417:19)"
     `)
-    expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).customErrorInfo).toEqual({
       location: {
         format: 'eszip',
