@@ -87,7 +87,8 @@ test('Uses the vendored eszip module instead of fetching it from deno.land', asy
 })
 
 test('Adds a custom error property to user errors during bundling', async () => {
-  expect.assertions(2)
+  process.env.NO_COLOR = 'true'
+  expect.assertions(3)
 
   const { basePath, cleanup, distPath } = await useFixture('invalid_functions')
   const sourceDirectory = join(basePath, 'functions')
@@ -101,6 +102,15 @@ test('Adds a custom error property to user errors during bundling', async () => 
   try {
     await bundle([sourceDirectory], distPath, declarations, { basePath })
   } catch (error) {
+    expect(error.message).toMatchInlineSnapshot(`
+      "error: Uncaught (in promise) Error: The module's source code could not be parsed: Unexpected eof at file:///root/functions/func1.ts:1:27
+
+        export default async () => 
+                                  ~
+            const ret = new Error(getStringFromWasm0(arg0, arg1));
+                        ^
+          at <anonymous> (file:///Users/skn0tt/dev/netlify/edge-bundler/deno/vendor/deno.land/x/eszip@v0.40.0/eszip_wasm.generated.js:417:19)"
+    `)
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).customErrorInfo).toEqual({
       location: {
