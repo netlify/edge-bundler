@@ -1,4 +1,5 @@
 import { promises as fs } from 'fs'
+import { builtinModules } from 'module'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
@@ -6,8 +7,6 @@ import { build, Plugin } from 'esbuild'
 import tmp from 'tmp-promise'
 
 import { npmPrefix } from '../shared/consts.js'
-
-import { builtInModules } from './node_builtins.js'
 
 // esbuild plugin that will traverse the code and look for imports of external
 // dependencies (i.e. Node modules). It stores the specifiers found in the Set
@@ -118,7 +117,7 @@ export const vendorNPMSpecifiers = async (basePath: string, functions: string[],
   // Add all Node.js built-ins to the import map, so any unprefixed specifiers
   // (e.g. `process`) resolve to the prefixed versions (e.g. `node:prefix`),
   // which Deno can process.
-  const builtIns = builtInModules.reduce(
+  const builtIns = builtinModules.reduce(
     (acc, name) => ({
       ...acc,
       [name]: `node:${name}`,
