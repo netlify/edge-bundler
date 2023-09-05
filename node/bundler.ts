@@ -11,11 +11,12 @@ import type { Bundle } from './bundle.js'
 import { FunctionConfig, getFunctionConfig } from './config.js'
 import { Declaration, mergeDeclarations } from './declaration.js'
 import { load as loadDeployConfig } from './deploy_config.js'
+import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags, getFlags } from './feature_flags.js'
 import { findFunctions } from './finder.js'
 import { bundle as bundleESZIP } from './formats/eszip.js'
 import { ImportMap } from './import_map.js'
-import { getLogger, LogFunction } from './logger.js'
+import { getLogger, LogFunction, Logger } from './logger.js'
 import { writeManifest } from './manifest.js'
 import { vendorNPMSpecifiers } from './npm_dependencies.js'
 import { ensureLatestTypes } from './types.js'
@@ -97,14 +98,7 @@ export const bundle = async (
   const userFunctions = userSourceDirectories.length === 0 ? [] : await findFunctions(userSourceDirectories)
   const internalFunctions = internalSrcFolder ? await findFunctions([internalSrcFolder]) : []
   const functions = [...internalFunctions, ...userFunctions]
-
-  const vendor =
-    featureFlags.edge_functions_npm_modules &&
-    (await vendorNPMSpecifiers(
-      basePath,
-      functions.map(({ path }) => path),
-      vendorDirectory,
-    ))
+  const vendor = await safelyVendorNPMSpecifiers({ basePath, featureFlags, functions, logger, vendorDirectory })
 
   if (vendor) {
     importMap.add(vendor.importMap)
@@ -120,7 +114,7 @@ export const bundle = async (
     functions,
     featureFlags,
     importMap,
-    vendorDirectory: vendor ? vendor.directory : undefined,
+    vendorDirectory: vendor?.directory,
   })
 
   // The final file name of the bundles contains a SHA256 hash of the contents,
@@ -168,9 +162,7 @@ export const bundle = async (
     layers: deployConfig.layers,
   })
 
-  if (vendor) {
-    await vendor.cleanup()
-  }
+  await vendor?.cleanup()
 
   if (distImportMapPath) {
     await importMap.writeToFile(distImportMapPath)
@@ -243,3 +235,33 @@ const createFunctionConfig = ({ internalFunctionsWithConfig, declarations }: Cre
       [functionName]: addGeneratorFallback(mergedConfigFields),
     }
   }, {} as Record<string, FunctionConfig>)
+
+interface VendorNPMOptions {
+  basePath: string
+  featureFlags: FeatureFlags
+  functions: EdgeFunction[]
+  logger: Logger
+  vendorDirectory: string | undefined
+}
+
+const safelyVendorNPMSpecifiers = async ({
+  basePath,
+  featureFlags,
+  functions,
+  logger,
+  vendorDirectory,
+}: VendorNPMOptions) => {
+  if (!featureFlags.edge_functions_npm_modules) {
+    return
+  }
+
+  try {
+    return await vendorNPMSpecifiers(
+      basePath,
+      functions.map(({ path }) => path),
+      vendorDirectory,
+    )
+  } catch (error) {
+    logger.system(error)
+  }
+}
