@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs'
 import { join } from 'path'
 
-import globToRegExp from 'glob-to-regexp'
-
 import type { Bundle } from './bundle.js'
 import { wrapBundleError } from './bundle_error.js'
 import { Cache, FunctionConfig, Path } from './config.js'
@@ -19,6 +17,7 @@ interface Route {
   pattern: string
   excluded_patterns: string[]
   path?: string
+  methods?: string[]
 }
 
 interface EdgeFunctionConfig {
@@ -80,14 +79,30 @@ const addExcludedPatterns = (
   name: string,
   manifestFunctionConfig: Record<string, EdgeFunctionConfig>,
   excludedPath?: Path | Path[],
-  featureFlags?: FeatureFlags,
 ) => {
   if (excludedPath) {
     const paths = Array.isArray(excludedPath) ? excludedPath : [excludedPath]
-    const excludedPatterns = paths.map((path) => pathToRegularExpression(path, featureFlags)).map(serializePattern)
+    const excludedPatterns = paths.map((path) => pathToRegularExpression(path)).map(serializePattern)
 
     manifestFunctionConfig[name].excluded_patterns.push(...excludedPatterns)
   }
+}
+
+/**
+ * Normalizes method names into arrays of uppercase strings.
+ * (e.g. "get" becomes ["GET"])
+ */
+const normalizeMethods = (method: unknown, name: string): string[] | undefined => {
+  const methods = Array.isArray(method) ? method : [method]
+  return methods.map((method) => {
+    if (typeof method !== 'string') {
+      throw new TypeError(
+        `Could not parse method declaration of function '${name}'. Expecting HTTP Method, got ${method}`,
+      )
+    }
+
+    return method.toUpperCase()
+  })
 }
 
 const generateManifest = ({
@@ -111,7 +126,7 @@ const generateManifest = ({
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
-    addExcludedPatterns(name, manifestFunctionConfig, excludedPath, featureFlags)
+    addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError }
   }
@@ -121,7 +136,7 @@ const generateManifest = ({
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
-    addExcludedPatterns(name, manifestFunctionConfig, excludedPath, featureFlags)
+    addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError, ...rest }
   }
@@ -140,6 +155,10 @@ const generateManifest = ({
       function: func.name,
       pattern: serializePattern(pattern),
       excluded_patterns: excludedPattern.map(serializePattern),
+    }
+
+    if ('method' in declaration) {
+      route.methods = normalizeMethods(declaration.method, func.name)
     }
 
     if ('path' in declaration) {
@@ -169,36 +188,23 @@ const generateManifest = ({
   return manifest
 }
 
-const pathToRegularExpression = (path: string, featureFlags?: FeatureFlags) => {
-  if (featureFlags?.edge_functions_path_urlpattern) {
-    try {
-      const pattern = new ExtendedURLPattern({ pathname: path })
+const pathToRegularExpression = (path: string) => {
+  try {
+    const pattern = new ExtendedURLPattern({ pathname: path })
 
-      // Removing the `^` and `$` delimiters because we'll need to modify what's
-      // between them.
-      const source = pattern.regexp.pathname.source.slice(1, -1)
+    // Removing the `^` and `$` delimiters because we'll need to modify what's
+    // between them.
+    const source = pattern.regexp.pathname.source.slice(1, -1)
 
-      // Wrapping the expression source with `^` and `$`. Also, adding an optional
-      // trailing slash, so that a declaration of `path: "/foo"` matches requests
-      // for both `/foo` and `/foo/`.
-      const normalizedSource = `^${source}\\/?$`
+    // Wrapping the expression source with `^` and `$`. Also, adding an optional
+    // trailing slash, so that a declaration of `path: "/foo"` matches requests
+    // for both `/foo` and `/foo/`.
+    const normalizedSource = `^${source}\\/?$`
 
-      return normalizedSource
-    } catch (error) {
-      throw wrapBundleError(error)
-    }
+    return normalizedSource
+  } catch (error) {
+    throw wrapBundleError(error)
   }
-
-  // We use the global flag so that `globToRegExp` will not wrap the expression
-  // with `^` and `$`. We'll do that ourselves.
-  const regularExpression = globToRegExp(path, { flags: 'g' })
-
-  // Wrapping the expression source with `^` and `$`. Also, adding an optional
-  // trailing slash, so that a declaration of `path: "/foo"` matches requests
-  // for both `/foo` and `/foo/`.
-  const normalizedSource = `^${regularExpression.source}\\/?$`
-
-  return normalizedSource
 }
 
 const getRegularExpression = (declaration: Declaration, featureFlags?: FeatureFlags): string => {
@@ -223,7 +229,7 @@ const getRegularExpression = (declaration: Declaration, featureFlags?: FeatureFl
     }
   }
 
-  return pathToRegularExpression(declaration.path, featureFlags)
+  return pathToRegularExpression(declaration.path)
 }
 
 const getExcludedRegularExpressions = (declaration: Declaration, featureFlags?: FeatureFlags): string[] => {
@@ -254,7 +260,7 @@ const getExcludedRegularExpressions = (declaration: Declaration, featureFlags?: 
 
   if ('path' in declaration && declaration.excludedPath) {
     const paths = Array.isArray(declaration.excludedPath) ? declaration.excludedPath : [declaration.excludedPath]
-    return paths.map((path) => pathToRegularExpression(path, featureFlags))
+    return paths.map((path) => pathToRegularExpression(path))
   }
 
   return []
