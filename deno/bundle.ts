@@ -6,10 +6,8 @@ const { basePath, destPath, externals, functions, importMapData } = JSON.parse(p
 try {
   await writeStage2({ basePath, destPath, externals, functions, importMapData })
 } catch (error) {
-  if (error instanceof Error) {
-    if (error.message.includes("The module's source code could not be parsed")) {
-      delete error.stack
-    }
+  if (error instanceof Error && error.message.includes("The module's source code could not be parsed")) {
+    delete error.stack
   }
 
   throw error
