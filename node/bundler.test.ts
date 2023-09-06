@@ -86,7 +86,7 @@ test('Uses the vendored eszip module instead of fetching it from deno.land', asy
   await cleanup()
 })
 
-test.only('Adds a custom error property to user errors during bundling', async () => {
+test('Adds a custom error property to user errors during bundling', async () => {
   process.env.NO_COLOR = 'true'
   expect.assertions(3)
 
