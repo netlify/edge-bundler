@@ -53,7 +53,7 @@ export const getDependencyTrackerPlugin = (
       // If it does, the resolved import is the specifier we'll evaluate going
       // forward.
       if (matched) {
-        specifier = fileURLToPath(resolvedImport)
+        specifier = fileURLToPath(resolvedImport).replace(/\\/g, '/')
 
         result.path = specifier
       }
