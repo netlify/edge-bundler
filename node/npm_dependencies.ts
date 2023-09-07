@@ -10,6 +10,7 @@ import tmp from 'tmp-promise'
 import { nodePrefix, npmPrefix } from '../shared/consts.js'
 
 import { ImportMap } from './import_map.js'
+import { Logger } from './logger.js'
 
 const builtinModulesSet = new Set(builtinModules)
 const require = createRequire(import.meta.url)
@@ -110,12 +111,21 @@ export const getDependencyTrackerPlugin = (
   },
 })
 
-export const vendorNPMSpecifiers = async (
-  basePath: string,
-  functions: string[],
-  importMap: ImportMap,
-  directory?: string,
-) => {
+interface VendorNPMSpecifiersOptions {
+  basePath: string
+  directory?: string
+  functions: string[]
+  importMap: ImportMap
+  logger: Logger
+}
+
+export const vendorNPMSpecifiers = async ({
+  basePath,
+  directory,
+  functions,
+  importMap,
+  logger,
+}: VendorNPMSpecifiersOptions) => {
   const specifiers = new Set<string>()
 
   // The directories that esbuild will use when resolving Node modules. We must
@@ -132,22 +142,33 @@ export const vendorNPMSpecifiers = async (
   // Do a first pass at bundling to gather a list of specifiers that should be
   // loaded as npm dependencies, because they either use the `npm:` prefix or
   // they are bare specifiers. We'll collect them in `specifiers`.
-  await build({
-    banner,
-    bundle: true,
-    entryPoints: functions,
-    logLevel: 'error',
-    nodePaths,
-    outdir: temporaryDirectory.path,
-    platform: 'node',
-    plugins: [getDependencyTrackerPlugin(specifiers, importMap.getContentsWithURLObjects(), pathToFileURL(basePath))],
-    write: false,
-  })
+  try {
+    await build({
+      banner,
+      bundle: true,
+      entryPoints: functions,
+      logLevel: 'error',
+      nodePaths,
+      outdir: temporaryDirectory.path,
+      platform: 'node',
+      plugins: [getDependencyTrackerPlugin(specifiers, importMap.getContentsWithURLObjects(), pathToFileURL(basePath))],
+      write: false,
+    })
+  } catch (error) {
+    logger.system('Could not track dependencies in edge function:', error)
+    logger.user(
+      'An error occurred when trying to scan your Edge Functions for npm modules, which is an experimental feature. If you are loading npm modules, please share the errors above in https://ntl.fyi/edge-functions-npm. If you are not loading npm modules, you can ignore this message.',
+    )
+  }
 
   // If we found no specifiers, there's nothing left to do here.
   if (specifiers.size === 0) {
     return
   }
+
+  logger.user(
+    'You are using npm modules in Edge Functions, which is an experimental feature. Learn more at https://ntl.fyi/edge-functions-npm.',
+  )
 
   // To bundle an entire module and all its dependencies, we create a stub file
   // where we re-export everything from that specifier. We do this for every

@@ -264,12 +264,13 @@ const safelyVendorNPMSpecifiers = async ({
   }
 
   try {
-    return await vendorNPMSpecifiers(
+    return await vendorNPMSpecifiers({
       basePath,
-      functions.map(({ path }) => path),
+      directory: vendorDirectory,
+      functions: functions.map(({ path }) => path),
       importMap,
-      vendorDirectory,
-    )
+      logger,
+    })
   } catch (error) {
     logger.system(error)
   }
