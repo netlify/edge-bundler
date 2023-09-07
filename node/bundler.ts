@@ -97,7 +97,14 @@ export const bundle = async (
   const userFunctions = userSourceDirectories.length === 0 ? [] : await findFunctions(userSourceDirectories)
   const internalFunctions = internalSrcFolder ? await findFunctions([internalSrcFolder]) : []
   const functions = [...internalFunctions, ...userFunctions]
-  const vendor = await safelyVendorNPMSpecifiers({ basePath, featureFlags, functions, logger, vendorDirectory })
+  const vendor = await safelyVendorNPMSpecifiers({
+    basePath,
+    featureFlags,
+    functions,
+    importMap,
+    logger,
+    vendorDirectory,
+  })
 
   if (vendor) {
     importMap.add(vendor.importMap)
@@ -239,6 +246,7 @@ interface VendorNPMOptions {
   basePath: string
   featureFlags: FeatureFlags
   functions: EdgeFunction[]
+  importMap: ImportMap
   logger: Logger
   vendorDirectory: string | undefined
 }
@@ -247,6 +255,7 @@ const safelyVendorNPMSpecifiers = async ({
   basePath,
   featureFlags,
   functions,
+  importMap,
   logger,
   vendorDirectory,
 }: VendorNPMOptions) => {
@@ -258,6 +267,7 @@ const safelyVendorNPMSpecifiers = async ({
     return await vendorNPMSpecifiers(
       basePath,
       functions.map(({ path }) => path),
+      importMap,
       vendorDirectory,
     )
   } catch (error) {
