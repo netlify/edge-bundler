@@ -165,13 +165,13 @@ export const vendorNPMSpecifiers = async ({
     'You are using npm modules in Edge Functions, which is an experimental feature. Learn more at https://ntl.fyi/edge-functions-npm.',
   )
 
-  // To bundle an entire module and all its dependencies, we create a stub file
+  // To bundle an entire module and all its dependencies, create a barrel file
   // where we re-export everything from that specifier. We do this for every
-  // specifier, and each of these files will be the entry points to esbuild.
+  // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
     [...specifiers].map(async (specifier, index) => {
       const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
-      const filePath = path.join(temporaryDirectory.path, `stub-${index}.js`)
+      const filePath = path.join(temporaryDirectory.path, `barrel-${index}.js`)
 
       await fs.writeFile(filePath, code)
 
@@ -180,9 +180,9 @@ export const vendorNPMSpecifiers = async ({
   )
   const entryPoints = ops.map(({ filePath }) => filePath)
 
-  // Bundle each of the stub files we've created. We'll end up with a compiled
-  // version of each of the stub files, plus any chunks of shared code between
-  // stubs (such that a common module isn't bundled twice).
+  // Bundle each of the barrel files we created. We'll end up with a compiled
+  // version of each of the barrel files, plus any chunks of shared code
+  // between them (such that a common module isn't bundled twice).
   await build({
     allowOverwrite: true,
     banner,
