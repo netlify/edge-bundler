@@ -142,7 +142,7 @@ test('Prints a nice error message when user tries importing NPM module', async (
   } catch (error) {
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).message).toEqual(
-      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/parent-1"'?`,
+      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/parent-2"'?`,
     )
   } finally {
     await cleanup()
@@ -458,7 +458,7 @@ test('Handles imports with the `node:` prefix', async () => {
   await cleanup()
 })
 
-test('Loads npm modules from bare specifiers with and without the `npm:` prefix', async () => {
+test('Loads npm modules from bare specifiers', async () => {
   const { basePath, cleanup, distPath } = await useFixture('imports_npm_module')
   const sourceDirectory = join(basePath, 'functions')
   const declarations: Declaration[] = [

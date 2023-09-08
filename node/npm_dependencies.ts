@@ -18,9 +18,9 @@ const require = createRequire(import.meta.url)
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
   js: `
-  import {createRequire as ___nfyCreateRequire} from "module";
-  import {fileURLToPath as ___nfyFileURLToPath} from "url";
-  import {dirname as ___nfyPathDirname} from "path";
+  import {createRequire as ___nfyCreateRequire} from "node:module";
+  import {fileURLToPath as ___nfyFileURLToPath} from "node:url";
+  import {dirname as ___nfyPathDirname} from "node:path";
   let __filename=___nfyFileURLToPath(import.meta.url);
   let __dirname=___nfyPathDirname(___nfyFileURLToPath(import.meta.url));
   let require=___nfyCreateRequire(import.meta.url);
@@ -63,15 +63,10 @@ export const getDependencyTrackerPlugin = (
         return { external: true }
       }
 
-      // If the specifier has the `npm:` prefix, strip it and use the rest of
-      // the specifier to resolve the module.
+      // We don't support the `npm:` prefix yet. Mark the specifier as external
+      // and the ESZIP bundler will handle the failure.
       if (specifier.startsWith(npmPrefix)) {
-        const canonicalPath = specifier.slice(npmPrefix.length)
-
-        return build.resolve(canonicalPath, {
-          kind: args.kind,
-          resolveDir: args.resolveDir,
-        })
+        return { external: true }
       }
 
       const isLocalImport = specifier.startsWith(path.sep) || specifier.startsWith('.')
@@ -225,7 +220,6 @@ export const vendorNPMSpecifiers = async ({
       return {
         ...acc,
         [op.specifier]: url,
-        [npmPrefix + op.specifier]: url,
       }
     }, builtIns),
   }
