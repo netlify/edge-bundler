@@ -130,8 +130,8 @@ export const vendorNPMSpecifiers = async ({
   const nodePaths = [path.join(basePath, 'node_modules')]
 
   // We need to create some files on disk, which we don't want to write to the
-  // project directory. If a custom directory has been specified, which happens
-  // only in tests, we use it. Otherwise, create a random temporary directory.
+  // project directory. If a custom directory has been specified, we use it.
+  // Otherwise, create a random temporary directory.
   const temporaryDirectory = directory ? { path: directory } : await tmp.dir()
 
   // Do a first pass at bundling to gather a list of specifiers that should be
