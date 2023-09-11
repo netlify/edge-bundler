@@ -176,7 +176,7 @@ test('Writes import map file to disk', async () => {
   expect(imports['alias:pets']).toBe(pathToFileURL(expectedPath).toString())
 })
 
-test.only('Clones an import map', () => {
+test('Clones an import map', () => {
   const basePath = join(cwd(), 'my-cool-site', 'import-map.json')
   const inputFile1 = {
     baseURL: pathToFileURL(basePath),
