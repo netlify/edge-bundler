@@ -69,7 +69,7 @@ export const getDependencyTrackerPlugin = (
         return { external: true }
       }
 
-      const isLocalImport = specifier.startsWith(path.sep) || specifier.startsWith('.')
+      const isLocalImport = specifier.startsWith(path.sep) || specifier.startsWith('.') || path.isAbsolute(specifier)
 
       // If this is a local import, return so that esbuild visits that path.
       if (isLocalImport) {
