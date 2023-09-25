@@ -20,7 +20,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   const servePath = await tmpName()
   const server = await serve({
     basePath,
-    bootstrapURL: 'https://edge.netlify.com/bootstrap/index-combined.ts',
+    bootstrapURL: 'https://650d58f59f81ce000841fbab--edge.netlify.com/bootstrap/index-combined.ts',
     importMapPaths,
     port,
     servePath,
@@ -44,13 +44,14 @@ test('Starts a server and serves requests for edge functions', async () => {
     getFunctionsConfig: true,
   }
 
-  const { functionsConfig, graph, success } = await server(
+  const { features, functionsConfig, graph, success } = await server(
     functions,
     {
       very_secret_secret: 'i love netlify',
     },
     options,
   )
+  expect(features).toEqual({})
   expect(success).toBe(true)
   expect(functionsConfig).toEqual([{ path: '/my-function' }, {}, { path: '/global-netlify' }])
 

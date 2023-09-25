@@ -64,6 +64,7 @@ const prepareServer = ({
       formatImportError,
     })
 
+    const features: Record<string, boolean> = {}
     const importMap = baseImportMap.clone()
     const vendor = await vendorNPMSpecifiers({
       basePath,
@@ -74,6 +75,7 @@ const prepareServer = ({
     })
 
     if (vendor) {
+      features.npmModules = true
       importMap.add(vendor.importMap)
     }
 
@@ -116,6 +118,7 @@ const prepareServer = ({
     const success = await waitForServer(port, processRef.ps)
 
     return {
+      features,
       functionsConfig,
       graph,
       success,

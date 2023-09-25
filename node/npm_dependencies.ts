@@ -161,10 +161,6 @@ export const vendorNPMSpecifiers = async ({
     return
   }
 
-  logger.user(
-    'You are using npm modules in Edge Functions, which is an experimental feature. Learn more at https://ntl.fyi/edge-functions-npm.',
-  )
-
   // To bundle an entire module and all its dependencies, create a barrel file
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
