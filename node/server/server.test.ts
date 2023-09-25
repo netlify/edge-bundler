@@ -20,7 +20,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   const servePath = await tmpName()
   const server = await serve({
     basePath,
-    bootstrapURL: 'https://650d58f59f81ce000841fbab--edge.netlify.com/bootstrap/index-combined.ts',
+    bootstrapURL: 'https://edge.netlify.com/bootstrap/index-combined.ts',
     importMapPaths,
     port,
     servePath,
