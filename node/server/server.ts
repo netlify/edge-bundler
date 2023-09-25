@@ -75,6 +75,7 @@ const prepareServer = ({
     })
 
     if (vendor) {
+      console.log('-> NPM vendor:', vendor)
       features.npmModules = true
       importMap.add(vendor.importMap)
     }
