@@ -163,7 +163,7 @@ export const vendorNPMSpecifiers = async ({
   } catch (error) {
     logger.system('Could not track dependencies in edge function:', error)
     logger.user(
-      'An error occurred when trying to scan your edge functions for npm modules, which is an experimental feature. If you are loading npm modules, please share the errors above in https://ntl.fyi/edge-functions-npm. If you are not loading npm modules, you can ignore this message.',
+      'An error occurred when trying to scan your edge functions for npm modules, which is an experimental feature. If you are loading npm modules, please share the link to this deploy in https://ntl.fyi/edge-functions-npm. If you are not loading npm modules, you can ignore this message.',
     )
   }
 
