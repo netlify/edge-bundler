@@ -4,7 +4,9 @@ import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import { resolve, ParsedImportMap } from '@import-maps/resolve'
+import { nodeFileTrace, resolve as nftResolve } from '@vercel/nft'
 import { build, OnResolveResult, Plugin } from 'esbuild'
+import getPackageName from 'get-package-name'
 import tmp from 'tmp-promise'
 
 import { nodePrefix, npmPrefix } from '../shared/consts.js'
@@ -14,6 +16,7 @@ import { Logger } from './logger.js'
 
 const builtinModulesSet = new Set(builtinModules)
 const require = createRequire(import.meta.url)
+const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', 'mjs'])
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
@@ -110,6 +113,97 @@ export const getDependencyTrackerPlugin = (
   },
 })
 
+/**
+ * Parses a set of functions and returns a list of specifiers that correspond
+ * to npm modules.
+ *
+ * @param basePath Root of the project
+ * @param functions Functions to parse
+ * @param importMap Import map to apply when resolving imports
+ */
+const getNPMSpecifiers = async (basePath: string, functions: string[], importMap: ParsedImportMap) => {
+  const baseURL = pathToFileURL(basePath)
+  const { reasons } = await nodeFileTrace(functions, {
+    base: basePath,
+    readFile: async (filePath: string) => {
+      // If this is a TypeScript file, we need to compile in before we can
+      // parse it.
+      if (TYPESCRIPT_EXTENSIONS.has(path.extname(filePath))) {
+        const compiled = await build({
+          bundle: false,
+          entryPoints: [filePath],
+          logLevel: 'silent',
+          platform: 'node',
+          write: false,
+        })
+
+        return compiled.outputFiles[0].text
+      }
+
+      return fs.readFile(filePath, 'utf8')
+    },
+    // eslint-disable-next-line require-await
+    resolve: async (specifier, ...args) => {
+      // Start by checking whether the specifier matches any import map defined
+      // by the user.
+      const { matched, resolvedImport } = resolve(specifier, importMap, baseURL)
+
+      // If it does, the resolved import is the specifier we'll evaluate going
+      // forward.
+      if (matched && resolvedImport.protocol === 'file:') {
+        const newSpecifier = fileURLToPath(resolvedImport).replace(/\\/g, '/')
+
+        return newSpecifier
+      }
+
+      return nftResolve(specifier, ...args)
+    },
+  })
+  const npmSpecifiers = new Set<string>()
+  const modulesWithExtraneousFiles = new Set<string>()
+
+  reasons.forEach((reason, path) => {
+    const packageName = getPackageName(path)
+
+    if (packageName === undefined) {
+      return
+    }
+
+    const parents = [...reason.parents]
+    const isDirectDependency = parents.some((path) => !path.startsWith('node_modules/'))
+
+    // We're only interested in capturing the specifiers that are first-level
+    // dependencies. Because we'll bundle all modules in a subsequent step,
+    // any transitive dependencies will be handled then.
+    if (isDirectDependency) {
+      const specifier = getPackageName(path)
+
+      npmSpecifiers.add(specifier)
+    }
+
+    const isExtraneousFile = reason.type.every((type) => type === 'asset')
+
+    // An extraneous file is a dependency that was traced by NFT and marked
+    // as not being statically imported. We can't process dynamic importing
+    // at runtime, so we gather the list of modules that may use these files
+    // so that we can warn users about this caveat.
+    if (isExtraneousFile) {
+      parents.forEach((path) => {
+        const specifier = getPackageName(path)
+
+        if (specifier) {
+          modulesWithExtraneousFiles.add(specifier)
+        }
+      })
+    }
+  })
+
+  return {
+    modulesWithExtraneousFiles: [...modulesWithExtraneousFiles],
+    npmSpecifiers: [...npmSpecifiers],
+  }
+}
+
 interface VendorNPMSpecifiersOptions {
   basePath: string
   directory?: string
@@ -125,8 +219,6 @@ export const vendorNPMSpecifiers = async ({
   importMap,
   logger,
 }: VendorNPMSpecifiersOptions) => {
-  const specifiers = new Set<string>()
-
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
   // directory that will not live inside the project root, so the normal
@@ -138,37 +230,22 @@ export const vendorNPMSpecifiers = async ({
   // Otherwise, create a random temporary directory.
   const temporaryDirectory = directory ? { path: directory } : await tmp.dir()
 
-  // Do a first pass at bundling to gather a list of specifiers that should be
-  // loaded as npm dependencies, because they either use the `npm:` prefix or
-  // they are bare specifiers. We'll collect them in `specifiers`.
-  try {
-    const { errors, warnings } = await build({
-      banner,
-      bundle: true,
-      entryPoints: functions,
-      logLevel: 'silent',
-      nodePaths,
-      outdir: temporaryDirectory.path,
-      platform: 'node',
-      plugins: [getDependencyTrackerPlugin(specifiers, importMap.getContentsWithURLObjects(), pathToFileURL(basePath))],
-      write: false,
-      format: 'esm',
-    })
-    if (errors.length !== 0) {
-      logger.system('ESBuild errored while tracking dependencies in edge function:', errors)
-    }
-    if (warnings.length !== 0) {
-      logger.system('ESBuild warned while tracking dependencies in edge function:', warnings)
-    }
-  } catch (error) {
-    logger.system('Could not track dependencies in edge function:', error)
+  const { modulesWithExtraneousFiles, npmSpecifiers } = await getNPMSpecifiers(
+    basePath,
+    functions,
+    importMap.getContentsWithURLObjects(),
+  )
+
+  if (modulesWithExtraneousFiles.length !== 0) {
     logger.user(
-      'An error occurred when trying to scan your edge functions for npm modules, which is an experimental feature. If you are loading npm modules, please share the link to this deploy in https://ntl.fyi/edge-functions-npm. If you are not loading npm modules, you can ignore this message.',
+      `These npm modules, imported directly or indirectly by an edge function, appear to dynamically import files at runtime, which is currently not supported (https://ntl.fyi/edge-npm): ${modulesWithExtraneousFiles.join(
+        ', ',
+      )}`,
     )
   }
 
   // If we found no specifiers, there's nothing left to do here.
-  if (specifiers.size === 0) {
+  if (npmSpecifiers.length === 0) {
     return
   }
 
@@ -176,7 +253,7 @@ export const vendorNPMSpecifiers = async ({
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
-    [...specifiers].map(async (specifier, index) => {
+    npmSpecifiers.map(async (specifier, index) => {
       const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
       const filePath = path.join(temporaryDirectory.path, `barrel-${index}.js`)
 
