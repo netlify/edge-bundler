@@ -1,22 +1,18 @@
 import { promises as fs } from 'fs'
-import { builtinModules, createRequire } from 'module'
+import { builtinModules } from 'module'
 import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import { resolve, ParsedImportMap } from '@import-maps/resolve'
 import { nodeFileTrace, resolve as nftResolve } from '@vercel/nft'
-import { build, OnResolveResult, Plugin } from 'esbuild'
+import { build } from 'esbuild'
 import getPackageName from 'get-package-name'
 import tmp from 'tmp-promise'
-
-import { nodePrefix, npmPrefix } from '../shared/consts.js'
 
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
 
-const builtinModulesSet = new Set(builtinModules)
-const require = createRequire(import.meta.url)
-const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', 'mjs'])
+const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', 'mts'])
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
@@ -29,89 +25,6 @@ const banner = {
   let require=___nfyCreateRequire(import.meta.url);
   `,
 }
-
-// esbuild plugin that will traverse the code and look for imports of external
-// dependencies (i.e. Node modules). It stores the specifiers found in the Set
-// provided.
-export const getDependencyTrackerPlugin = (
-  specifiers: Set<string>,
-  importMap: ParsedImportMap,
-  baseURL: URL,
-): Plugin => ({
-  name: 'dependency-tracker',
-  setup(build) {
-    build.onResolve({ filter: /^(.*)$/ }, (args) => {
-      if (args.kind !== 'import-statement') {
-        return
-      }
-
-      const result: Partial<OnResolveResult> = {}
-
-      let specifier = args.path
-
-      // Start by checking whether the specifier matches any import map defined
-      // by the user.
-      const { matched, resolvedImport } = resolve(specifier, importMap, baseURL)
-
-      // If it does, the resolved import is the specifier we'll evaluate going
-      // forward.
-      if (matched) {
-        if (resolvedImport.protocol !== 'file:') {
-          return { external: true }
-        }
-
-        specifier = fileURLToPath(resolvedImport).replace(/\\/g, '/')
-
-        result.path = specifier
-      }
-
-      // If the specifier is a Node.js built-in, we don't want to bundle it.
-      if (specifier.startsWith(nodePrefix) || builtinModulesSet.has(specifier)) {
-        return { external: true }
-      }
-
-      // We don't support the `npm:` prefix yet. Mark the specifier as external
-      // and the ESZIP bundler will handle the failure.
-      if (specifier.startsWith(npmPrefix)) {
-        return { external: true }
-      }
-
-      const isLocalImport = specifier.startsWith(path.sep) || specifier.startsWith('.') || path.isAbsolute(specifier)
-
-      // If this is a local import, return so that esbuild visits that path.
-      if (isLocalImport) {
-        return result
-      }
-
-      const isRemoteURLImport = specifier.startsWith('https://') || specifier.startsWith('http://')
-
-      if (isRemoteURLImport) {
-        return { external: true }
-      }
-
-      // At this point we know we're dealing with a bare specifier that should
-      // be treated as an external module. We first try to resolve it, because
-      // in the event that it doesn't exist (e.g. user is referencing a module
-      // that they haven't installed) we won't even attempt to bundle it. This
-      // lets the ESZIP bundler handle and report the missing import instead of
-      // esbuild, which is a better experience for the user.
-      try {
-        require.resolve(specifier, { paths: [args.resolveDir] })
-
-        specifiers.add(specifier)
-      } catch {
-        // no-op
-      }
-
-      // Mark the specifier as external, because we don't want to traverse the
-      // entire module tree — i.e. if user code imports module `foo` and that
-      // imports `bar`, we only want to add `foo` to the list of specifiers,
-      // since the whole module — including its dependencies like `bar` —
-      // will be bundled.
-      return { external: true }
-    })
-  },
-})
 
 /**
  * Parses a set of functions and returns a list of specifiers that correspond
@@ -162,21 +75,21 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
   const npmSpecifiers = new Set<string>()
   const modulesWithExtraneousFiles = new Set<string>()
 
-  reasons.forEach((reason, path) => {
-    const packageName = getPackageName(path)
+  reasons.forEach((reason, filePath) => {
+    const packageName = getPackageName(filePath)
 
     if (packageName === undefined) {
       return
     }
 
     const parents = [...reason.parents]
-    const isDirectDependency = parents.some((path) => !path.startsWith('node_modules/'))
+    const isDirectDependency = parents.some((parentPath) => !parentPath.startsWith(`node_modules${path.sep}`))
 
     // We're only interested in capturing the specifiers that are first-level
     // dependencies. Because we'll bundle all modules in a subsequent step,
     // any transitive dependencies will be handled then.
     if (isDirectDependency) {
-      const specifier = getPackageName(path)
+      const specifier = getPackageName(filePath)
 
       npmSpecifiers.add(specifier)
     }
