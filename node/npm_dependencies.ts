@@ -12,7 +12,7 @@ import tmp from 'tmp-promise'
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
 
-const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', 'mts'])
+const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
