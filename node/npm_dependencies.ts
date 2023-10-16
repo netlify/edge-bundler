@@ -73,7 +73,7 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
     },
   })
   const npmSpecifiers = new Set<string>()
-  const modulesWithExtraneousFiles = new Set<string>()
+  const npmSpecifiersWithExtraneousFiles = new Set<string>()
 
   reasons.forEach((reason, filePath) => {
     const packageName = getPackageName(filePath)
@@ -105,15 +105,15 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
         const specifier = getPackageName(path)
 
         if (specifier) {
-          modulesWithExtraneousFiles.add(specifier)
+          npmSpecifiersWithExtraneousFiles.add(specifier)
         }
       })
     }
   })
 
   return {
-    modulesWithExtraneousFiles: [...modulesWithExtraneousFiles],
     npmSpecifiers: [...npmSpecifiers],
+    npmSpecifiersWithExtraneousFiles: [...npmSpecifiersWithExtraneousFiles],
   }
 }
 
@@ -130,7 +130,6 @@ export const vendorNPMSpecifiers = async ({
   directory,
   functions,
   importMap,
-  logger,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
@@ -143,19 +142,11 @@ export const vendorNPMSpecifiers = async ({
   // Otherwise, create a random temporary directory.
   const temporaryDirectory = directory ? { path: directory } : await tmp.dir()
 
-  const { modulesWithExtraneousFiles, npmSpecifiers } = await getNPMSpecifiers(
+  const { npmSpecifiers, npmSpecifiersWithExtraneousFiles } = await getNPMSpecifiers(
     basePath,
     functions,
     importMap.getContentsWithURLObjects(),
   )
-
-  if (modulesWithExtraneousFiles.length !== 0) {
-    logger.user(
-      `These npm modules, imported directly or indirectly by an edge function, appear to dynamically import files at runtime, which is currently not supported (https://ntl.fyi/edge-npm): ${modulesWithExtraneousFiles.join(
-        ', ',
-      )}`,
-    )
-  }
 
   // If we found no specifiers, there's nothing left to do here.
   if (npmSpecifiers.length === 0) {
@@ -239,5 +230,6 @@ export const vendorNPMSpecifiers = async ({
     cleanup,
     directory: temporaryDirectory.path,
     importMap: newImportMap,
+    npmSpecifiersWithExtraneousFiles,
   }
 }
