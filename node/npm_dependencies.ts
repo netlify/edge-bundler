@@ -66,7 +66,7 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
       if (matched && resolvedImport.protocol === 'file:') {
         const newSpecifier = fileURLToPath(resolvedImport).replace(/\\/g, '/')
 
-        return newSpecifier
+        return nftResolve(newSpecifier, ...args)
       }
 
       return nftResolve(specifier, ...args)
