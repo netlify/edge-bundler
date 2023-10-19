@@ -1,4 +1,5 @@
 import { join } from 'path'
+import { readFile } from 'fs/promises'
 
 import getPort from 'get-port'
 import fetch from 'node-fetch'
@@ -26,7 +27,7 @@ test('Starts a server and serves requests for edge functions', async () => {
     servePath,
     featureFlags: {
       edge_functions_npm_modules: true,
-    }
+    },
   })
 
   const functions = [
@@ -98,4 +99,7 @@ test('Starts a server and serves requests for edge functions', async () => {
     global: 'i love netlify',
     local: 'i love netlify',
   })
+
+  const npmBarrelFile = await readFile(join(servePath, 'barrel-0.js'), 'utf-8')
+  expect(npmBarrelFile).toContain(`/// <reference types="${join(basePath, 'node_modules', 'id', 'types.d.ts')}" />`)
 })

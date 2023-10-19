@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { builtinModules } from 'module'
-import path from 'path'
+import path, { join } from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import { resolve, ParsedImportMap } from '@import-maps/resolve'
@@ -11,8 +11,20 @@ import tmp from 'tmp-promise'
 
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
+import { findUp } from 'find-up'
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
+
+const detectTypes = async (filePath: string): Promise<string | undefined> => {
+  try {
+    const packageJson = await findUp('package.json', { cwd: filePath })
+    if (!packageJson) return
+    const { types } = JSON.parse(await fs.readFile(packageJson, 'utf8'))
+    return join(packageJson, '..', types)
+  } catch {
+    return
+  }
+}
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
@@ -72,14 +84,14 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
       return nftResolve(specifier, ...args)
     },
   })
-  const npmSpecifiers = new Set<string>()
+  const npmSpecifiers: Record<string, { types?: string }> = {}
   const npmSpecifiersWithExtraneousFiles = new Set<string>()
 
-  reasons.forEach((reason, filePath) => {
+  for (const [filePath, reason] of reasons.entries()) {
     const packageName = getPackageName(filePath)
 
     if (packageName === undefined) {
-      return
+      continue
     }
 
     const parents = [...reason.parents]
@@ -91,7 +103,9 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
     if (isDirectDependency) {
       const specifier = getPackageName(filePath)
 
-      npmSpecifiers.add(specifier)
+      npmSpecifiers[specifier] = {
+        types: await detectTypes(join(basePath, filePath)),
+      }
     }
 
     const isExtraneousFile = reason.type.every((type) => type === 'asset')
@@ -109,12 +123,17 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
         }
       })
     }
-  })
+  }
 
   return {
-    npmSpecifiers: [...npmSpecifiers],
+    npmSpecifiers,
     npmSpecifiersWithExtraneousFiles: [...npmSpecifiersWithExtraneousFiles],
   }
+}
+
+const prependFile = async (path: string, prefix: string) => {
+  const existingContent = await fs.readFile(path, 'utf8')
+  await fs.writeFile(path, prefix + existingContent)
 }
 
 interface VendorNPMSpecifiersOptions {
@@ -149,7 +168,7 @@ export const vendorNPMSpecifiers = async ({
   )
 
   // If we found no specifiers, there's nothing left to do here.
-  if (npmSpecifiers.length === 0) {
+  if (Object.keys(npmSpecifiers).length === 0) {
     return
   }
 
@@ -157,13 +176,14 @@ export const vendorNPMSpecifiers = async ({
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
-    npmSpecifiers.map(async (specifier, index) => {
+    Object.entries(npmSpecifiers).map(async ([specifier, { types }], index) => {
       const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
-      const filePath = path.join(temporaryDirectory.path, `barrel-${index}.js`)
+      const barrelName = `barrel-${index}.js`
+      const filePath = path.join(temporaryDirectory.path, barrelName)
 
       await fs.writeFile(filePath, code)
 
-      return { filePath, specifier }
+      return { filePath, specifier, barrelName, types }
     }),
   )
   const entryPoints = ops.map(({ filePath }) => filePath)
@@ -184,6 +204,11 @@ export const vendorNPMSpecifiers = async ({
     splitting: true,
     target: 'es2020',
   })
+
+  for (const { barrelName, types } of ops) {
+    if (!types) continue
+    await prependFile(path.join(temporaryDirectory.path, barrelName), `/// <reference types="${types}" />`)
+  }
 
   // Add all Node.js built-ins to the import map, so any unprefixed specifiers
   // (e.g. `process`) resolve to the prefixed versions (e.g. `node:prefix`),
