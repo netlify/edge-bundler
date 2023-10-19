@@ -100,6 +100,11 @@ test('Starts a server and serves requests for edge functions', async () => {
     local: 'i love netlify',
   })
 
-  const npmBarrelFile = await readFile(join(servePath, 'barrel-0.js'), 'utf-8')
-  expect(npmBarrelFile).toContain(`/// <reference types="${join(basePath, 'node_modules', 'id', 'types.d.ts')}" />`)
+  const idBarrelFile = await readFile(join(servePath, 'barrel-0.js'), 'utf-8')
+  expect(idBarrelFile).toContain(`/// <reference types="${join(basePath, 'node_modules', 'id', 'types.d.ts')}" />`)
+
+  const identidadeBarrelFile = await readFile(join(servePath, 'barrel-1.js'), 'utf-8')
+  expect(identidadeBarrelFile).toContain(
+    `/// <reference types="${join(basePath, 'node_modules', '@types', 'identidade', 'index.d.ts')}" />`,
+  )
 })

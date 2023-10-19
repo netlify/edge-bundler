@@ -19,8 +19,18 @@ const detectTypes = async (filePath: string): Promise<string | undefined> => {
   try {
     const packageJson = await findUp('package.json', { cwd: filePath })
     if (!packageJson) return
-    const { types } = JSON.parse(await fs.readFile(packageJson, 'utf8'))
-    return join(packageJson, '..', types)
+    const packageJsonContents = JSON.parse(await fs.readFile(packageJson, 'utf8'))
+    const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
+    if (packageJsonTypes) return join(packageJson, '..', packageJsonTypes)
+
+    const nodeModulesFolder = await findUp('node_modules', { cwd: packageJson, type: 'directory' })
+    if (!nodeModulesFolder) return
+
+    // todo: take into account @scoped packages
+    const typesPackageJson = join(nodeModulesFolder, '@types', packageJsonContents.name, 'package.json')
+    const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
+    const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
+    if (typesPackageContents) return join(typesPackageJson, '..', typesPackageTypes)
   } catch {
     return
   }

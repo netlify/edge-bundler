@@ -2,9 +2,10 @@ import { Config } from 'https://edge.netlify.com'
 
 import { yell } from 'helper'
 import id from 'id'
+import identidade from 'identidade'
 
 export default () => {
-  return new Response(yell(Deno.env.get(id('very_secret_secret')) ?? ''))
+  return new Response(yell(identidade(id(Deno.env.get('very_secret_secret'))) ?? ''))
 }
 
 export const config: Config = {
