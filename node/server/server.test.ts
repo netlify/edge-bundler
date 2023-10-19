@@ -24,6 +24,9 @@ test('Starts a server and serves requests for edge functions', async () => {
     importMapPaths,
     port,
     servePath,
+    featureFlags: {
+      edge_functions_npm_modules: true,
+    }
   })
 
   const functions = [
@@ -51,7 +54,7 @@ test('Starts a server and serves requests for edge functions', async () => {
     },
     options,
   )
-  expect(features).toEqual({})
+  expect(features).toEqual({ npmModules: true })
   expect(success).toBe(true)
   expect(functionsConfig).toEqual([{ path: '/my-function' }, {}, { path: '/global-netlify' }])
 
