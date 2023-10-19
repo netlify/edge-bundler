@@ -6,34 +6,46 @@ import { fileURLToPath, pathToFileURL } from 'url'
 import { resolve, ParsedImportMap } from '@import-maps/resolve'
 import { nodeFileTrace, resolve as nftResolve } from '@vercel/nft'
 import { build } from 'esbuild'
+import { findUp } from 'find-up'
 import getPackageName from 'get-package-name'
 import tmp from 'tmp-promise'
 
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
-import { findUp } from 'find-up'
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
+
+/**
+ * Turns @netlify/functions into @types/netlify__functions.
+ */
+const inferDefinitelyTypedPackage = (specifier: string) => {
+  if (!specifier.startsWith('@')) return `@types/${specifier}`
+  const [scope, pkg] = specifier.split('/')
+  return `@types/${scope.replace('@', '')}__${pkg}`
+}
 
 const detectTypes = async (filePath: string): Promise<string | undefined> => {
   try {
     const packageJson = await findUp('package.json', { cwd: filePath })
     if (!packageJson) return
     const packageJsonContents = JSON.parse(await fs.readFile(packageJson, 'utf8'))
+    // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
+    // we're ignoring that for now.
     const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
     if (packageJsonTypes) return join(packageJson, '..', packageJsonTypes)
 
     const nodeModulesFolder = await findUp('node_modules', { cwd: packageJson, type: 'directory' })
     if (!nodeModulesFolder) return
 
-    // todo: take into account @scoped packages
-    const typesPackageJson = join(nodeModulesFolder, '@types', packageJsonContents.name, 'package.json')
+    const typesPackageJson = join(
+      nodeModulesFolder,
+      inferDefinitelyTypedPackage(packageJsonContents.name),
+      'package.json',
+    )
     const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
     const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
     if (typesPackageContents) return join(typesPackageJson, '..', typesPackageTypes)
-  } catch {
-    return
-  }
+  } catch {}
 }
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.

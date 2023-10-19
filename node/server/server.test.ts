@@ -1,5 +1,5 @@
-import { join } from 'path'
 import { readFile } from 'fs/promises'
+import { join } from 'path'
 
 import getPort from 'get-port'
 import fetch from 'node-fetch'
@@ -105,6 +105,6 @@ test('Starts a server and serves requests for edge functions', async () => {
 
   const identidadeBarrelFile = await readFile(join(servePath, 'barrel-1.js'), 'utf-8')
   expect(identidadeBarrelFile).toContain(
-    `/// <reference types="${join(basePath, 'node_modules', '@types', 'identidade', 'index.d.ts')}" />`,
+    `/// <reference types="${join(basePath, 'node_modules', '@types', 'pt-committee__identidade', 'index.d.ts')}" />`,
   )
 })
