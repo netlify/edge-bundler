@@ -229,6 +229,8 @@ export const vendorNPMSpecifiers = async ({
 
   for (const { barrelName, types } of ops) {
     if (!types) continue
+    // we're updating the output instead of adding this to the input,
+    // because esbuild will erase the directive while bundling
     await prependFile(path.join(temporaryDirectory.path, barrelName), `/// <reference types="${types}" />`)
   }
 
