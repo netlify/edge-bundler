@@ -3,7 +3,6 @@ import { join } from 'path'
 
 import getPort from 'get-port'
 import fetch from 'node-fetch'
-import { tmpName } from 'tmp-promise'
 import { v4 as uuidv4 } from 'uuid'
 import { test, expect } from 'vitest'
 
@@ -18,7 +17,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   }
   const port = await getPort()
   const importMapPaths = [join(paths.internal, 'import_map.json'), join(paths.user, 'import-map.json')]
-  const servePath = await tmpName()
+  const servePath = join(basePath, '.netlify', 'edge-functions-serve')
   const server = await serve({
     basePath,
     bootstrapURL: 'https://edge.netlify.com/bootstrap/index-combined.ts',
@@ -101,10 +100,10 @@ test('Starts a server and serves requests for edge functions', async () => {
   })
 
   const idBarrelFile = await readFile(join(servePath, 'barrel-0.js'), 'utf-8')
-  expect(idBarrelFile).toContain(`/// <reference types="${join(basePath, 'node_modules', 'id', 'types.d.ts')}" />`)
+  expect(idBarrelFile).toContain(`/// <reference types="../../../node_modules/id/types.d.ts" />`)
 
   const identidadeBarrelFile = await readFile(join(servePath, 'barrel-1.js'), 'utf-8')
   expect(identidadeBarrelFile).toContain(
-    `/// <reference types="${join(basePath, 'node_modules', '@types', 'pt-committee__identidade', 'index.d.ts')}" />`,
+    `/// <reference types="../../../node_modules/@types/pt-committee__identidade/index.d.ts" />`,
   )
 })

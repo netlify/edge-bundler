@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { builtinModules } from 'module'
-import path, { join } from 'path'
+import path from 'path'
 import { fileURLToPath, pathToFileURL } from 'url'
 
 import { resolve, ParsedImportMap } from '@import-maps/resolve'
@@ -40,19 +40,19 @@ const detectTypes = async (filePath: string): Promise<string | undefined> => {
   // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
   // we're ignoring that for now.
   const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
-  if (typeof packageJsonTypes === 'string') return join(packageJsonPath, '..', packageJsonTypes)
+  if (typeof packageJsonTypes === 'string') return path.join(packageJsonPath, '..', packageJsonTypes)
 
   const nodeModulesFolder = await findUp('node_modules', { cwd: packageJsonPath, type: 'directory' })
   if (!nodeModulesFolder) return
 
-  const typesPackageJson = join(
+  const typesPackageJson = path.join(
     nodeModulesFolder,
     inferDefinitelyTypedPackage(packageJsonContents.name),
     'package.json',
   )
   const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
   const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
-  if (typeof typesPackageTypes === 'string') return join(typesPackageJson, '..', typesPackageTypes)
+  if (typeof typesPackageTypes === 'string') return path.join(typesPackageJson, '..', typesPackageTypes)
 }
 
 const safelyDetectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
@@ -147,7 +147,7 @@ const getNPMSpecifiers = async (
       const specifier = getPackageName(filePath)
 
       npmSpecifiers[specifier] = {
-        types: referenceTypes ? await safelyDetectTypes(join(basePath, filePath)) : undefined,
+        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
       }
     }
 
@@ -255,7 +255,9 @@ export const vendorNPMSpecifiers = async ({
     if (!types) continue
     // we're updating the output instead of adding this to the input,
     // because esbuild will erase the directive while bundling
-    await prependFile(path.join(temporaryDirectory.path, barrelName), `/// <reference types="${types}" />`)
+    const barrelFilePath = path.join(temporaryDirectory.path, barrelName)
+    const typesFilePath = path.relative(barrelFilePath, types)
+    await prependFile(barrelFilePath, `/// <reference types="${typesFilePath}" />`)
   }
 
   // Add all Node.js built-ins to the import map, so any unprefixed specifiers
