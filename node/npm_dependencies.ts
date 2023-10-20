@@ -32,10 +32,7 @@ const inferDefinitelyTypedPackage = (specifier: string) => {
  * It first looks at the `types` and `typings` fields in `package.json`.
  * If it doesn't find them, it falls back to DefinitelyTyped packages (`@types/...`).
  */
-const detectTypes = async (filePath: string): Promise<string | undefined> => {
-  const packageJsonPath = await findUp('package.json', { cwd: filePath })
-  if (!packageJsonPath) return
-
+const detectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
   const packageJsonContents = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'))
   // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
   // we're ignoring that for now.
@@ -127,28 +124,39 @@ const getNPMSpecifiers = async (
       return nftResolve(specifier, ...args)
     },
   })
-  const npmSpecifiers: Record<string, { types?: string }> = {}
+  const npmSpecifiers: { specifier: string; types?: string }[] = []
   const npmSpecifiersWithExtraneousFiles = new Set<string>()
 
-  for (const [filePath, reason] of reasons.entries()) {
-    const packageName = getPackageName(filePath)
+  for (const [packageJsonPath, reason] of reasons.entries()) {
+    // every dependency will have its `package.json` in `reasons` exactly once.
+    // by only looking at this file, we save us from doing duplicate work.
+    const isPackageJson = packageJsonPath.endsWith('package.json')
+    if (!isPackageJson) continue
 
-    if (packageName === undefined) {
-      continue
-    }
+    const packageName = getPackageName(packageJsonPath)
+    if (packageName === undefined) continue
 
     const parents = [...reason.parents]
-    const isDirectDependency = parents.some((parentPath) => !parentPath.startsWith(`node_modules${path.sep}`))
+
+    const isDirectDependency = parents.some((parentPath) => {
+      if (!parentPath.startsWith(`node_modules${path.sep}`)) return true
+      // typically, edge functions have no direct dependency on the `package.json` of a module.
+      // it's the impl files that depend on `package.json`, so we need to check the parents of
+      // the `package.json` file as well to see if the module is a direct dependency.
+      const ownImports = [...(reasons.get(parentPath)?.parents ?? [])]
+      return ownImports.some((parentPath) => !parentPath.startsWith(`node_modules${path.sep}`))
+    })
 
     // We're only interested in capturing the specifiers that are first-level
     // dependencies. Because we'll bundle all modules in a subsequent step,
     // any transitive dependencies will be handled then.
     if (isDirectDependency) {
-      const specifier = getPackageName(filePath)
+      const specifier = getPackageName(packageJsonPath)
 
-      npmSpecifiers[specifier] = {
-        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
-      }
+      npmSpecifiers.push({
+        specifier,
+        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, packageJsonPath)) : undefined,
+      })
     }
 
     const isExtraneousFile = reason.type.every((type) => type === 'asset')
@@ -222,7 +230,7 @@ export const vendorNPMSpecifiers = async ({
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
-    Object.entries(npmSpecifiers).map(async ([specifier, { types }], index) => {
+    npmSpecifiers.map(async ({ specifier, types }, index) => {
       const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
       const barrelName = `barrel-${index}.js`
       const filePath = path.join(temporaryDirectory.path, barrelName)
