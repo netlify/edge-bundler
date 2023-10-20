@@ -16,7 +16,10 @@ import { Logger } from './logger.js'
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
 
 /**
- * Turns @netlify/functions into @types/netlify__functions.
+ * Returns the name of the `@types/` package used by a given specifier. Most of
+ * the times this is just the specifier itself, but scoped packages suffer a
+ * transformation (e.g. `@netlify/functions` -> `@types/netlify__functions`).
+ * https://github.com/DefinitelyTyped/DefinitelyTyped#what-about-scoped-packages
  */
 const inferDefinitelyTypedPackage = (specifier: string) => {
   if (!specifier.startsWith('@')) return `@types/${specifier}`
