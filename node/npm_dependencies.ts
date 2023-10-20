@@ -24,28 +24,40 @@ const inferDefinitelyTypedPackage = (specifier: string) => {
   return `@types/${scope.replace('@', '')}__${pkg}`
 }
 
+/**
+ * Starting from a `package.json` file, this tries detecting a typescript declaration file.
+ * It first looks at the `types` and `typings` fields in `package.json`.
+ * If it doesn't find them, it falls back to DefinitelyTyped packages (`@types/...`).
+ */
 const detectTypes = async (filePath: string): Promise<string | undefined> => {
+  const packageJsonPath = await findUp('package.json', { cwd: filePath })
+  if (!packageJsonPath) return
+
+  const packageJsonContents = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'))
+  // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
+  // we're ignoring that for now.
+  const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
+  if (typeof packageJsonTypes === 'string') return join(packageJsonPath, '..', packageJsonTypes)
+
+  const nodeModulesFolder = await findUp('node_modules', { cwd: packageJsonPath, type: 'directory' })
+  if (!nodeModulesFolder) return
+
+  const typesPackageJson = join(
+    nodeModulesFolder,
+    inferDefinitelyTypedPackage(packageJsonContents.name),
+    'package.json',
+  )
+  const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
+  const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
+  if (typeof typesPackageTypes === 'string') return join(typesPackageJson, '..', typesPackageTypes)
+}
+
+const safelyDetectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
   try {
-    const packageJson = await findUp('package.json', { cwd: filePath })
-    if (!packageJson) return
-    const packageJsonContents = JSON.parse(await fs.readFile(packageJson, 'utf8'))
-    // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
-    // we're ignoring that for now.
-    const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
-    if (packageJsonTypes) return join(packageJson, '..', packageJsonTypes)
-
-    const nodeModulesFolder = await findUp('node_modules', { cwd: packageJson, type: 'directory' })
-    if (!nodeModulesFolder) return
-
-    const typesPackageJson = join(
-      nodeModulesFolder,
-      inferDefinitelyTypedPackage(packageJsonContents.name),
-      'package.json',
-    )
-    const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
-    const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
-    if (typesPackageContents) return join(typesPackageJson, '..', typesPackageTypes)
-  } catch {}
+    return await detectTypes(packageJsonPath)
+  } catch {
+    return undefined
+  }
 }
 
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
@@ -67,8 +79,14 @@ const banner = {
  * @param basePath Root of the project
  * @param functions Functions to parse
  * @param importMap Import map to apply when resolving imports
+ * @param referenceTypes Whether to detect typescript declarations and reference them in the output
  */
-const getNPMSpecifiers = async (basePath: string, functions: string[], importMap: ParsedImportMap) => {
+const getNPMSpecifiers = async (
+  basePath: string,
+  functions: string[],
+  importMap: ParsedImportMap,
+  referenceTypes: boolean,
+) => {
   const baseURL = pathToFileURL(basePath)
   const { reasons } = await nodeFileTrace(functions, {
     base: basePath,
@@ -126,7 +144,7 @@ const getNPMSpecifiers = async (basePath: string, functions: string[], importMap
       const specifier = getPackageName(filePath)
 
       npmSpecifiers[specifier] = {
-        types: await detectTypes(join(basePath, filePath)),
+        types: referenceTypes ? await safelyDetectTypes(join(basePath, filePath)) : undefined,
       }
     }
 
@@ -164,6 +182,7 @@ interface VendorNPMSpecifiersOptions {
   functions: string[]
   importMap: ImportMap
   logger: Logger
+  referenceTypes: boolean
 }
 
 export const vendorNPMSpecifiers = async ({
@@ -171,6 +190,7 @@ export const vendorNPMSpecifiers = async ({
   directory,
   functions,
   importMap,
+  referenceTypes,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
@@ -187,6 +207,7 @@ export const vendorNPMSpecifiers = async ({
     basePath,
     functions,
     importMap.getContentsWithURLObjects(),
+    referenceTypes,
   )
 
   // If we found no specifiers, there's nothing left to do here.
