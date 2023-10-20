@@ -100,10 +100,20 @@ test('Starts a server and serves requests for edge functions', async () => {
   })
 
   const idBarrelFile = await readFile(join(servePath, 'barrel-0.js'), 'utf-8')
-  expect(idBarrelFile).toContain(`/// <reference types="../../../node_modules/id/types.d.ts" />`)
+  expect(idBarrelFile).toContain(
+    `/// <reference types="${join('..', '..', '..', 'node_modules', 'id', 'types.d.ts')}" />`,
+  )
 
   const identidadeBarrelFile = await readFile(join(servePath, 'barrel-1.js'), 'utf-8')
   expect(identidadeBarrelFile).toContain(
-    `/// <reference types="../../../node_modules/@types/pt-committee__identidade/index.d.ts" />`,
+    `/// <reference types="${join(
+      '..',
+      '..',
+      '..',
+      'node_modules',
+      '@types',
+      'pt-committee__identidade',
+      'index.d.ts',
+    )}" />`,
   )
 })
