@@ -123,7 +123,7 @@ const getNPMSpecifiers = async (
   const npmSpecifiers: { specifier: string; types?: string }[] = []
   const npmSpecifiersWithExtraneousFiles = new Set<string>()
 
-  for (const [packageJsonPath, reason] of reasons.entries()) {
+  for (const [filePath, reason] of reasons.entries()) {
     const parents = [...reason.parents]
     const isExtraneousFile = reason.type.every((type) => type === 'asset')
 
@@ -143,8 +143,10 @@ const getNPMSpecifiers = async (
 
     // every dependency will have its `package.json` in `reasons` exactly once.
     // by only looking at this file, we save us from doing duplicate work.
-    const isPackageJson = packageJsonPath.endsWith('package.json')
+    const isPackageJson = filePath.endsWith('package.json')
     if (!isPackageJson) continue
+
+    const packageJsonPath = filePath
 
     const packageName = getPackageName(packageJsonPath)
     if (packageName === undefined) continue
