@@ -28,24 +28,43 @@ const getTypesPackageName = (specifier: string) => {
 }
 
 /**
+ * Finds corresponding DefinitelyTyped packages (`@types/...`) and returns path to declaration file.
+ */
+const getTypePathFromTypesPackage = async (
+  packageName: string,
+  packageJsonPath: string,
+): Promise<string | undefined> => {
+  const typesPackagePath = await findUp(`node_modules/${getTypesPackageName(packageName)}/package.json`, {
+    cwd: packageJsonPath,
+  })
+  if (!typesPackagePath) {
+    return undefined
+  }
+
+  const { types, typings } = JSON.parse(await fs.readFile(typesPackagePath, 'utf8'))
+  const declarationPath = types ?? typings
+  if (typeof declarationPath === 'string') {
+    return path.join(typesPackagePath, '..', declarationPath)
+  }
+
+  return undefined
+}
+
+/**
  * Starting from a `package.json` file, this tries detecting a TypeScript declaration file.
  * It first looks at the `types` and `typings` fields in `package.json`.
  * If it doesn't find them, it falls back to DefinitelyTyped packages (`@types/...`).
  */
 const getTypesPath = async (packageJsonPath: string): Promise<string | undefined> => {
-  const packageJsonContents = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'))
+  const { name, types, typings } = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'))
   // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
   // we're ignoring that for now.
-  const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
-  if (typeof packageJsonTypes === 'string') return path.join(packageJsonPath, '..', packageJsonTypes)
+  const declarationPath = types ?? typings
+  if (typeof declarationPath === 'string') {
+    return path.join(packageJsonPath, '..', declarationPath)
+  }
 
-  const typesPackageJson = await findUp(`node_modules/${getTypesPackageName(packageJsonContents.name)}/package.json`, {
-    cwd: packageJsonPath,
-  })
-  if (!typesPackageJson) return
-  const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
-  const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
-  if (typeof typesPackageTypes === 'string') return path.join(typesPackageJson, '..', typesPackageTypes)
+  return await getTypePathFromTypesPackage(name, packageJsonPath)
 }
 
 const safelyDetectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
