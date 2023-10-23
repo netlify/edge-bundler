@@ -194,11 +194,6 @@ const getNPMSpecifiers = async (
   }
 }
 
-const prependFile = async (path: string, prefix: string) => {
-  const existingContent = await fs.readFile(path, 'utf8')
-  await fs.writeFile(path, prefix + existingContent)
-}
-
 interface VendorNPMSpecifiersOptions {
   basePath: string
   directory?: string
@@ -257,7 +252,7 @@ export const vendorNPMSpecifiers = async ({
   // Bundle each of the barrel files we created. We'll end up with a compiled
   // version of each of the barrel files, plus any chunks of shared code
   // between them (such that a common module isn't bundled twice).
-  await build({
+  const { outputFiles } = await build({
     allowOverwrite: true,
     banner,
     bundle: true,
@@ -269,16 +264,20 @@ export const vendorNPMSpecifiers = async ({
     platform: 'node',
     splitting: true,
     target: 'es2020',
+    write: false,
   })
 
-  for (const { barrelName, types } of ops) {
-    if (!types) continue
-    // we're updating the output instead of adding this to the input,
-    // because esbuild will erase the directive while bundling
-    const barrelFilePath = path.join(temporaryDirectory.path, barrelName)
-    const typesFilePath = path.relative(barrelFilePath, types)
-    await prependFile(barrelFilePath, `/// <reference types="${typesFilePath}" />`)
-  }
+  await Promise.all(
+    outputFiles.map(async (file) => {
+      const fd = await fs.open(file.path, 'w')
+      const types = ops.find((op) => file.path.endsWith(op.barrelName))?.types
+      if (types) {
+        await fs.writeFile(fd, `/// <reference types="${path.relative(file.path, types)}" />\n`)
+      }
+      await fs.writeFile(fd, file.contents)
+      await fd.close()
+    }),
+  )
 
   // Add all Node.js built-ins to the import map, so any unprefixed specifiers
   // (e.g. `process`) resolve to the prefixed versions (e.g. `node:prefix`),
