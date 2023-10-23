@@ -165,9 +165,7 @@ const getNPMSpecifiers = async (
     const isPackageJson = filePath.endsWith('package.json')
     if (!isPackageJson) continue
 
-    const packageJsonPath = filePath
-
-    const packageName = getPackageName(packageJsonPath)
+    const packageName = getPackageName(filePath)
     if (packageName === undefined) continue
 
     const isDirectDependency = parents.some((parentPath) => {
@@ -185,7 +183,7 @@ const getNPMSpecifiers = async (
     if (isDirectDependency) {
       npmSpecifiers.push({
         specifier: packageName,
-        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, packageJsonPath)) : undefined,
+        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
       })
     }
   }
