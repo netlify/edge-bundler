@@ -15,17 +15,19 @@ import { Logger } from './logger.js'
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
 
+const slugifyPackageName = (specifier: string) => {
+  if (!specifier.startsWith('@')) return specifier
+  const [scope, pkg] = specifier.split('/')
+  return `${scope.replace('@', '')}__${pkg}`
+}
+
 /**
  * Returns the name of the `@types/` package used by a given specifier. Most of
  * the times this is just the specifier itself, but scoped packages suffer a
  * transformation (e.g. `@netlify/functions` -> `@types/netlify__functions`).
  * https://github.com/DefinitelyTyped/DefinitelyTyped#what-about-scoped-packages
  */
-const getTypesPackageName = (specifier: string) => {
-  if (!specifier.startsWith('@')) return path.join('@types', specifier)
-  const [scope, pkg] = specifier.split('/')
-  return path.join('@types', `${scope.replace('@', '')}__${pkg}`)
-}
+const getTypesPackageName = (specifier: string) => path.join('@types', slugifyPackageName(specifier))
 
 /**
  * Finds corresponding DefinitelyTyped packages (`@types/...`) and returns path to declaration file.
@@ -237,9 +239,9 @@ export const vendorNPMSpecifiers = async ({
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
-    npmSpecifiers.map(async ({ specifier, types }, index) => {
+    npmSpecifiers.map(async ({ specifier, types }) => {
       const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
-      const barrelName = `barrel-${index}.js`
+      const barrelName = `barrel-${slugifyPackageName(specifier)}.js`
       const filePath = path.join(temporaryDirectory.path, barrelName)
 
       await fs.writeFile(filePath, code)
