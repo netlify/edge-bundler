@@ -47,7 +47,7 @@ test('Starts a server and serves requests for edge functions', async () => {
     getFunctionsConfig: true,
   }
 
-  const { features, functionsConfig, graph, success } = await server(
+  const { features, functionsConfig, graph, success, npmSpecifiersWithExtraneousFiles } = await server(
     functions,
     {
       very_secret_secret: 'i love netlify',
@@ -57,6 +57,7 @@ test('Starts a server and serves requests for edge functions', async () => {
   expect(features).toEqual({ npmModules: true })
   expect(success).toBe(true)
   expect(functionsConfig).toEqual([{ path: '/my-function' }, {}, { path: '/global-netlify' }])
+  expect(npmSpecifiersWithExtraneousFiles).toEqual(['dictionary'])
 
   for (const key in functions) {
     const graphEntry = graph?.modules.some(
@@ -104,7 +105,7 @@ test('Starts a server and serves requests for edge functions', async () => {
     `/// <reference types="${join('..', '..', '..', 'node_modules', 'id', 'types.d.ts')}" />`,
   )
 
-  const identidadeBarrelFile = await readFile(join(servePath, 'barrel-1.js'), 'utf-8')
+  const identidadeBarrelFile = await readFile(join(servePath, 'barrel-2.js'), 'utf-8')
   expect(identidadeBarrelFile).toContain(
     `/// <reference types="${join(
       '..',

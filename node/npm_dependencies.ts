@@ -124,6 +124,23 @@ const getNPMSpecifiers = async (
   const npmSpecifiersWithExtraneousFiles = new Set<string>()
 
   for (const [packageJsonPath, reason] of reasons.entries()) {
+    const parents = [...reason.parents]
+    const isExtraneousFile = reason.type.every((type) => type === 'asset')
+
+    // An extraneous file is a dependency that was traced by NFT and marked
+    // as not being statically imported. We can't process dynamic importing
+    // at runtime, so we gather the list of modules that may use these files
+    // so that we can warn users about this caveat.
+    if (isExtraneousFile) {
+      parents.forEach((path) => {
+        const specifier = getPackageName(path)
+
+        if (specifier) {
+          npmSpecifiersWithExtraneousFiles.add(specifier)
+        }
+      })
+    }
+
     // every dependency will have its `package.json` in `reasons` exactly once.
     // by only looking at this file, we save us from doing duplicate work.
     const isPackageJson = packageJsonPath.endsWith('package.json')
@@ -131,8 +148,6 @@ const getNPMSpecifiers = async (
 
     const packageName = getPackageName(packageJsonPath)
     if (packageName === undefined) continue
-
-    const parents = [...reason.parents]
 
     const isDirectDependency = parents.some((parentPath) => {
       if (!parentPath.startsWith(`node_modules${path.sep}`)) return true
@@ -150,22 +165,6 @@ const getNPMSpecifiers = async (
       npmSpecifiers.push({
         specifier: packageName,
         types: referenceTypes ? await safelyDetectTypes(path.join(basePath, packageJsonPath)) : undefined,
-      })
-    }
-
-    const isExtraneousFile = reason.type.every((type) => type === 'asset')
-
-    // An extraneous file is a dependency that was traced by NFT and marked
-    // as not being statically imported. We can't process dynamic importing
-    // at runtime, so we gather the list of modules that may use these files
-    // so that we can warn users about this caveat.
-    if (isExtraneousFile) {
-      parents.forEach((path) => {
-        const specifier = getPackageName(path)
-
-        if (specifier) {
-          npmSpecifiersWithExtraneousFiles.add(specifier)
-        }
       })
     }
   }
