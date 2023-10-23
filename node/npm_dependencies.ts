@@ -269,13 +269,12 @@ export const vendorNPMSpecifiers = async ({
 
   await Promise.all(
     outputFiles.map(async (file) => {
-      const fd = await fs.open(file.path, 'w')
       const types = ops.find((op) => file.path.endsWith(op.barrelName))?.types
+      let content = file.text
       if (types) {
-        await fs.writeFile(fd, `/// <reference types="${path.relative(file.path, types)}" />\n`)
+        content = `/// <reference types="${path.relative(file.path, types)}" />\n${content}`
       }
-      await fs.writeFile(fd, file.contents)
-      await fd.close()
+      await fs.writeFile(file.path, content)
     }),
   )
 
