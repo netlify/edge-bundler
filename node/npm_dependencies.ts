@@ -21,32 +21,28 @@ const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
  * transformation (e.g. `@netlify/functions` -> `@types/netlify__functions`).
  * https://github.com/DefinitelyTyped/DefinitelyTyped#what-about-scoped-packages
  */
-const inferDefinitelyTypedPackage = (specifier: string) => {
-  if (!specifier.startsWith('@')) return `@types/${specifier}`
+const getTypesPackageName = (specifier: string) => {
+  if (!specifier.startsWith('@')) return path.join('@types', specifier)
   const [scope, pkg] = specifier.split('/')
-  return `@types/${scope.replace('@', '')}__${pkg}`
+  return path.join('@types', `${scope.replace('@', '')}__${pkg}`)
 }
 
 /**
- * Starting from a `package.json` file, this tries detecting a typescript declaration file.
+ * Starting from a `package.json` file, this tries detecting a TypeScript declaration file.
  * It first looks at the `types` and `typings` fields in `package.json`.
  * If it doesn't find them, it falls back to DefinitelyTyped packages (`@types/...`).
  */
-const detectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
+const getTypesPath = async (packageJsonPath: string): Promise<string | undefined> => {
   const packageJsonContents = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'))
   // this only looks at `.types` and `.typings` fields. there might also be data in `exports -> . -> types -> import/default`.
   // we're ignoring that for now.
   const packageJsonTypes = packageJsonContents.types ?? packageJsonContents.typings
   if (typeof packageJsonTypes === 'string') return path.join(packageJsonPath, '..', packageJsonTypes)
 
-  const nodeModulesFolder = await findUp('node_modules', { cwd: packageJsonPath, type: 'directory' })
-  if (!nodeModulesFolder) return
-
-  const typesPackageJson = path.join(
-    nodeModulesFolder,
-    inferDefinitelyTypedPackage(packageJsonContents.name),
-    'package.json',
-  )
+  const typesPackageJson = await findUp(`node_modules/${getTypesPackageName(packageJsonContents.name)}/package.json`, {
+    cwd: packageJsonPath,
+  })
+  if (!typesPackageJson) return
   const typesPackageContents = JSON.parse(await fs.readFile(typesPackageJson, 'utf8'))
   const typesPackageTypes = typesPackageContents.types ?? typesPackageContents.typings
   if (typeof typesPackageTypes === 'string') return path.join(typesPackageJson, '..', typesPackageTypes)
@@ -54,7 +50,7 @@ const detectTypes = async (packageJsonPath: string): Promise<string | undefined>
 
 const safelyDetectTypes = async (packageJsonPath: string): Promise<string | undefined> => {
   try {
-    return await detectTypes(packageJsonPath)
+    return await getTypesPath(packageJsonPath)
   } catch {
     return undefined
   }
@@ -143,18 +139,16 @@ const getNPMSpecifiers = async (
       // typically, edge functions have no direct dependency on the `package.json` of a module.
       // it's the impl files that depend on `package.json`, so we need to check the parents of
       // the `package.json` file as well to see if the module is a direct dependency.
-      const ownImports = [...(reasons.get(parentPath)?.parents ?? [])]
-      return ownImports.some((parentPath) => !parentPath.startsWith(`node_modules${path.sep}`))
+      const parents = [...(reasons.get(parentPath)?.parents ?? [])]
+      return parents.some((parentPath) => !parentPath.startsWith(`node_modules${path.sep}`))
     })
 
     // We're only interested in capturing the specifiers that are first-level
     // dependencies. Because we'll bundle all modules in a subsequent step,
     // any transitive dependencies will be handled then.
     if (isDirectDependency) {
-      const specifier = getPackageName(packageJsonPath)
-
       npmSpecifiers.push({
-        specifier,
+        specifier: packageName,
         types: referenceTypes ? await safelyDetectTypes(path.join(basePath, packageJsonPath)) : undefined,
       })
     }
