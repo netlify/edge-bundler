@@ -211,8 +211,10 @@ const getRegularExpression = (declaration: Declaration): string => {
     try {
       return parsePattern(declaration.pattern)
     } catch (error: unknown) {
-      throw new Error(
-        `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+      throw wrapBundleError(
+        new Error(
+          `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+        ),
       )
     }
   }
@@ -229,8 +231,10 @@ const getExcludedRegularExpressions = (declaration: Declaration): string[] => {
       try {
         return parsePattern(excludedPattern)
       } catch (error: unknown) {
-        throw new Error(
-          `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+        throw wrapBundleError(
+          new Error(
+            `Could not parse path declaration of function '${declaration.function}': ${(error as Error).message}`,
+          ),
         )
       }
     })
