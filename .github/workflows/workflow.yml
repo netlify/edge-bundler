@@ -46,7 +46,7 @@ jobs:
         with:
           deno-version: ${{ matrix.deno-version }}
       - name: Setup Deno dependencies
-        run: deno cache https://deno.land/x/eszip@v0.40.0/eszip.ts
+        run: deno cache https://deno.land/x/eszip@v0.55.2/eszip.ts
       - name: Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:

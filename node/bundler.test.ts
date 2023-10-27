@@ -546,9 +546,7 @@ test('Loads JSON modules', async () => {
   const bundlePath = join(distPath, manifest.bundles[0].asset)
   const { func1 } = await runESZIP(bundlePath, vendorDirectory.path)
 
-  expect(func1).toBe(
-    `{}`,
-  )
+  expect(func1).toBe(`{"foo":"bar"}`)
 
   await cleanup()
   await rm(vendorDirectory.path, { force: true, recursive: true })
