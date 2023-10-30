@@ -52,7 +52,6 @@ const prepareServer = ({
   deno,
   distDirectory,
   distImportMapPath,
-  featureFlags,
   flags: denoFlags,
   formatExportTypeError,
   formatImportError,
@@ -88,22 +87,20 @@ const prepareServer = ({
     // we keep track of the files that are relevant to the user's code, so we can clean up leftovers from past executions later
     const relevantFiles = [stage2Path]
 
-    if (featureFlags?.edge_functions_npm_modules) {
-      const vendor = await vendorNPMSpecifiers({
-        basePath,
-        directory: distDirectory,
-        functions: functions.map(({ path }) => path),
-        importMap,
-        logger,
-        referenceTypes: true,
-      })
+    const vendor = await vendorNPMSpecifiers({
+      basePath,
+      directory: distDirectory,
+      functions: functions.map(({ path }) => path),
+      importMap,
+      logger,
+      referenceTypes: true,
+    })
 
-      if (vendor) {
-        features.npmModules = true
-        importMap.add(vendor.importMap)
-        npmSpecifiersWithExtraneousFiles.push(...vendor.npmSpecifiersWithExtraneousFiles)
-        relevantFiles.push(...vendor.outputFiles)
-      }
+    if (vendor) {
+      features.npmModules = true
+      importMap.add(vendor.importMap)
+      npmSpecifiersWithExtraneousFiles.push(...vendor.npmSpecifiersWithExtraneousFiles)
+      relevantFiles.push(...vendor.outputFiles)
     }
 
     await cleanDirectory(distDirectory, relevantFiles)

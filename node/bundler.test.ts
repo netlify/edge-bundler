@@ -125,34 +125,7 @@ test('Adds a custom error property to user errors during bundling', async () => 
   }
 })
 
-test('Prints a nice error message when user tries importing an npm module and npm support is disabled', async () => {
-  expect.assertions(2)
-
-  const { basePath, cleanup, distPath } = await useFixture('imports_npm_module')
-  const sourceDirectory = join(basePath, 'functions')
-  const declarations: Declaration[] = [
-    {
-      function: 'func1',
-      path: '/func1',
-    },
-  ]
-
-  try {
-    await bundle([sourceDirectory], distPath, declarations, {
-      basePath,
-      importMapPaths: [join(basePath, 'import_map.json')],
-    })
-  } catch (error) {
-    expect(error).toBeInstanceOf(BundleError)
-    expect((error as BundleError).message).toEqual(
-      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/parent-1"'?`,
-    )
-  } finally {
-    await cleanup()
-  }
-})
-
-test('Prints a nice error message when user tries importing an npm module and npm support is enabled', async () => {
+test('Prints a nice error message when user tries importing an npm module', async () => {
   expect.assertions(2)
 
   const { basePath, cleanup, distPath } = await useFixture('imports_npm_module_scheme')
@@ -167,36 +140,11 @@ test('Prints a nice error message when user tries importing an npm module and np
   try {
     await bundle([sourceDirectory], distPath, declarations, {
       basePath,
-      featureFlags: { edge_functions_npm_modules: true },
     })
   } catch (error) {
     expect(error).toBeInstanceOf(BundleError)
     expect((error as BundleError).message).toEqual(
       `There was an error when loading the 'p-retry' npm module. Support for npm modules in edge functions is an experimental feature. Refer to https://ntl.fyi/edge-functions-npm for more information.`,
-    )
-  } finally {
-    await cleanup()
-  }
-})
-
-test('Prints a nice error message when user tries importing NPM module with npm: scheme', async () => {
-  expect.assertions(2)
-
-  const { basePath, cleanup, distPath } = await useFixture('imports_npm_module_scheme')
-  const sourceDirectory = join(basePath, 'functions')
-  const declarations: Declaration[] = [
-    {
-      function: 'func1',
-      path: '/func1',
-    },
-  ]
-
-  try {
-    await bundle([sourceDirectory], distPath, declarations, { basePath })
-  } catch (error) {
-    expect(error).toBeInstanceOf(BundleError)
-    expect((error as BundleError).message).toEqual(
-      `It seems like you're trying to import an npm module. This is only supported via CDNs like esm.sh. Have you tried 'import mod from "https://esm.sh/p-retry"'?`,
     )
   } finally {
     await cleanup()
@@ -502,7 +450,6 @@ test('Loads npm modules from bare specifiers', async () => {
 
   await bundle([sourceDirectory], distPath, declarations, {
     basePath,
-    featureFlags: { edge_functions_npm_modules: true },
     importMapPaths: [join(basePath, 'import_map.json')],
     vendorDirectory: vendorDirectory.path,
     systemLogger,
@@ -520,6 +467,33 @@ test('Loads npm modules from bare specifiers', async () => {
   expect(func1).toBe(
     `<parent-1><child-1>JavaScript</child-1></parent-1>, <parent-2><child-2><grandchild-1>APIs<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-2>, <parent-3><child-2><grandchild-1>Markup<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-3>`,
   )
+
+  await cleanup()
+  await rm(vendorDirectory.path, { force: true, recursive: true })
+})
+
+test('Loads JSON modules', async () => {
+  const { basePath, cleanup, distPath } = await useFixture('imports_json')
+  const sourceDirectory = join(basePath, 'functions')
+  const declarations: Declaration[] = [
+    {
+      function: 'func1',
+      path: '/func1',
+    },
+  ]
+  const vendorDirectory = await tmp.dir()
+
+  await bundle([sourceDirectory], distPath, declarations, {
+    basePath,
+    vendorDirectory: vendorDirectory.path,
+  })
+
+  const manifestFile = await readFile(resolve(distPath, 'manifest.json'), 'utf8')
+  const manifest = JSON.parse(manifestFile)
+  const bundlePath = join(distPath, manifest.bundles[0].asset)
+  const { func1 } = await runESZIP(bundlePath, vendorDirectory.path)
+
+  expect(func1).toBe(`{"foo":"bar"}`)
 
   await cleanup()
   await rm(vendorDirectory.path, { force: true, recursive: true })
