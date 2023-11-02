@@ -31,7 +31,6 @@ export const mergeDeclarations = (
   deployConfigDeclarations: Declaration[],
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _featureFlags: FeatureFlags = {},
-  // eslint-disable-next-line max-params
 ) => {
   const functionsVisited: Set<string> = new Set()
 

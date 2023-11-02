@@ -21,6 +21,7 @@ module.exports = {
     'unicorn/prefer-json-parse-buffer': 'off',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    'max-params': 'off',
   },
   overrides: [
     ...overrides,

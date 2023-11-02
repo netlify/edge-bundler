@@ -103,10 +103,12 @@ const getNPMSpecifiers = async (
   functions: string[],
   importMap: ParsedImportMap,
   referenceTypes: boolean,
+  nftCache?: object,
 ) => {
   const baseURL = pathToFileURL(basePath)
   const { reasons } = await nodeFileTrace(functions, {
     base: basePath,
+    cache: nftCache,
     readFile: async (filePath: string) => {
       // If this is a TypeScript file, we need to compile in before we can
       // parse it.
@@ -203,6 +205,7 @@ interface VendorNPMSpecifiersOptions {
   importMap: ImportMap
   logger: Logger
   referenceTypes: boolean
+  nftCache?: object
 }
 
 export const vendorNPMSpecifiers = async ({
@@ -211,6 +214,7 @@ export const vendorNPMSpecifiers = async ({
   functions,
   importMap,
   referenceTypes,
+  nftCache,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
@@ -228,6 +232,7 @@ export const vendorNPMSpecifiers = async ({
     functions,
     importMap.getContentsWithURLObjects(),
     referenceTypes,
+    nftCache,
   )
 
   // If we found no specifiers, there's nothing left to do here.

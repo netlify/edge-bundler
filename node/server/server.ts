@@ -59,6 +59,7 @@ const prepareServer = ({
   logger,
   port,
 }: PrepareServerOptions) => {
+  const nftCache = Object.create(null)
   const processRef: ProcessRef = {}
   const startServer = async (
     functions: EdgeFunction[],
@@ -94,6 +95,7 @@ const prepareServer = ({
       importMap,
       logger,
       referenceTypes: true,
+      nftCache,
     })
 
     if (vendor) {
