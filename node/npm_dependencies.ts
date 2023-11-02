@@ -13,7 +13,7 @@ import tmp from 'tmp-promise'
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
 
-const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.cts', '.mts'])
+const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.ctsx', '.mts', '.mtsx'])
 
 const slugifyPackageName = (specifier: string) => {
   if (!specifier.startsWith('@')) return specifier
@@ -110,6 +110,7 @@ const getNPMSpecifiers = async (
     readFile: async (filePath: string) => {
       // If this is a TypeScript file, we need to compile in before we can
       // parse it.
+      // mabye we should make this `path.extname(filepath).includes("ts")`?
       if (TYPESCRIPT_EXTENSIONS.has(path.extname(filePath))) {
         const compiled = await build({
           bundle: false,
@@ -267,6 +268,10 @@ export const vendorNPMSpecifiers = async ({
     splitting: true,
     target: 'es2020',
     write: false,
+    define: {
+      // unsure if this is a wise setting, but it seems to work for this case. should we set "development" for local CLI?
+      'process.env.NODE_ENV': '"production"',
+    },
   })
 
   await Promise.all(
