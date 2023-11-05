@@ -456,7 +456,7 @@ test('Converts named capture groups to unnamed capture groups in regular express
   expect(manifest.routes).toEqual([{ function: 'func-1', pattern: '^/(\\w+)$', excluded_patterns: [] }])
 })
 
-test('Returns functions without a declaration and declarations without a function', () => {
+test('Returns functions without a declaration and unrouted functions', () => {
   const bundle = {
     extension: '.ext1',
     format: BundleFormat.ESZIP2,
