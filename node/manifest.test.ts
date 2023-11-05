@@ -465,12 +465,17 @@ test('Returns functions without a declaration and declarations without a functio
   const functions = [
     { name: 'func-1', path: '/path/to/func-1.ts' },
     { name: 'func-2', path: '/path/to/func-2.ts' },
+    { name: 'func-4', path: '/path/to/func-4.ts' },
   ]
   const declarations: Declaration[] = [
     { function: 'func-1', path: '/f1' },
     { function: 'func-3', path: '/f3' },
+
+    // @ts-expect-error Error is expected due to neither `path` or `pattern`
+    // being present.
+    { function: 'func-4', name: 'Some name' },
   ]
-  const { declarationsWithoutFunction, functionsWithoutDeclaration, manifest } = generateManifest({
+  const { declarationsWithoutFunction, manifest, unroutedFunctions } = generateManifest({
     bundles: [bundle],
     declarations,
     functions,
@@ -479,5 +484,5 @@ test('Returns functions without a declaration and declarations without a functio
 
   expect(manifest.routes).toEqual(expectedRoutes)
   expect(declarationsWithoutFunction).toEqual(['func-3'])
-  expect(functionsWithoutDeclaration).toEqual(['func-2'])
+  expect(unroutedFunctions).toEqual(['func-2', 'func-4'])
 })
