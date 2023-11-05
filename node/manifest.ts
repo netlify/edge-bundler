@@ -119,12 +119,15 @@ const generateManifest = ({
   const manifestFunctionConfig: Manifest['function_config'] = Object.fromEntries(
     functions.map(({ name }) => [name, { excluded_patterns: [] }]),
   )
+  const functionsWithDeclaration = new Set<string>()
+  const declarationsWithoutFunction = new Set<string>()
 
   for (const [name, { excludedPath, onError }] of Object.entries(userFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
+
     addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError }
@@ -135,6 +138,7 @@ const generateManifest = ({
     if (manifestFunctionConfig[name] === undefined) {
       continue
     }
+
     addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
     manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError, ...rest }
@@ -144,8 +148,12 @@ const generateManifest = ({
     const func = functions.find(({ name }) => declaration.function === name)
 
     if (func === undefined) {
+      declarationsWithoutFunction.add(declaration.function)
+
       return
     }
+
+    functionsWithDeclaration.add(declaration.function)
 
     const pattern = getRegularExpression(declaration)
     const excludedPattern = getExcludedRegularExpressions(declaration)
@@ -183,8 +191,11 @@ const generateManifest = ({
     import_map: importMap,
     function_config: sanitizeEdgeFunctionConfig(manifestFunctionConfig),
   }
+  const functionsWithoutDeclaration = functions
+    .filter(({ name }) => !functionsWithDeclaration.has(name))
+    .map(({ name }) => name)
 
-  return manifest
+  return { declarationsWithoutFunction: [...declarationsWithoutFunction], functionsWithoutDeclaration, manifest }
 }
 
 const pathToRegularExpression = (path: string) => {
@@ -253,7 +264,7 @@ interface WriteManifestOptions extends GenerateManifestOptions {
 }
 
 const writeManifest = async ({ distDirectory, ...rest }: WriteManifestOptions) => {
-  const manifest = generateManifest(rest)
+  const { manifest } = generateManifest(rest)
   const manifestPath = join(distDirectory, 'manifest.json')
 
   await fs.writeFile(manifestPath, JSON.stringify(manifest))
