@@ -20,7 +20,7 @@ interface Route {
   methods?: string[]
 }
 
-interface EdgeFunctionConfig {
+export interface EdgeFunctionConfig {
   excluded_patterns: string[]
   on_error?: string
   generator?: string
