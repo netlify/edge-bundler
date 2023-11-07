@@ -110,7 +110,6 @@ const getNPMSpecifiers = async (
     readFile: async (filePath: string) => {
       // If this is a TypeScript file, we need to compile in before we can
       // parse it.
-      // mabye we should make this `path.extname(filepath).includes("ts")`?
       if (TYPESCRIPT_EXTENSIONS.has(path.extname(filePath))) {
         const compiled = await build({
           bundle: false,
