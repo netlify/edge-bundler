@@ -268,6 +268,7 @@ const safelyVendorNPMSpecifiers = async ({
       importMap,
       logger,
       referenceTypes: false,
+      bundleProd: true,
     })
   } catch (error) {
     logger.system(error)

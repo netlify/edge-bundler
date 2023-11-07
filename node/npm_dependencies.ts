@@ -203,6 +203,7 @@ interface VendorNPMSpecifiersOptions {
   importMap: ImportMap
   logger: Logger
   referenceTypes: boolean
+  bundleProd: boolean
 }
 
 export const vendorNPMSpecifiers = async ({
@@ -211,6 +212,7 @@ export const vendorNPMSpecifiers = async ({
   functions,
   importMap,
   referenceTypes,
+  bundleProd,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
@@ -249,7 +251,6 @@ export const vendorNPMSpecifiers = async ({
     }),
   )
   const entryPoints = ops.map(({ filePath }) => filePath)
-
   // Bundle each of the entrypoints we created. We'll end up with a compiled
   // version of each, plus any chunks of shared code
   // between them (such that a common module isn't bundled twice).
@@ -267,10 +268,11 @@ export const vendorNPMSpecifiers = async ({
     splitting: true,
     target: 'es2020',
     write: false,
-    define: {
-      // unsure if this is a wise setting, but it seems to work for this case. should we set "development" for local CLI?
-      'process.env.NODE_ENV': '"production"',
-    },
+    define: bundleProd
+      ? {
+          'process.env.NODE_ENV': '"production"',
+        }
+      : undefined,
   })
 
   await Promise.all(

@@ -94,6 +94,7 @@ const prepareServer = ({
       importMap,
       logger,
       referenceTypes: true,
+      bundleProd: false,
     })
 
     if (vendor) {
