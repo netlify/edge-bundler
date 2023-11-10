@@ -246,12 +246,26 @@ export const vendorNPMSpecifiers = async ({
     return
   }
 
+  await fs.writeFile(
+    path.join(temporaryDirectory.path, 'polyfills.mjs'),
+    `
+    import process from "node:process";
+    import { setImmediate, clearImmediate } from "node:timers";
+    import { Buffer } from "node:buffer";
+    globalThis.process = process;
+    globalThis.Buffer = Buffer;
+    globalThis.setImmediate = setImmediate;
+    globalThis.clearImmediate = clearImmediate;
+    globalThis.global = globalThis;
+    `,
+  )
+
   // To bundle an entire module and all its dependencies, create a entrypoint file
   // where we re-export everything from that specifier. We do this for every
   // specifier, and each of these files will become entry points to esbuild.
   const ops = await Promise.all(
     npmSpecifiers.map(async ({ specifier, types }) => {
-      const code = `import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
+      const code = `import "./polyfills.mjs"; import * as mod from "${specifier}"; export default mod.default; export * from "${specifier}";`
       const filePath = path.join(temporaryDirectory.path, `bundled-${slugifyPackageName(specifier)}.js`)
 
       await fs.writeFile(filePath, code)
