@@ -1,5 +1,10 @@
 import React from 'react'
 
 export default () => {
-  return new Response(<p>Hello World</p>)
+  try {
+    // this is expected to fail
+    process.env.FOO
+  } catch {
+    return new Response(<p>Hello World</p>)
+  }
 }
