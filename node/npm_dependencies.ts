@@ -12,6 +12,7 @@ import tmp from 'tmp-promise'
 
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
+import { pathsBetween } from './utils/fs.js'
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.ctsx', '.mts', '.mtsx'])
 
@@ -89,24 +90,29 @@ const banner = {
   `,
 }
 
+interface GetNPMSpecifiersOptions {
+  basePath: string
+  functions: string[]
+  importMap: ParsedImportMap
+  referenceTypes: boolean
+  rootPath: string
+}
+
 /**
  * Parses a set of functions and returns a list of specifiers that correspond
  * to npm modules.
- *
- * @param basePath Root of the project
- * @param functions Functions to parse
- * @param importMap Import map to apply when resolving imports
- * @param referenceTypes Whether to detect typescript declarations and reference them in the output
  */
-const getNPMSpecifiers = async (
-  basePath: string,
-  functions: string[],
-  importMap: ParsedImportMap,
-  referenceTypes: boolean,
-) => {
+const getNPMSpecifiers = async ({
+  basePath,
+  functions,
+  importMap,
+  referenceTypes,
+  rootPath,
+}: GetNPMSpecifiersOptions) => {
   const baseURL = pathToFileURL(basePath)
   const { reasons } = await nodeFileTrace(functions, {
-    base: basePath,
+    base: rootPath,
+    processCwd: basePath,
     readFile: async (filePath: string) => {
       // If this is a TypeScript file, we need to compile in before we can
       // parse it.
@@ -204,6 +210,7 @@ interface VendorNPMSpecifiersOptions {
   logger: Logger
   referenceTypes: boolean
   bundleProd: boolean
+  rootPath?: string
 }
 
 export const vendorNPMSpecifiers = async ({
@@ -213,24 +220,26 @@ export const vendorNPMSpecifiers = async ({
   importMap,
   referenceTypes,
   bundleProd,
+  rootPath = basePath,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
   // set these manually because esbuild will be operating from a temporary
   // directory that will not live inside the project root, so the normal
   // resolution logic won't work.
-  const nodePaths = [path.join(basePath, 'node_modules')]
+  const nodePaths = pathsBetween(basePath, rootPath).map((directory) => path.join(directory, 'node_modules'))
 
   // We need to create some files on disk, which we don't want to write to the
   // project directory. If a custom directory has been specified, we use it.
   // Otherwise, create a random temporary directory.
   const temporaryDirectory = directory ? { path: directory } : await tmp.dir()
 
-  const { npmSpecifiers, npmSpecifiersWithExtraneousFiles } = await getNPMSpecifiers(
+  const { npmSpecifiers, npmSpecifiersWithExtraneousFiles } = await getNPMSpecifiers({
     basePath,
     functions,
-    importMap.getContentsWithURLObjects(),
+    importMap: importMap.getContentsWithURLObjects(),
     referenceTypes,
-  )
+    rootPath,
+  })
 
   // If we found no specifiers, there's nothing left to do here.
   if (Object.keys(npmSpecifiers).length === 0) {
