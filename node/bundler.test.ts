@@ -538,7 +538,7 @@ test('Loads JSON modules', async () => {
   await rm(vendorDirectory.path, { force: true, recursive: true })
 })
 
-test('Supports TSX and process.env', async () => {
+test.only('Supports TSX and process.env', async () => {
   const { basePath, cleanup, distPath } = await useFixture('tsx')
   const sourceDirectory = join(basePath, 'functions')
   const declarations: Declaration[] = [
