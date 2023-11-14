@@ -82,8 +82,8 @@ const safelyDetectTypes = async (packageJsonPath: string): Promise<string | unde
 const banner = {
   js: `
   import process from "node:process";
-  import { setImmediate, clearImmediate } from "node:timers";
-  import { Buffer } from "node:buffer";
+  import {setImmediate, clearImmediate} from "node:timers";
+  import {Buffer} from "node:buffer";
 
   import {createRequire as ___nfyCreateRequire} from "node:module";
   import {fileURLToPath as ___nfyFileURLToPath} from "node:url";
