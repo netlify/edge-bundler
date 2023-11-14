@@ -566,4 +566,5 @@ test('Supports TSX and process.env', async () => {
 
   await cleanup()
   await rm(vendorDirectory.path, { force: true, recursive: true })
+  delete process.env.FOO
 })
