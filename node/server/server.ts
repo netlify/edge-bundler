@@ -101,8 +101,7 @@ const prepareServer = ({
       functions: functions.map(({ path }) => path),
       importMap,
       logger,
-      referenceTypes: true,
-      bundleProd: false,
+      environment: 'development',
       rootPath,
     })
 

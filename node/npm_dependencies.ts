@@ -98,7 +98,7 @@ interface GetNPMSpecifiersOptions {
   basePath: string
   functions: string[]
   importMap: ParsedImportMap
-  referenceTypes: boolean
+  environment: 'production' | 'development'
   rootPath: string
 }
 
@@ -106,13 +106,7 @@ interface GetNPMSpecifiersOptions {
  * Parses a set of functions and returns a list of specifiers that correspond
  * to npm modules.
  */
-const getNPMSpecifiers = async ({
-  basePath,
-  functions,
-  importMap,
-  referenceTypes,
-  rootPath,
-}: GetNPMSpecifiersOptions) => {
+const getNPMSpecifiers = async ({ basePath, functions, importMap, environment, rootPath }: GetNPMSpecifiersOptions) => {
   const baseURL = pathToFileURL(basePath)
   const { reasons } = await nodeFileTrace(functions, {
     base: rootPath,
@@ -195,7 +189,7 @@ const getNPMSpecifiers = async ({
     if (isDirectDependency) {
       npmSpecifiers.push({
         specifier: packageName,
-        types: referenceTypes ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
+        types: environment === 'development' ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
       })
     }
   }
@@ -212,8 +206,7 @@ interface VendorNPMSpecifiersOptions {
   functions: string[]
   importMap: ImportMap
   logger: Logger
-  referenceTypes: boolean
-  bundleProd: boolean
+  environment: 'production' | 'development'
   rootPath?: string
 }
 
@@ -222,8 +215,7 @@ export const vendorNPMSpecifiers = async ({
   directory,
   functions,
   importMap,
-  referenceTypes,
-  bundleProd,
+  environment,
   rootPath = basePath,
 }: VendorNPMSpecifiersOptions) => {
   // The directories that esbuild will use when resolving Node modules. We must
@@ -241,7 +233,7 @@ export const vendorNPMSpecifiers = async ({
     basePath,
     functions,
     importMap: importMap.getContentsWithURLObjects(),
-    referenceTypes,
+    environment,
     rootPath,
   })
 
@@ -281,11 +273,12 @@ export const vendorNPMSpecifiers = async ({
     splitting: true,
     target: 'es2020',
     write: false,
-    define: bundleProd
-      ? {
-          'process.env.NODE_ENV': '"production"',
-        }
-      : undefined,
+    define:
+      environment === 'production'
+        ? {
+            'process.env.NODE_ENV': '"production"',
+          }
+        : undefined,
   })
 
   await Promise.all(
