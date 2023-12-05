@@ -27,7 +27,7 @@ const parseSpecifier = (specifier: string): { scope?: string; pkg: string; path?
 
 const slugifyPackageName = (specifier: string) => {
   const { scope, pkg, path } = parseSpecifier(specifier)
-  return [scope, pkg, path?.replace(/\//g, '')].filter(Boolean).join('__')
+  return [scope, pkg, path?.replace(/\//g, '_')].filter(Boolean).join('__')
 }
 
 /**
