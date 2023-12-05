@@ -86,6 +86,13 @@ const safelyDetectTypes = async (packageJsonPath: string): Promise<string | unde
   }
 }
 
+const tryReadJson = async (filePath: string) => {
+  try {
+    const contents = await fs.readFile(filePath, { encoding: 'utf8' })
+    return JSON.parse(contents)
+  } catch {}
+}
+
 // Workaround for https://github.com/evanw/esbuild/issues/1921.
 const banner = {
   js: `
@@ -198,13 +205,12 @@ const getNPMSpecifiers = async ({ basePath, functions, importMap, environment, r
     // dependencies. Because we'll bundle all modules in a subsequent step,
     // any transitive dependencies will be handled then.
     if (isDirectDependency) {
-      const packJson = JSON.parse(await fs.readFile(path.join(basePath, filePath), { encoding: 'utf-8' }))
-
-      const subpaths = packJson.exports ? Object.keys(packJson.exports) : ['.']
+      const packJson = await tryReadJson(path.join(basePath, filePath))
+      const relativeExports = packJson?.exports ? Object.keys(packJson.exports) : ['.']
       // eslint-disable-next-line max-depth
-      for (const subpath of subpaths) {
+      for (const relativeExport of relativeExports) {
         npmSpecifiers.push({
-          specifier: path.join(packageName, subpath),
+          specifier: path.join(packageName, relativeExport),
           types: environment === 'development' ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
         })
       }
