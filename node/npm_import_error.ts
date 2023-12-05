@@ -4,6 +4,8 @@ class NPMImportError extends Error {
       `There was an error when loading the '${moduleName}' npm module. Support for npm modules in edge functions is an experimental feature. Refer to https://ntl.fyi/edge-functions-npm for more information.`,
     )
 
+    console.error(originalError)
+
     this.name = 'NPMImportError'
     this.stack = originalError.stack
 

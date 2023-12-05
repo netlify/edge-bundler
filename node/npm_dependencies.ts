@@ -16,10 +16,18 @@ import { pathsBetween } from './utils/fs.js'
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.tsx', '.cts', '.ctsx', '.mts', '.mtsx'])
 
+const parseSpecifier = (specifier: string): { scope?: string; pkg: string; path?: string } => {
+  if (specifier.startsWith('@')) {
+    const [scope, pkg, path] = specifier.slice(1).split('/', 3)
+    return { scope, pkg, path }
+  }
+  const [pkg, path] = specifier.split('/', 2)
+  return { pkg, path }
+}
+
 const slugifyPackageName = (specifier: string) => {
-  if (!specifier.startsWith('@')) return specifier
-  const [scope, pkg] = specifier.split('/')
-  return `${scope.replace('@', '')}__${pkg}`
+  const { scope, pkg, path } = parseSpecifier(specifier)
+  return [scope, pkg, path?.replace(/\//g, '')].filter(Boolean).join('__')
 }
 
 /**
@@ -190,10 +198,16 @@ const getNPMSpecifiers = async ({ basePath, functions, importMap, environment, r
     // dependencies. Because we'll bundle all modules in a subsequent step,
     // any transitive dependencies will be handled then.
     if (isDirectDependency) {
-      npmSpecifiers.push({
-        specifier: packageName,
-        types: environment === 'development' ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
-      })
+      const packJson = JSON.parse(await fs.readFile(path.join(basePath, filePath), { encoding: 'utf-8' }))
+
+      const subpaths = packJson.exports ? Object.keys(packJson.exports) : ['.']
+      // eslint-disable-next-line max-depth
+      for (const subpath of subpaths) {
+        npmSpecifiers.push({
+          specifier: path.join(packageName, subpath),
+          types: environment === 'development' ? await safelyDetectTypes(path.join(basePath, filePath)) : undefined,
+        })
+      }
     }
   }
 
