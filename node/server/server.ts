@@ -27,7 +27,6 @@ interface PrepareServerOptions {
   flags: string[]
   formatExportTypeError?: FormatFunction
   formatImportError?: FormatFunction
-  importMap: ImportMap
   logger: Logger
   port: number
   rootPath?: string
@@ -35,6 +34,7 @@ interface PrepareServerOptions {
 
 interface StartServerOptions {
   getFunctionsConfig?: boolean
+  importMapPaths?: string[]
 }
 
 /**
@@ -57,7 +57,6 @@ const prepareServer = ({
   flags: denoFlags,
   formatExportTypeError,
   formatImportError,
-  importMap: baseImportMap,
   logger,
   port,
   rootPath,
@@ -88,7 +87,10 @@ const prepareServer = ({
     })
 
     const features: Record<string, boolean> = {}
-    const importMap = baseImportMap.clone()
+
+    const importMap = new ImportMap()
+    await importMap.addFiles(options.importMapPaths ?? [], logger)
+
     const npmSpecifiersWithExtraneousFiles: string[] = []
 
     // we keep track of the files that are relevant to the user's code, so we can clean up leftovers from past executions later
@@ -181,7 +183,7 @@ interface ServeOptions {
   distImportMapPath?: string
   featureFlags?: FeatureFlags
   inspectSettings?: InspectSettings
-  importMapPaths?: string[]
+  importMapPaths?: string[] | (() => Promise<string[]>)
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   formatExportTypeError?: FormatFunction
@@ -242,11 +244,6 @@ export const serve = async ({
    * a function.
    */
   formatImportError,
-
-  /**
-   * Paths to any additional import map files.
-   */
-  importMapPaths = [],
 
   /**
    * Callback function to be triggered after the Deno CLI has been downloaded.
@@ -323,10 +320,6 @@ export const serve = async ({
     }
   }
 
-  const importMap = new ImportMap()
-
-  await importMap.addFiles(importMapPaths, logger)
-
   const server = prepareServer({
     basePath,
     bootstrapURL,
@@ -337,7 +330,6 @@ export const serve = async ({
     flags,
     formatExportTypeError,
     formatImportError,
-    importMap,
     logger,
     port,
     rootPath,
