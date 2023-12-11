@@ -183,7 +183,6 @@ interface ServeOptions {
   distImportMapPath?: string
   featureFlags?: FeatureFlags
   inspectSettings?: InspectSettings
-  importMapPaths?: string[] | (() => Promise<string[]>)
   onAfterDownload?: OnAfterDownloadHook
   onBeforeDownload?: OnBeforeDownloadHook
   formatExportTypeError?: FormatFunction
