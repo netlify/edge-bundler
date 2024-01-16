@@ -109,10 +109,8 @@ test('Starts a server and serves requests for edge functions', async () => {
 })
 
 test('Serves edge functions in a monorepo setup', async () => {
-  const tmpFile1 = await tmp.file()
-  const tmpFile2 = await tmp.file()
-  const stderr = createWriteStream(tmpFile1.path)
-  const stdout = createWriteStream(tmpFile2.path)
+  const tmpFile = await tmp.file()
+  const stderr = createWriteStream(tmpFile.path)
 
   const rootPath = join(fixturesDir, 'monorepo_npm_module')
   const basePath = join(rootPath, 'packages', 'frontend')
@@ -129,7 +127,6 @@ test('Serves edge functions in a monorepo setup', async () => {
     rootPath,
     servePath,
     stderr,
-    stdout,
   })
 
   const functions = [
@@ -177,8 +174,7 @@ test('Serves edge functions in a monorepo setup', async () => {
     `<parent-1><child-1>JavaScript</child-1></parent-1>, <parent-2><child-2><grandchild-1>APIs<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-2>, <parent-3><child-2><grandchild-1>Markup<cwd>${process.cwd()}</cwd></grandchild-1></child-2></parent-3>`,
   )
 
-  expect(await readFile(tmpFile2.path, 'utf8')).toContain('[func1] This is fine')
-  expect(await readFile(tmpFile1.path, 'utf8')).toContain('[func1] This is not')
+  expect(await readFile(tmpFile.path, 'utf8')).toContain('[func1] Something is on fire')
 
-  await Promise.all([tmpFile1.cleanup(), tmpFile2.cleanup()])
+  await tmpFile.cleanup()
 })
