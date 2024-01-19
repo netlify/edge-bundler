@@ -133,7 +133,7 @@ export const parsePattern = (pattern: string, pcreRegexpEngine: boolean) => {
   }
 
   const regexp = new RegExp(enclosedPattern)
-  const regexpString = pcreRegexpEngine ? transformPCRERegexp(regexp) : regexp.toString()
+  const regexpString = pcreRegexpEngine ? regexp.toString() : transformPCRERegexp(regexp)
 
   // Strip leading and forward slashes.
   return regexpString.slice(1, -1)
