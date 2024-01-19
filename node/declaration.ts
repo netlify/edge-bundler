@@ -116,8 +116,11 @@ const createDeclarationsFromFunctionConfigs = (
   return declarations
 }
 
-// Validates and normalizes a pattern so that it's a valid regular expression
-// in Go, which is the engine used by our edge nodes.
+/**
+ * Normalizes a regular expression, ensuring it has a leading `^` and trailing
+ * `$` characters. It also converts the regular expression from PCRE to RE2 if
+ * needed.
+ */
 export const parsePattern = (pattern: string, pcreRegexpEngine: boolean) => {
   let enclosedPattern = pattern
 
@@ -136,6 +139,10 @@ export const parsePattern = (pattern: string, pcreRegexpEngine: boolean) => {
   return regexpString.slice(1, -1)
 }
 
+/**
+ * Transforms a PCRE regular expression into a RE2 expression, compatible
+ * with the Go engine used in our edge nodes.
+ */
 const transformPCRERegexp = (regexp: RegExp) => {
   const newRegexp = regexpAST.transform(regexp, {
     Assertion(path) {
