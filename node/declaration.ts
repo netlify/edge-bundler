@@ -116,10 +116,9 @@ const createDeclarationsFromFunctionConfigs = (
 
 /**
  * Normalizes a regular expression, ensuring it has a leading `^` and trailing
- * `$` characters. It also converts the regular expression from PCRE to RE2 if
- * needed.
+ * `$` characters.
  */
-export const parsePattern = (pattern: string) => {
+export const normalizePattern = (pattern: string) => {
   let enclosedPattern = pattern
 
   if (!pattern.startsWith('^')) {

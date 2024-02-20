@@ -4,7 +4,7 @@ import { join } from 'path'
 import type { Bundle } from './bundle.js'
 import { wrapBundleError } from './bundle_error.js'
 import { Cache, FunctionConfig, Path } from './config.js'
-import { Declaration, parsePattern } from './declaration.js'
+import { Declaration, normalizePattern } from './declaration.js'
 import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags } from './feature_flags.js'
 import { Layer } from './layer.js'
@@ -228,7 +228,7 @@ const pathToRegularExpression = (path: string) => {
 const getRegularExpression = (declaration: Declaration) => {
   if ('pattern' in declaration) {
     try {
-      return parsePattern(declaration.pattern)
+      return normalizePattern(declaration.pattern)
     } catch (error: unknown) {
       throw wrapBundleError(
         new Error(
@@ -249,7 +249,7 @@ const getExcludedRegularExpressions = (declaration: Declaration): string[] => {
 
     return excludedPatterns.map((excludedPattern) => {
       try {
-        return parsePattern(excludedPattern)
+        return normalizePattern(excludedPattern)
       } catch (error: unknown) {
         throw wrapBundleError(
           new Error(
