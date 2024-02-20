@@ -1,5 +1,3 @@
-import regexpAST from 'regexp-tree'
-
 import { FunctionConfig, HTTPMethod, Path } from './config.js'
 import { FeatureFlags } from './feature_flags.js'
 
@@ -121,7 +119,7 @@ const createDeclarationsFromFunctionConfigs = (
  * `$` characters. It also converts the regular expression from PCRE to RE2 if
  * needed.
  */
-export const parsePattern = (pattern: string, pcreRegexpEngine: boolean) => {
+export const parsePattern = (pattern: string) => {
   let enclosedPattern = pattern
 
   if (!pattern.startsWith('^')) {
@@ -133,38 +131,7 @@ export const parsePattern = (pattern: string, pcreRegexpEngine: boolean) => {
   }
 
   const regexp = new RegExp(enclosedPattern)
-  const regexpString = pcreRegexpEngine ? regexp.toString() : transformPCRERegexp(regexp)
 
   // Strip leading and forward slashes.
-  return regexpString.slice(1, -1)
-}
-
-/**
- * Transforms a PCRE regular expression into a RE2 expression, compatible
- * with the Go engine used in our edge nodes.
- */
-const transformPCRERegexp = (regexp: RegExp) => {
-  const newRegexp = regexpAST.transform(regexp, {
-    Assertion(path) {
-      // Lookaheads are not supported. If we find one, throw an error.
-      if (path.node.kind === 'Lookahead') {
-        throw new Error('Regular expressions with lookaheads are not supported')
-      }
-    },
-
-    Group(path) {
-      // Named captured groups in JavaScript use a different syntax than in Go.
-      // If we find one, convert it to an unnamed capture group, which is valid
-      // in both engines.
-      if ('name' in path.node && path.node.name !== undefined) {
-        path.replace({
-          ...path.node,
-          name: undefined,
-          nameRaw: undefined,
-        })
-      }
-    },
-  })
-
-  return newRegexp.toString()
+  return regexp.toString().slice(1, -1)
 }
