@@ -439,7 +439,6 @@ test('Accepts regular expressions with lookaheads', () => {
   const { manifest } = generateManifest({
     bundles: [],
     declarations,
-    featureFlags: { edge_bundler_pcre_regexp: true },
     functions,
   })
   const [route] = manifest.routes
