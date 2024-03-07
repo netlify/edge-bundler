@@ -10,6 +10,7 @@ import { EdgeFunction } from './edge_function.js'
 import { ImportMap } from './import_map.js'
 import { Logger } from './logger.js'
 import { getPackagePath } from './package_json.js'
+import { Ratelimit } from './ratelimit.js'
 
 enum ConfigExitCode {
   Success = 0,
@@ -46,6 +47,7 @@ export interface FunctionConfig {
   name?: string
   generator?: string
   method?: HTTPMethod | HTTPMethod[]
+  ratelimit?: Ratelimit
 }
 
 const getConfigExtractor = () => {

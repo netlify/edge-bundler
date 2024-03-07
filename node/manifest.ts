@@ -9,6 +9,13 @@ import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags } from './feature_flags.js'
 import { Layer } from './layer.js'
 import { getPackageVersion } from './package_json.js'
+import {
+  Ratelimit,
+  RewriteActionConfig,
+  RatelimitAction,
+  RatelimitAlgorithm,
+  RatelimitAggregator,
+} from './ratelimit.js'
 import { nonNullable } from './utils/non_nullable.js'
 import { ExtendedURLPattern } from './utils/urlpattern.js'
 
@@ -20,12 +27,33 @@ interface Route {
   methods?: string[]
 }
 
+interface TrafficRulesConfig {
+  action: {
+    type: string
+    config: {
+      rate_limit_config: {
+        algorithm: string
+        window_size: number
+        window_limit: number
+      }
+      aggregate: {
+        keys: {
+          type: string
+        }[]
+      }
+      to?: string
+    }
+  }
+}
+
 export interface EdgeFunctionConfig {
   excluded_patterns: string[]
   on_error?: string
   generator?: string
   name?: string
+  traffic_rules_config?: TrafficRulesConfig
 }
+
 interface Manifest {
   bundler_version: string
   bundles: { asset: string; format: string }[]
@@ -122,7 +150,7 @@ const generateManifest = ({
   const routedFunctions = new Set<string>()
   const declarationsWithoutFunction = new Set<string>()
 
-  for (const [name, { excludedPath, onError }] of Object.entries(userFunctionConfig)) {
+  for (const [name, { excludedPath, onError, ratelimit }] of Object.entries(userFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
@@ -130,10 +158,14 @@ const generateManifest = ({
 
     addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
-    manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError }
+    manifestFunctionConfig[name] = {
+      ...manifestFunctionConfig[name],
+      on_error: onError,
+      traffic_rules_config: getTrafficRulesConfig(ratelimit),
+    }
   }
 
-  for (const [name, { excludedPath, path, onError, ...rest }] of Object.entries(internalFunctionConfig)) {
+  for (const [name, { excludedPath, path, onError, ratelimit, ...rest }] of Object.entries(internalFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
@@ -141,7 +173,12 @@ const generateManifest = ({
 
     addExcludedPatterns(name, manifestFunctionConfig, excludedPath)
 
-    manifestFunctionConfig[name] = { ...manifestFunctionConfig[name], on_error: onError, ...rest }
+    manifestFunctionConfig[name] = {
+      ...manifestFunctionConfig[name],
+      on_error: onError,
+      traffic_rules_config: getTrafficRulesConfig(ratelimit),
+      ...rest,
+    }
   }
 
   declarations.forEach((declaration) => {
@@ -200,6 +237,32 @@ const generateManifest = ({
   const unroutedFunctions = functions.filter(({ name }) => !routedFunctions.has(name)).map(({ name }) => name)
 
   return { declarationsWithoutFunction: [...declarationsWithoutFunction], manifest, unroutedFunctions }
+}
+
+const getTrafficRulesConfig = (rl: Ratelimit | undefined) => {
+  if (rl === undefined) {
+    return
+  }
+
+  const ratelimitAgg = Array.isArray(rl.aggregateBy) ? rl.aggregateBy : [RatelimitAggregator.Domain]
+  const rewriteConfig = (rl as RewriteActionConfig).to ? { to: (rl as RewriteActionConfig).to } : undefined
+
+  return {
+    action: {
+      type: rl.action || RatelimitAction.Limit,
+      config: {
+        ...rewriteConfig,
+        rate_limit_config: {
+          window_limit: rl.windowLimit,
+          window_size: rl.windowSize,
+          algorithm: RatelimitAlgorithm.SlidingWindow,
+        },
+        aggregate: {
+          keys: ratelimitAgg.map((agg) => ({ type: agg })),
+        },
+      },
+    },
+  }
 }
 
 const pathToRegularExpression = (path: string) => {
