@@ -9,13 +9,7 @@ import { EdgeFunction } from './edge_function.js'
 import { FeatureFlags } from './feature_flags.js'
 import { Layer } from './layer.js'
 import { getPackageVersion } from './package_json.js'
-import {
-  Ratelimit,
-  RewriteActionConfig,
-  RatelimitAction,
-  RatelimitAlgorithm,
-  RatelimitAggregator,
-} from './ratelimit.js'
+import { RateLimit, RateLimitAction, RateLimitAlgorithm, RateLimitAggregator } from './rate_limit.js'
 import { nonNullable } from './utils/non_nullable.js'
 import { ExtendedURLPattern } from './utils/urlpattern.js'
 
@@ -239,26 +233,26 @@ const generateManifest = ({
   return { declarationsWithoutFunction: [...declarationsWithoutFunction], manifest, unroutedFunctions }
 }
 
-const getTrafficRulesConfig = (rl: Ratelimit | undefined) => {
+const getTrafficRulesConfig = (rl: RateLimit | undefined) => {
   if (rl === undefined) {
     return
   }
 
-  const ratelimitAgg = Array.isArray(rl.aggregateBy) ? rl.aggregateBy : [RatelimitAggregator.Domain]
-  const rewriteConfig = (rl as RewriteActionConfig).to ? { to: (rl as RewriteActionConfig).to } : undefined
+  const rateLimitAgg = Array.isArray(rl.aggregateBy) ? rl.aggregateBy : [RateLimitAggregator.Domain]
+  const rewriteConfig = 'to' in rl && typeof rl.to === 'string' ? { to: rl.to } : undefined
 
   return {
     action: {
-      type: rl.action || RatelimitAction.Limit,
+      type: rl.action || RateLimitAction.Limit,
       config: {
         ...rewriteConfig,
         rate_limit_config: {
           window_limit: rl.windowLimit,
           window_size: rl.windowSize,
-          algorithm: RatelimitAlgorithm.SlidingWindow,
+          algorithm: RateLimitAlgorithm.SlidingWindow,
         },
         aggregate: {
-          keys: ratelimitAgg.map((agg) => ({ type: agg })),
+          keys: rateLimitAgg.map((agg) => ({ type: agg })),
         },
       },
     },

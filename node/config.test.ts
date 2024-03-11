@@ -13,7 +13,7 @@ import { bundle } from './bundler.js'
 import { FunctionConfig, getFunctionConfig } from './config.js'
 import type { Declaration } from './declaration.js'
 import { ImportMap } from './import_map.js'
-import { RatelimitAction, RatelimitAggregator } from './ratelimit.js'
+import { RateLimitAction, RateLimitAggregator } from './rate_limit.js'
 
 const importMapFile = {
   baseURL: new URL('file:///some/path/import-map.json'),
@@ -129,7 +129,7 @@ const functions: TestFunctions[] = [
       rateLimit: {
         windowSize: 10,
         windowLimit: 100,
-        aggregateBy: [RatelimitAggregator.IP, RatelimitAggregator.Domain],
+        aggregateBy: [RateLimitAggregator.IP, RateLimitAggregator.Domain],
       },
     },
     name: 'func9',
@@ -153,11 +153,11 @@ const functions: TestFunctions[] = [
       path: '/rewrite',
       name: 'a limit rewrite',
       rateLimit: {
-        action: RatelimitAction.Rewrite,
+        action: RateLimitAction.Rewrite,
         to: '/rewritten',
         windowSize: 20,
         windowLimit: 200,
-        aggregateBy: [RatelimitAggregator.IP, RatelimitAggregator.Domain],
+        aggregateBy: [RateLimitAggregator.IP, RateLimitAggregator.Domain],
       },
     },
     name: 'func9',

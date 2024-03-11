@@ -9,7 +9,7 @@ import { BundleError } from './bundle_error.js'
 import { Cache, FunctionConfig } from './config.js'
 import { Declaration } from './declaration.js'
 import { generateManifest } from './manifest.js'
-import { RatelimitAction, RatelimitAggregator } from './ratelimit.js'
+import { RateLimitAction, RateLimitAggregator } from './rate_limit.js'
 
 test('Generates a manifest with different bundles', () => {
   const bundle1 = {
@@ -533,11 +533,11 @@ test('Generates a manifest with rewrite config', () => {
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': {
       rateLimit: {
-        action: RatelimitAction.Rewrite,
+        action: RateLimitAction.Rewrite,
         to: '/new_path',
         windowLimit: 100,
         windowSize: 60,
-        aggregateBy: [RatelimitAggregator.Domain, RatelimitAggregator.IP],
+        aggregateBy: [RateLimitAggregator.Domain, RateLimitAggregator.IP],
       },
     },
   }
