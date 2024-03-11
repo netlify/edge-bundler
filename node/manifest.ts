@@ -27,7 +27,7 @@ interface Route {
   methods?: string[]
 }
 
-interface TrafficRulesConfig {
+interface TrafficRules {
   action: {
     type: string
     config: {
@@ -51,7 +51,7 @@ export interface EdgeFunctionConfig {
   on_error?: string
   generator?: string
   name?: string
-  traffic_rules_config?: TrafficRulesConfig
+  traffic_rules?: TrafficRules
 }
 
 interface Manifest {
@@ -150,7 +150,7 @@ const generateManifest = ({
   const routedFunctions = new Set<string>()
   const declarationsWithoutFunction = new Set<string>()
 
-  for (const [name, { excludedPath, onError, ratelimit }] of Object.entries(userFunctionConfig)) {
+  for (const [name, { excludedPath, onError, rateLimit }] of Object.entries(userFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
@@ -161,11 +161,11 @@ const generateManifest = ({
     manifestFunctionConfig[name] = {
       ...manifestFunctionConfig[name],
       on_error: onError,
-      traffic_rules_config: getTrafficRulesConfig(ratelimit),
+      traffic_rules: getTrafficRulesConfig(rateLimit),
     }
   }
 
-  for (const [name, { excludedPath, path, onError, ratelimit, ...rest }] of Object.entries(internalFunctionConfig)) {
+  for (const [name, { excludedPath, path, onError, rateLimit, ...rest }] of Object.entries(internalFunctionConfig)) {
     // If the config block is for a function that is not defined, discard it.
     if (manifestFunctionConfig[name] === undefined) {
       continue
@@ -176,7 +176,7 @@ const generateManifest = ({
     manifestFunctionConfig[name] = {
       ...manifestFunctionConfig[name],
       on_error: onError,
-      traffic_rules_config: getTrafficRulesConfig(ratelimit),
+      traffic_rules: getTrafficRulesConfig(rateLimit),
       ...rest,
     }
   }

@@ -493,7 +493,7 @@ test('Generates a manifest with rate limit config', () => {
   const declarations: Declaration[] = [{ function: 'func-1', path: '/f1/*' }]
 
   const userFunctionConfig: Record<string, FunctionConfig> = {
-    'func-1': { ratelimit: { windowLimit: 100, windowSize: 60 } },
+    'func-1': { rateLimit: { windowLimit: 100, windowSize: 60 } },
   }
   const { manifest } = generateManifest({
     bundles: [],
@@ -505,7 +505,7 @@ test('Generates a manifest with rate limit config', () => {
   const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' }]
   const expectedFunctionConfig = {
     'func-1': {
-      traffic_rules_config: {
+      traffic_rules: {
         action: {
           type: 'rate_limit',
           config: {
@@ -532,7 +532,7 @@ test('Generates a manifest with rewrite config', () => {
 
   const userFunctionConfig: Record<string, FunctionConfig> = {
     'func-1': {
-      ratelimit: {
+      rateLimit: {
         action: RatelimitAction.Rewrite,
         to: '/new_path',
         windowLimit: 100,
@@ -551,7 +551,7 @@ test('Generates a manifest with rewrite config', () => {
   const expectedRoutes = [{ function: 'func-1', pattern: '^/f1(?:/(.*))/?$', excluded_patterns: [], path: '/f1/*' }]
   const expectedFunctionConfig = {
     'func-1': {
-      traffic_rules_config: {
+      traffic_rules: {
         action: {
           type: 'rewrite',
           config: {

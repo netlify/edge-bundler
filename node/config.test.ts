@@ -126,7 +126,7 @@ const functions: TestFunctions[] = [
     expectedConfig: {
       path: '/ratelimit',
       name: 'a limit rate',
-      ratelimit: {
+      rateLimit: {
         windowSize: 10,
         windowLimit: 100,
         aggregateBy: [RatelimitAggregator.IP, RatelimitAggregator.Domain],
@@ -138,7 +138,7 @@ const functions: TestFunctions[] = [
 
         export const config = {
           path: "/ratelimit",
-          ratelimit: {
+          rateLimit: {
             windowSize: 10,
             windowLimit: 100,
             aggregateBy: ["ip", "domain"],
@@ -152,7 +152,7 @@ const functions: TestFunctions[] = [
     expectedConfig: {
       path: '/rewrite',
       name: 'a limit rewrite',
-      ratelimit: {
+      rateLimit: {
         action: RatelimitAction.Rewrite,
         to: '/rewritten',
         windowSize: 20,
@@ -166,7 +166,7 @@ const functions: TestFunctions[] = [
 
         export const config = {
           path: "/rewrite",
-          ratelimit: {
+          rateLimit: {
             action: "rewrite",
             to: "/rewritten",
             windowSize: 20,

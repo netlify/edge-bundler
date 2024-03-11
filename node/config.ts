@@ -47,7 +47,7 @@ export interface FunctionConfig {
   name?: string
   generator?: string
   method?: HTTPMethod | HTTPMethod[]
-  ratelimit?: Ratelimit
+  rateLimit?: Ratelimit
 }
 
 const getConfigExtractor = () => {
