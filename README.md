@@ -1,3 +1,9 @@
+> # **Important Notice**
+>
+> This repository was moved into the mono repository of [github.com/netlify/build](https://github.com/netlify/build) The
+> package name and the versions are preserved!
+
+
 [![Build](https://github.com/netlify/edge-bundler/workflows/Build/badge.svg)](https://github.com/netlify/edge-bundler/actions)
 [![Node](https://img.shields.io/node/v/@netlify/edge-bundler.svg?logo=node.js)](https://www.npmjs.com/package/@netlify/edge-bundler)
 
