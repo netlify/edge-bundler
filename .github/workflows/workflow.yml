@@ -13,7 +13,7 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'npm'
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Deno dependencies
         run: deno cache https://deno.land/x/eszip@v0.55.2/eszip.ts
       - name: Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
