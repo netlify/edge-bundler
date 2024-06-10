@@ -1,5 +1,20 @@
 # Changelog
 
+## [11.4.1](https://github.com/netlify/edge-bundler/compare/v11.4.0...v11.4.1) (2024-06-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @vercel/nft to ^0.27.0 ([#597](https://github.com/netlify/edge-bundler/issues/597)) ([01d9481](https://github.com/netlify/edge-bundler/commit/01d9481f81367f6ed044e5220a7aecd4331ed7b8))
+* **deps:** update dependency @vercel/nft to v0.27.1 ([#599](https://github.com/netlify/edge-bundler/issues/599)) ([0fde015](https://github.com/netlify/edge-bundler/commit/0fde015caa8f67a56ac71da3393c53abd256730c))
+* **deps:** update dependency @vercel/nft to v0.27.2 ([#603](https://github.com/netlify/edge-bundler/issues/603)) ([91be07e](https://github.com/netlify/edge-bundler/commit/91be07ef31cbea9a4e1f4460d11e3a2d310b1de1))
+* **deps:** update dependency ajv to v8.13.0 ([#598](https://github.com/netlify/edge-bundler/issues/598)) ([7bfd7c6](https://github.com/netlify/edge-bundler/commit/7bfd7c61da9673a987b8b03925ac008455fde210))
+* **deps:** update dependency ajv to v8.14.0 ([#600](https://github.com/netlify/edge-bundler/issues/600)) ([fbf63e2](https://github.com/netlify/edge-bundler/commit/fbf63e22e77dd841e34cf09e6d06f0af88235af2))
+* **deps:** update dependency ajv to v8.16.0 ([#605](https://github.com/netlify/edge-bundler/issues/605)) ([f1d33b7](https://github.com/netlify/edge-bundler/commit/f1d33b74ca7aeec19a7c2149316d4547a94e43fb))
+* **deps:** update dependency esbuild to v0.21.4 ([#601](https://github.com/netlify/edge-bundler/issues/601)) ([2dd4275](https://github.com/netlify/edge-bundler/commit/2dd427549c11b5e43cde028f7a76150fa026c62c))
+* **deps:** update dependency esbuild to v0.21.5 ([#604](https://github.com/netlify/edge-bundler/issues/604)) ([e439748](https://github.com/netlify/edge-bundler/commit/e439748629362b0f9d5264e82cc06e2e207b85bf))
+* **deps:** update dependency semver to v7.6.2 ([#595](https://github.com/netlify/edge-bundler/issues/595)) ([4d6ebd6](https://github.com/netlify/edge-bundler/commit/4d6ebd62d7a0dbd2a772deb48a7e03cc95ebf38c))
+
 ## [11.4.0](https://github.com/netlify/edge-bundler/compare/v11.3.0...v11.4.0) (2024-03-25)
 
 
