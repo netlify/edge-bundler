@@ -1,5 +1,34 @@
 # Changelog
 
+## [11.4.1](https://github.com/netlify/edge-bundler/compare/v11.4.0...v11.4.1) (2025-03-20)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @vercel/nft to ^0.27.0 ([#597](https://github.com/netlify/edge-bundler/issues/597)) ([01d9481](https://github.com/netlify/edge-bundler/commit/01d9481f81367f6ed044e5220a7aecd4331ed7b8))
+* **deps:** update dependency @vercel/nft to ^0.29.0 ([#635](https://github.com/netlify/edge-bundler/issues/635)) ([6d27548](https://github.com/netlify/edge-bundler/commit/6d27548ea9b9b11a547cd07608f6957bdd310fe8))
+* **deps:** update dependency @vercel/nft to v0.27.1 ([#599](https://github.com/netlify/edge-bundler/issues/599)) ([0fde015](https://github.com/netlify/edge-bundler/commit/0fde015caa8f67a56ac71da3393c53abd256730c))
+* **deps:** update dependency @vercel/nft to v0.27.10 ([#625](https://github.com/netlify/edge-bundler/issues/625)) ([f5c8001](https://github.com/netlify/edge-bundler/commit/f5c8001d55a730e53e8d65e49aad382cb5709284))
+* **deps:** update dependency @vercel/nft to v0.27.2 ([#603](https://github.com/netlify/edge-bundler/issues/603)) ([91be07e](https://github.com/netlify/edge-bundler/commit/91be07ef31cbea9a4e1f4460d11e3a2d310b1de1))
+* **deps:** update dependency @vercel/nft to v0.27.5 ([#609](https://github.com/netlify/edge-bundler/issues/609)) ([e5566de](https://github.com/netlify/edge-bundler/commit/e5566deb1c44be95740273e1dc7a797b841c3297))
+* **deps:** update dependency @vercel/nft to v0.27.6 ([#611](https://github.com/netlify/edge-bundler/issues/611)) ([e1f412d](https://github.com/netlify/edge-bundler/commit/e1f412d58af3d7f1e0a5261719eb669d09f49f4d))
+* **deps:** update dependency @vercel/nft to v0.27.7 ([#618](https://github.com/netlify/edge-bundler/issues/618)) ([3196a3a](https://github.com/netlify/edge-bundler/commit/3196a3a69bdb070b9b9e898ae2f84496be70dcc0))
+* **deps:** update dependency @vercel/nft to v0.27.9 ([#621](https://github.com/netlify/edge-bundler/issues/621)) ([a095755](https://github.com/netlify/edge-bundler/commit/a0957559ffadb3d0a1323c584cf61e5f8c65decd))
+* **deps:** update dependency ajv to v8.13.0 ([#598](https://github.com/netlify/edge-bundler/issues/598)) ([7bfd7c6](https://github.com/netlify/edge-bundler/commit/7bfd7c61da9673a987b8b03925ac008455fde210))
+* **deps:** update dependency ajv to v8.14.0 ([#600](https://github.com/netlify/edge-bundler/issues/600)) ([fbf63e2](https://github.com/netlify/edge-bundler/commit/fbf63e22e77dd841e34cf09e6d06f0af88235af2))
+* **deps:** update dependency ajv to v8.16.0 ([#605](https://github.com/netlify/edge-bundler/issues/605)) ([f1d33b7](https://github.com/netlify/edge-bundler/commit/f1d33b74ca7aeec19a7c2149316d4547a94e43fb))
+* **deps:** update dependency ajv to v8.17.1 ([#614](https://github.com/netlify/edge-bundler/issues/614)) ([f2b4edd](https://github.com/netlify/edge-bundler/commit/f2b4eddab1f97ee81ff5d8b6dfa0f4b02bc826d8))
+* **deps:** update dependency esbuild to v0.21.4 ([#601](https://github.com/netlify/edge-bundler/issues/601)) ([2dd4275](https://github.com/netlify/edge-bundler/commit/2dd427549c11b5e43cde028f7a76150fa026c62c))
+* **deps:** update dependency esbuild to v0.21.5 ([#604](https://github.com/netlify/edge-bundler/issues/604)) ([e439748](https://github.com/netlify/edge-bundler/commit/e439748629362b0f9d5264e82cc06e2e207b85bf))
+* **deps:** update dependency esbuild to v0.24.0 ([#615](https://github.com/netlify/edge-bundler/issues/615)) ([11f4bfd](https://github.com/netlify/edge-bundler/commit/11f4bfd2f7e87c55141c764e63846dc93bbe1189))
+* **deps:** update dependency esbuild to v0.24.2 ([#626](https://github.com/netlify/edge-bundler/issues/626)) ([d7f997a](https://github.com/netlify/edge-bundler/commit/d7f997ad25fe931fff49a8edd8b9a25a8b980d7b))
+* **deps:** update dependency esbuild to v0.25.0 [security] ([#631](https://github.com/netlify/edge-bundler/issues/631)) ([a38cc4a](https://github.com/netlify/edge-bundler/commit/a38cc4a7328e8326ade38e8554012df54c97e959))
+* **deps:** update dependency esbuild to v0.25.1 ([#633](https://github.com/netlify/edge-bundler/issues/633)) ([d22fa3f](https://github.com/netlify/edge-bundler/commit/d22fa3ff0ea08e8c41aa9560f988b7ca6e8f94f8))
+* **deps:** update dependency jsonc-parser to v3.3.1 ([#617](https://github.com/netlify/edge-bundler/issues/617)) ([ff07858](https://github.com/netlify/edge-bundler/commit/ff07858ab3fd4ecc8e54aefc57a87c3d61a322f4))
+* **deps:** update dependency semver to v7.6.2 ([#595](https://github.com/netlify/edge-bundler/issues/595)) ([4d6ebd6](https://github.com/netlify/edge-bundler/commit/4d6ebd62d7a0dbd2a772deb48a7e03cc95ebf38c))
+* **deps:** update dependency semver to v7.6.3 ([#612](https://github.com/netlify/edge-bundler/issues/612)) ([c7a46d0](https://github.com/netlify/edge-bundler/commit/c7a46d036d588bd2c29008ee037e344ce6c3a7e9))
+* **deps:** update dependency semver to v7.7.1 ([#636](https://github.com/netlify/edge-bundler/issues/636)) ([1fafa1b](https://github.com/netlify/edge-bundler/commit/1fafa1b824878db56466a2b7f5776e892b0a2947))
+
 ## [11.4.0](https://github.com/netlify/edge-bundler/compare/v11.3.0...v11.4.0) (2024-03-25)
 
 
