@@ -1,13 +1,12 @@
 {
-  extends: ['github>netlify/renovate-config:default'],
-  ignorePresets: [':prHourlyLimit2'],
-  semanticCommits: true,
+  extends: ["github>netlify/renovate-config:default"],
+  ignorePresets: [":prHourlyLimit2"],
+  semanticCommits: "enabled",
   dependencyDashboard: true,
   automerge: true,
   packageRules: [
     {
-      // We need to use the same version as better-ajv-errors
-      packageNames: ['chalk'],
+      matchPackageNames: ["chalk"],
       major: {
         enabled: false,
       },
